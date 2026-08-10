@@ -57,7 +57,7 @@ export const medecinService = {
     return res.data;
   },
 
-  async update(id: number, data: Partial<MedecinCreate>): Promise<Medecin> {
+  async update(id: number, data: Partial<MedecinCreate> & { idMedecin: number }): Promise<Medecin> {
     const res = await api.put<Medecin>(`/medecins/${id}`, data);
     return res.data;
   },
