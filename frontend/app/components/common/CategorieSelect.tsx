@@ -1,0 +1,43 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { categorieService } from '@/app/services/categorieService';
+
+interface CategorieSelectProps {
+  value: number | null;
+  onChange: (id: number | null) => void;
+  error?: string;
+  label?: string;
+  required?: boolean;
+  placeholder?: string;
+}
+
+export const CategorieSelect: React.FC<CategorieSelectProps> = ({ value, onChange, error, label = 'Catégorie', required = false, placeholder = 'Sélectionner une catégorie' }) => {
+  const [categories, setCategories] = useState<{ id: number; nom: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    categorieService.getAll(1, 100).then(res => {
+      setCategories(res.items.map(c => ({ id: c.idCategorie, nom: c.nomCategorie })));
+    }).finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <select
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+        className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 ${error ? 'border-red-500' : ''}`}
+      >
+        <option value="">{placeholder}</option>
+        {categories.map(c => (
+          <option key={c.id} value={c.id}>{c.nom}</option>
+        ))}
+      </select>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+    </div>
+  );
+};
