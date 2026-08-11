@@ -113,6 +113,10 @@ export const rendezvousService = {
     await api.patch(`/rendezvous/${id}/annuler`, null, { params: { motif } });
   },
 
+  async changerStatut(id: number, statut: StatutRendezVous): Promise<void> {
+    await api.patch(`/rendezvous/${id}/statut`, null, { params: { statut } });
+  },
+
   async delete(id: number): Promise<void> {
     await api.delete(`/rendezvous/${id}`);
   },

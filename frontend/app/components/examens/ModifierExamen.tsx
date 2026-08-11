@@ -191,14 +191,14 @@ export default function ModifierExamen() {
         {/* Type et Catégorie */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormInput
-            label="Type d'examen *"
+            label="Type d'examen"
             name="typeExamen"
             value={formData.typeExamen}
             onChange={handleChange}
             required
           />
           <FormSelect
-            label="Catégorie *"
+            label="Catégorie"
             name="idCategorieExamen"
             value={formData.idCategorieExamen}
             onChange={(e) =>
@@ -215,7 +215,7 @@ export default function ModifierExamen() {
         {/* Dates */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormInput
-            label="Date prescription *"
+            label="Date prescription"
             name="datePrescription"
             type="datetime-local"
             value={formData.datePrescription}

@@ -19,6 +19,7 @@ public class FactureRequestDto {
     private Integer idPatient;
 
     private Integer idHospitalisation;
+    private Integer idConsultation;
     private LocalDateTime dateEcheance;
     private Double tva;
     private Boolean assurancePriseEnCharge;

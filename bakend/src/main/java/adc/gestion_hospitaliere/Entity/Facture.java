@@ -41,6 +41,13 @@ public class Facture {
     @JoinColumn(name = "id_hospitalisation", insertable = false, updatable = false)
     private Hospitalisation hospitalisation;
 
+    @Column(name = "id_consultation")
+    private Integer idConsultation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_consultation", insertable = false, updatable = false)
+    private Consultation consultation;
+
     @Column(name = "date_emission", nullable = false)
     private LocalDateTime dateEmission;
 

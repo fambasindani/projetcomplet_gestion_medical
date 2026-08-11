@@ -99,13 +99,14 @@ export default function InventaireForm() {
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormInput
-              label="Date *"
+              label="Date"
               type="datetime-local"
               value={form.dateInventaire}
               onChange={(e) => setForm({...form, dateInventaire: e.target.value})}
+              required
             />
             <FormSelect
-              label="Type *"
+              label="Type"
               value={form.typeInventaire}
               onChange={(e) => setForm({...form, typeInventaire: e.target.value})}
               options={[
@@ -115,15 +116,17 @@ export default function InventaireForm() {
                 { value: 'Tournant', label: 'Tournant' },
                 { value: 'Exceptionnel', label: 'Exceptionnel' },
               ]}
+              required
             />
             <FormSelect
-              label="Réalisateur *"
+              label="Réalisateur"
               value={form.realisePar}
               onChange={(e) => setForm({...form, realisePar: Number(e.target.value)})}
               options={[
                 { value: 0, label: '-- Choisir --' },
                 ...personnels.map(p => ({ value: p.idPersonnel, label: `${p.nom} ${p.prenom}` })),
               ]}
+              required
             />
           </div>
 
@@ -141,12 +144,14 @@ export default function InventaireForm() {
                 label="Médicament"
                 value={currentLigne.idMedicament}
                 onChange={(id) => setCurrentLigne({...currentLigne, idMedicament: id || 0})}
+                required
               />
               <LotSearchSelect
                 label="Lot"
                 value={currentLigne.idLot}
                 onChange={(id) => setCurrentLigne({...currentLigne, idLot: id || 0})}
                 medicamentId={currentLigne.idMedicament || undefined}
+                required
               />
               <FormInput
                 label="Qté Réelle"
@@ -166,13 +171,11 @@ export default function InventaireForm() {
                 value={currentLigne.raisonEcart}
                 onChange={(e) => setCurrentLigne({...currentLigne, raisonEcart: e.target.value})}
               />
-              <button
-                type="button"
-                onClick={addLigne}
-                className="bg-indigo-600 text-white mt-6 rounded flex items-center justify-center gap-2 h-10"
-              >
-                <FaPlus /> Ajouter
-              </button>
+              <div className="flex items-end">
+                <Button type="button" onClick={addLigne} icon={<FaPlus size={12} />} className="h-[42px] w-full">
+                  Ajouter
+                </Button>
+              </div>
             </div>
 
             {form.lignes.length > 0 && (

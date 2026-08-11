@@ -10,6 +10,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import type { PagedResult } from '@/app/types/pagination';
@@ -50,6 +51,7 @@ const ChambreList: React.FC = () => {
   const [filters, setFilters] = useState({ statut: '', type: '', etage: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   useEffect(() => {
     const fetchChambres = async () => {
@@ -79,7 +81,7 @@ const ChambreList: React.FC = () => {
       }
     };
     fetchChambres();
-  }, [paginationParams.pageIndex, paginationParams.pageSize, filters.statut, filters.type, filters.etage]);
+  }, [paginationParams.pageIndex, paginationParams.pageSize, filters.statut, filters.type, filters.etage, reloadTrigger]);
 
   const handleDelete = async (id: number, numero: string) => {
     const ok = await confirm({
@@ -93,6 +95,18 @@ const ChambreList: React.FC = () => {
     try {
       await chambreService.delete(id);
       toast.success('Chambre supprimée');
+      setReloadTrigger(prev => prev + 1);
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    }
+  };
+
+  const handleChangerStatut = async (chambre: Chambre, statut: StatutChambre) => {
+    if (statut === chambre.statut) return;
+    try {
+      await chambreService.changerStatut(chambre.idChambre, statut);
+      toast.success(`Statut mis à jour : ${statutLabels[statut]}`);
+      setReloadTrigger(prev => prev + 1);
     } catch (error) {
       toast.error(extractErrorMessage(error));
     }
@@ -130,6 +144,7 @@ const ChambreList: React.FC = () => {
         }
         actions={
           <>
+            <RefreshButton onRefresh={() => setReloadTrigger(prev => prev + 1)} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -225,9 +240,16 @@ const ChambreList: React.FC = () => {
                     <FaBuilding className="inline mr-1" /> Étage {chambre.etage ?? '-'} - {chambre.batiment ?? '-'}
                   </Td>
                   <Td className="whitespace-nowrap">
-                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statutColors[chambre.statut]}`}>
-                      {statutLabels[chambre.statut]}
-                    </span>
+                    <select
+                      value={chambre.statut}
+                      onChange={(e) => void handleChangerStatut(chambre, e.target.value as StatutChambre)}
+                      className={`inline-flex rounded-full border-0 px-2 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-200 ${statutColors[chambre.statut]}`}
+                      title="Changer le statut"
+                    >
+                      {(Object.keys(statutLabels) as StatutChambre[]).map((s) => (
+                        <option key={s} value={s}>{statutLabels[s]}</option>
+                      ))}
+                    </select>
                   </Td>
                   <Td className="whitespace-nowrap text-sm text-gray-600">
                     {chambre.prixJour ? `$${chambre.prixJour}` : '-'}

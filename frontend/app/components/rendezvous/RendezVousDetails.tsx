@@ -25,20 +25,61 @@ const statutStyles: Record<StatutRendezVous, string> = {
   [StatutRendezVous.NonPresente]: 'bg-amber-50 text-amber-700 border-amber-200',
 };
 
+const statutOptions: StatutRendezVous[] = [
+  StatutRendezVous.Programme,
+  StatutRendezVous.Confirme,
+  StatutRendezVous.Termine,
+  StatutRendezVous.NonPresente,
+  StatutRendezVous.Annule,
+];
+
 export default function RendezVousDetails() {
   const { id } = useParams();
   const router = useRouter();
   const [rdv, setRdv] = useState<RendezVous | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newStatut, setNewStatut] = useState<StatutRendezVous | ''>('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (id) {
       rendezvousService.getById(Number(id))
-        .then(setRdv)
+        .then((data) => { setRdv(data); setNewStatut(data.statut); })
         .catch(() => toast.error('Erreur lors du chargement'))
         .finally(() => setLoading(false));
     }
   }, [id]);
+
+  const handleChangerStatut = async () => {
+    if (!rdv || !newStatut || newStatut === rdv.statut) return;
+    setSaving(true);
+    try {
+      await rendezvousService.changerStatut(rdv.idRdv, newStatut);
+      setRdv({ ...rdv, statut: newStatut });
+      toast.success('Statut mis à jour');
+    } catch {
+      toast.error('Erreur lors du changement de statut');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAnnuler = async () => {
+    if (!rdv) return;
+    const motif = window.prompt('Motif d\'annulation :');
+    if (motif === null) return;
+    setSaving(true);
+    try {
+      await rendezvousService.annuler(rdv.idRdv, motif || 'Annulation sans motif');
+      setRdv({ ...rdv, statut: StatutRendezVous.Annule, motifAnnulation: motif, dateAnnulation: new Date().toISOString() });
+      setNewStatut(StatutRendezVous.Annule);
+      toast.success('Rendez-vous annulé');
+    } catch {
+      toast.error('Erreur lors de l\'annulation');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) return <SkeletonDetails />;
   if (!rdv) return <div className="p-10 text-center text-gray-500">Rendez-vous introuvable.</div>;
@@ -56,7 +97,7 @@ export default function RendezVousDetails() {
               Modifier
             </Button>
             {rdv.statut !== StatutRendezVous.Annule && (
-              <Button variant="danger" onClick={() => router.push(`/rendezvous`)} icon={<FaTimesCircle />}>
+              <Button variant="danger" icon={<FaTimesCircle />} onClick={handleAnnuler} disabled={saving}>
                 Annuler
               </Button>
             )}
@@ -87,6 +128,24 @@ export default function RendezVousDetails() {
             <InfoBlock icon={FaUserMd} label="Médecin" value={`Dr. ${rdv.medecinNom} ${rdv.medecinPrenom}`} subValue={rdv.medecinSpecialite} />
             <InfoBlock icon={FaClock} label="Horaire" value={format(new Date(rdv.dateRdv), "HH'h'mm")} subValue={`${rdv.dureeEstimee || 30} minutes`} />
             <InfoBlock icon={FaStethoscope} label="Type" value={rdv.typeConsultation || 'Standard'} />
+          </div>
+
+          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 space-y-3">
+            <h3 className="text-sm font-bold text-indigo-700 uppercase tracking-wider">Changer le statut</h3>
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={newStatut}
+                onChange={(e) => setNewStatut(e.target.value as StatutRendezVous)}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              >
+                {statutOptions.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <Button onClick={handleChangerStatut} disabled={saving || newStatut === rdv.statut}>
+                {saving ? 'Mise à jour...' : 'Appliquer'}
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-4">

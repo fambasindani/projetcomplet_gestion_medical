@@ -110,7 +110,7 @@ export default function FournisseurForm({ initialData, isEdit = false }: Fournis
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <FormInput
-              label="Nom du fournisseur *"
+              label="Nom du fournisseur"
               name="nomFournisseur"
               value={formData.nomFournisseur}
               onChange={handleChange}

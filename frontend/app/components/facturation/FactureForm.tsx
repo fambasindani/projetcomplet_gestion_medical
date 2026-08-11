@@ -11,13 +11,17 @@ import {
   FaFileInvoice,
   FaClipboardList,
   FaUserInjured,
+  FaDownload,
+  FaSpinner,
 } from 'react-icons/fa';
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { acteMedicalService } from '@/app/services/acteMedicalService';
-import { factureService } from '@/app/services/factureService';
+import { consultationService } from '@/app/services/consultationService';
+import { factureService, SourceElementLabels, type ElementFacturable } from '@/app/services/factureService';
 import type { FactureCreate } from '@/app/types/facture';
+import type { Consultation } from '@/app/types/consultation';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import PageHeader from '@/app/ui/PageHeader';
 import Button, { IconButton } from '@/app/ui/Button';
@@ -73,6 +77,14 @@ export default function FactureForm() {
   const [lignes, setLignes] = useState<LigneFacture[]>([nouvelleLigne()]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [elementsPatient, setElementsPatient] = useState<ElementFacturable[]>([]);
+  const [elementsCharges, setElementsCharges] = useState(false);
+  const [chargementElements, setChargementElements] = useState(false);
+  const [selectionElements, setSelectionElements] = useState<Set<number>>(new Set());
+  const [consultationsPatient, setConsultationsPatient] = useState<Consultation[]>([]);
+  const [idConsultation, setIdConsultation] = useState<number | ''>('');
+  const [chargementConsultations, setChargementConsultations] = useState(false);
+
   const loadActes = useCallback(async () => {
     try {
       const list = await acteMedicalService.getSimpleList();
@@ -98,6 +110,88 @@ export default function FactureForm() {
       };
       return updated;
     });
+  };
+
+  const chargerConsultationsPatient = async (patientId: number) => {
+    setChargementConsultations(true);
+    try {
+      const resultat = await consultationService.getByPatient(patientId, 1, 200);
+      setConsultationsPatient(resultat.items ?? []);
+    } catch {
+      setConsultationsPatient([]);
+    } finally {
+      setChargementConsultations(false);
+    }
+  };
+
+  const handlePatientChange = (value: number | null) => {
+    setIdPatient(value);
+    setElementsPatient([]);
+    setElementsCharges(false);
+    setSelectionElements(new Set());
+    setIdConsultation('');
+    if (value) {
+      void chargerConsultationsPatient(value);
+    } else {
+      setConsultationsPatient([]);
+    }
+  };
+
+  const chargerElementsPatient = async () => {
+    if (!idPatient) {
+      toast.error('Sélectionnez d\'abord un patient');
+      return;
+    }
+    setChargementElements(true);
+    try {
+      const elements = await factureService.getElementsPatient(idPatient, idConsultation || null);
+      setElementsPatient(elements);
+      setElementsCharges(true);
+      setSelectionElements(new Set(elements.map((_, i) => i)));
+      if (elements.length === 0) {
+        toast('Aucun élément facturable trouvé pour ce patient');
+      } else {
+        toast.success(`${elements.length} élément(s) récupéré(s) pour ce patient`);
+      }
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    } finally {
+      setChargementElements(false);
+    }
+  };
+
+  const toggleElement = (index: number) => {
+    setSelectionElements((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const ajouterElementsSelectionnes = () => {
+    const elementsAjoutes = elementsPatient
+      .map((el, index) => ({ el, index }))
+      .filter(({ index }) => selectionElements.has(index));
+    if (elementsAjoutes.length === 0) {
+      toast.error('Cochez au moins un élément à ajouter');
+      return;
+    }
+    setLignes((prev) => {
+      const nouvelles = elementsAjoutes.map(({ el }) => ({
+        idActe: el.idActe,
+        idMedicament: el.idMedicament,
+        description: el.description,
+        quantite: el.quantite > 0 ? el.quantite : 1,
+        prixUnitaire: el.prixUnitaire,
+        remise: 0,
+      }));
+      return [...prev.filter((l) => !(l.description.trim() === '' && l.quantite === 1 && l.prixUnitaire === 0)), ...nouvelles];
+    });
+    toast.success(`${elementsAjoutes.length} élément(s) ajouté(s) à la facture`);
+    setElementsCharges(false);
+    setElementsPatient([]);
+    setSelectionElements(new Set());
   };
 
   const updateLigne = (index: number, field: 'description' | 'quantite' | 'prixUnitaire' | 'remise', value: string | number) => {
@@ -155,6 +249,7 @@ export default function FactureForm() {
       const payload: FactureCreate = {
         idPatient,
         idHospitalisation: null,
+        idConsultation: idConsultation === '' ? null : idConsultation,
         dateEcheance: formatDateForBackend(dateEcheance),
         tva,
         assurancePriseEnCharge,
@@ -202,7 +297,7 @@ export default function FactureForm() {
                 <div>
                   <PatientSearchSelect
                     value={idPatient}
-                    onChange={setIdPatient}
+                    onChange={handlePatientChange}
                     error={errors.idPatient}
                     required
                     label="Patient"
@@ -225,6 +320,116 @@ export default function FactureForm() {
                   onChange={(e) => setDateEcheance(e.target.value)}
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Consultation liée</label>
+                <select
+                  value={idConsultation}
+                  onChange={(e) => {
+                    setIdConsultation(e.target.value === '' ? '' : Number(e.target.value));
+                    setElementsPatient([]);
+                    setElementsCharges(false);
+                    setSelectionElements(new Set());
+                  }}
+                  className="block w-full rounded-lg border border-gray-300 p-2 text-sm disabled:bg-gray-100"
+                  disabled={!idPatient || chargementConsultations}
+                >
+                  <option value="">
+                    {chargementConsultations
+                      ? 'Chargement des consultations...'
+                      : idPatient
+                        ? 'Aucune consultation spécifique (tout l\'historique)'
+                        : 'Sélectionnez d\'abord un patient'}
+                  </option>
+                  {consultationsPatient.map((c) => (
+                    <option key={c.idConsultation} value={c.idConsultation}>
+                      Consultation du {new Date(c.dateConsultation).toLocaleDateString('fr-FR')}
+                      {c.motifConsultation ? ` - ${c.motifConsultation}` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-gray-500">
+                  La facture est liée à une consultation : seuls les actes, examens et médicaments de cette visite seront proposés. Sinon, tout l&apos;historique du patient est affiché.
+                </p>
+              </div>
+
+              <div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!idPatient || chargementElements}
+                  onClick={chargerElementsPatient}
+                  icon={chargementElements ? <FaSpinner className="animate-spin" /> : <FaDownload size={14} />}
+                >
+                  {chargementElements ? 'Chargement...' : 'Récupérer les éléments du patient'}
+                </Button>
+                <p className="mt-2 text-xs text-gray-500">
+                  Regroupe automatiquement les consultations, examens, médicaments délivrés et l&apos;hospitalisation (chambre) de ce patient, avec leurs tarifs.
+                </p>
+              </div>
+
+              {elementsCharges && elementsPatient.length > 0 && (
+                <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h6 className="text-sm font-semibold text-indigo-700">
+                      {elementsPatient.length} élément(s) à facturer
+                    </h6>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectionElements(new Set(elementsPatient.map((_, i) => i)))}
+                        className="text-xs text-indigo-600 hover:underline"
+                      >
+                        Tout cocher
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectionElements(new Set())}
+                        className="text-xs text-indigo-600 hover:underline"
+                      >
+                        Tout décocher
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {elementsPatient.map((el, index) => (
+                      <label
+                        key={index}
+                        className="flex items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-gray-100 cursor-pointer hover:ring-indigo-200"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectionElements.has(index)}
+                          onChange={() => toggleElement(index)}
+                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600">
+                              {SourceElementLabels[el.source]}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {el.dateElement ? new Date(el.dateElement).toLocaleDateString('fr-FR') : ''}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 truncate">{el.description}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold text-gray-800">
+                            {(el.prixUnitaire * el.quantite).toFixed(2)} $
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {el.quantite} × {el.prixUnitaire.toFixed(2)} $
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  <Button type="button" onClick={ajouterElementsSelectionnes} icon={<FaPlus size={12} />}>
+                    Ajouter la sélection à la facture
+                  </Button>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -258,7 +463,7 @@ export default function FactureForm() {
                     placeholder="Identifiant de la mutuelle"
                   />
                   <FormInput
-                    label="Montant pris en charge (€)"
+                    label="Montant pris en charge ($)"
                     name="montantMutuelle"
                     type="number"
                     step="0.01"
@@ -389,16 +594,16 @@ export default function FactureForm() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Total HT</span>
-                  <span className="font-medium">{totalHt.toFixed(2)}</span>
+                  <span className="font-medium">{totalHt.toFixed(2)} $</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">TVA ({tva.toFixed(2)}%)</span>
-                  <span className="font-medium">{montantTva.toFixed(2)}</span>
+                  <span className="font-medium">{montantTva.toFixed(2)} $</span>
                 </div>
                 <hr className="my-2" />
                 <div className="flex justify-between text-sm font-semibold">
                   <span>Total TTC</span>
-                  <span className="text-indigo-600">{totalTtc.toFixed(2)}</span>
+                  <span className="text-indigo-600">{totalTtc.toFixed(2)} $</span>
                 </div>
               </div>
             </div>

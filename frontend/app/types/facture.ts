@@ -82,6 +82,7 @@ export interface Facture {
   patientNom: string;
   patientPrenom: string;
   idHospitalisation: number | null;
+  idConsultation: number | null;
   dateEmission: string;
   dateEcheance: string | null;
   montantHt: number;
@@ -112,6 +113,7 @@ export interface FactureDetailLigne {
 export interface FactureCreate {
   idPatient: number;
   idHospitalisation: number | null;
+  idConsultation: number | null;
   dateEcheance: string | null;
   tva: number;
   assurancePriseEnCharge: boolean;

@@ -14,6 +14,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
@@ -88,6 +89,7 @@ export default function HospitalisationList() {
         subtitle={`${pagedData?.totalCount || 0} admissions`}
         actions={
           <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>

@@ -13,6 +13,7 @@ import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import SpecialitesFilters from './SpecialitesFilters';
@@ -29,6 +30,7 @@ const SpecialitesList: React.FC = () => {
   const [currentFilter, setCurrentFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   // Chargement des données (déplacé dans useEffect)
   useEffect(() => {
@@ -68,7 +70,7 @@ const SpecialitesList: React.FC = () => {
       }
     };
     fetchSpecialites();
-  }, [paginationParams, currentFilter, searchTerm]);
+  }, [paginationParams, currentFilter, searchTerm, reloadTrigger]);
 
   const handleDelete = async (id: number, nom: string) => {
     const ok = await confirm({
@@ -82,8 +84,7 @@ const SpecialitesList: React.FC = () => {
     try {
       await specialiteService.delete(id);
       toast.success('Spécialité supprimée');
-      // Recharger après suppression
-      // Le useEffect se déclenchera automatiquement grâce aux dépendances, pas besoin d'appel manuel
+      setReloadTrigger(prev => prev + 1);
     } catch (error) {
       toast.error(extractErrorMessage(error));
     }
@@ -122,6 +123,7 @@ const SpecialitesList: React.FC = () => {
         subtitle={<><FaTag className="inline mr-1" /> {pagedData?.totalCount || 0} spécialité(s) trouvée(s)</>}
         actions={
           <>
+            <RefreshButton onRefresh={() => setReloadTrigger(prev => prev + 1)} loading={loading} />
             <Button
               variant="secondary"
               onClick={() => setShowStats(true)}

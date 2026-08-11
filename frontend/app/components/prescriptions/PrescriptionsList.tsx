@@ -11,6 +11,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterSelect, FilterInput } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { prescriptionService } from '@/app/services/prescriptionService';
@@ -64,6 +65,7 @@ export default function PrescriptionsList() {
         subtitle="Gestion des ordonnances et actes médicaux"
         actions={
           <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter size={14} />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>

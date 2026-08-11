@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PDFViewer } from '@react-pdf/renderer';
+import { toast } from 'react-hot-toast';
 import { examenService } from '@/app/services/examenService';
 import { prescriptionService } from '@/app/services/prescriptionService';
 import ExamensPDF from './ExamensPDF';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import type { Examen } from '@/app/types/examen';
 import type { Prescription } from '@/app/types/prescription';
+
+const hasResultat = (ex: Examen): boolean =>
+  !!(ex.resultat || ex.interpretation || ex.compteRendu || ex.conclusion || ex.anomalies);
 
 export default function ImpressionExamensPrescription() {
   const params = useParams();
@@ -35,6 +39,10 @@ export default function ImpressionExamensPrescription() {
         ]);
         setExamens(examensData);
         setPrescription(prescriptionData);
+        const nbSansResultat = examensData.filter((ex) => !hasResultat(ex)).length;
+        if (nbSansResultat > 0) {
+          toast.error(`Résultat pas disponible pour ${nbSansResultat} examen(s)`);
+        }
       } catch (error) {
         console.error('Erreur de chargement :', error);
         router.push('/examens/liste');

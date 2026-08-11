@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { PDFViewer } from '@react-pdf/renderer';
 import {
   FaArrowLeft,
   FaMoneyBillWave,
@@ -15,6 +16,8 @@ import {
   FaFileInvoice,
   FaListAlt,
   FaReceipt,
+  FaPrint,
+  FaTimes,
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 import { useConfirm } from 'react-use-confirming-dialog';
@@ -24,6 +27,7 @@ import PageHeader from '@/app/ui/PageHeader';
 import Button from '@/app/ui/Button';
 import { Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import Card from '@/app/components/common/Card';
+import FacturePDF from '@/app/components/facturation/FacturePDF';
 import { factureService } from '@/app/services/factureService';
 import type { Facture, StatutFacture } from '@/app/types/facture';
 import { StatutFactureLabels, ModePaiementLabels } from '@/app/types/facture';
@@ -45,6 +49,7 @@ export default function FactureDetails() {
   const [facture, setFacture] = useState<Facture | null>(null);
   const [loading, setLoading] = useState(true);
   const [annulationLoading, setAnnulationLoading] = useState(false);
+  const [pdfOuvert, setPdfOuvert] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -96,6 +101,14 @@ export default function FactureDetails() {
           <>
             <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/factures')}>
               Retour
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<FaPrint />}
+              onClick={() => setPdfOuvert(true)}
+              disabled={facture.details.length === 0}
+            >
+              Imprimer / PDF
             </Button>
             {annulable && (
               <Button
@@ -157,7 +170,7 @@ export default function FactureDetails() {
               label="Mutuelle"
               value={
                 facture.mutuellePriseEnCharge && facture.mutuellePriseEnCharge > 0
-                  ? `Prise en charge : ${facture.mutuellePriseEnCharge.toFixed(2)} €${facture.mutuelleId ? ` (n°${facture.mutuelleId})` : ''}`
+                  ? `Prise en charge : ${facture.mutuellePriseEnCharge.toFixed(2)} $${facture.mutuelleId ? ` (n°${facture.mutuelleId})` : ''}`
                   : 'Non prise en charge'
               }
             />
@@ -211,11 +224,11 @@ export default function FactureDetails() {
                           )}
                         </Td>
                         <Td className="text-center">{detail.quantite}</Td>
-                        <Td className="text-right">{detail.prixUnitaire.toFixed(2)}</Td>
+                        <Td className="text-right">{detail.prixUnitaire.toFixed(2)} $</Td>
                         <Td className="text-right">{detail.remise.toFixed(2)}%</Td>
-                        <Td className="text-right">{detail.montantHt.toFixed(2)}</Td>
+                        <Td className="text-right">{detail.montantHt.toFixed(2)} $</Td>
                         <Td className="text-right font-semibold text-indigo-600">
-                          {detail.montantTtc.toFixed(2)}
+                          {detail.montantTtc.toFixed(2)} $
                         </Td>
                       </Tr>
                     ))}
@@ -253,7 +266,7 @@ export default function FactureDetails() {
                             {format(new Date(paiement.datePaiement), 'dd/MM/yyyy HH:mm', { locale: fr })}
                           </Td>
                           <Td className="text-right font-semibold text-green-600">
-                            {paiement.montant.toFixed(2)}
+                            {paiement.montant.toFixed(2)} $
                           </Td>
                           <Td>{ModePaiementLabels[paiement.modePaiement]}</Td>
                           <Td>{paiement.referencePaiement || '-'}</Td>
@@ -265,7 +278,7 @@ export default function FactureDetails() {
                       <tr>
                         <td className="px-5 py-3 font-semibold">Total encaissé</td>
                         <td className="px-5 py-3 text-right font-bold text-green-600">
-                          {totalPaiements.toFixed(2)}
+                          {totalPaiements.toFixed(2)} $
                         </td>
                         <td colSpan={3} />
                       </tr>
@@ -278,6 +291,29 @@ export default function FactureDetails() {
         </div>
 
       </div>
+
+      {pdfOuvert && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">Facture {facture.numeroFacture}</h3>
+              <button onClick={() => setPdfOuvert(false)} className="text-gray-500 hover:text-gray-700">
+                <FaTimes />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <PDFViewer width="100%" height="100%" className="border-0">
+                <FacturePDF facture={facture} />
+              </PDFViewer>
+            </div>
+            <div className="p-4 border-t flex justify-end">
+              <Button variant="secondary" onClick={() => setPdfOuvert(false)}>
+                Fermer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -315,7 +351,7 @@ function MontantCard({ label, value, color = 'text-gray-800', highlight = false 
       className={`p-4 rounded-xl border ${highlight ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-100'}`}
     >
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
-      <p className={`text-xl font-bold ${highlight ? 'text-indigo-600' : color}`}>{value.toFixed(2)}</p>
+      <p className={`text-xl font-bold ${highlight ? 'text-indigo-600' : color}`}>{value.toFixed(2)} $</p>
     </div>
   );
 }

@@ -8,6 +8,25 @@ import type {
   StatutFacture,
 } from '../types/facture';
 import type { PagedResult } from '../types/pagination';
+import { toIsoStartOfDay, toIsoEndOfDay } from '../utils/dateRange';
+
+export interface ElementFacturable {
+  source: 'CONSULTATION' | 'EXAMEN' | 'MEDICAMENT' | 'HOSPITALISATION';
+  idActe: number | null;
+  idMedicament: number | null;
+  idHospitalisation: number | null;
+  description: string;
+  quantite: number;
+  prixUnitaire: number;
+  dateElement: string | null;
+}
+
+export const SourceElementLabels: Record<ElementFacturable['source'], string> = {
+  CONSULTATION: 'Consultation',
+  EXAMEN: 'Examen',
+  MEDICAMENT: 'Médicament',
+  HOSPITALISATION: 'Hospitalisation',
+};
 
 export interface FactureFiltres {
   pageIndex?: number;
@@ -26,8 +45,8 @@ export const factureService = {
         pageSize: filtres?.pageSize ?? 10,
         statut: filtres?.statut || undefined,
         idPatient: filtres?.idPatient ?? undefined,
-        dateStart: filtres?.dateStart || undefined,
-        dateEnd: filtres?.dateEnd || undefined,
+        dateStart: toIsoStartOfDay(filtres?.dateStart),
+        dateEnd: toIsoEndOfDay(filtres?.dateEnd),
       },
     });
     return response.data;
@@ -41,6 +60,17 @@ export const factureService = {
   async getStatistiques(): Promise<FactureStats> {
     const response = await api.get<FactureStats>('/factures/statistiques');
     return response.data;
+  },
+
+  async getElementsPatient(idPatient: number, idConsultation?: number | null): Promise<ElementFacturable[]> {
+    const response = await api.get<PagedResult<ElementFacturable>>(`/factures/elements/${idPatient}`, {
+      params: {
+        pageIndex: 1,
+        pageSize: 500,
+        idConsultation: idConsultation ?? undefined,
+      },
+    });
+    return response.data.items;
   },
 
   async create(data: FactureCreate): Promise<Facture> {

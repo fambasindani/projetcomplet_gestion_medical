@@ -27,6 +27,9 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Inte
     Page<Prescription> findByTypePrescription(TypePrescription type, Pageable pageable);
     Page<Prescription> findByStatut(StatutPrescription statut, Pageable pageable);
 
+    List<Prescription> findByIdConsultation(Integer idConsultation);
+    List<Prescription> findByIdHospitalisation(Integer idHospitalisation);
+
     boolean existsByNumeroPrescription(String numeroPrescription);
 
     @Query("SELECT p FROM Prescription p WHERE " +

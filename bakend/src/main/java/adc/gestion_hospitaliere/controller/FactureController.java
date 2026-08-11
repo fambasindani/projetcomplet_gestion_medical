@@ -2,6 +2,7 @@ package adc.gestion_hospitaliere.controller;
 
 import adc.gestion_hospitaliere.Enums.StatutFacture;
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
+import adc.gestion_hospitaliere.dto.facture.ElementFacturableDto;
 import adc.gestion_hospitaliere.dto.facture.FactureRequestDto;
 import adc.gestion_hospitaliere.dto.facture.FactureResponseDto;
 import adc.gestion_hospitaliere.dto.facture.FactureStatsDto;
@@ -42,6 +43,17 @@ public class FactureController {
     @GetMapping("/statistiques")
     public ResponseEntity<FactureStatsDto> getStatistiques() {
         return ResponseEntity.ok(factureService.getStatistiques());
+    }
+
+    @GetMapping("/elements/{idPatient}")
+    public ResponseEntity<PagedResponse<ElementFacturableDto>> getElementsFacturables(
+            @PathVariable Integer idPatient,
+            @RequestParam(required = false) Integer idConsultation,
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "100") int pageSize) {
+        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
+        Page<ElementFacturableDto> page = factureService.getElementsFacturables(idPatient, idConsultation, pageable);
+        return ResponseEntity.ok(PagedResponse.of(page));
     }
 
     @GetMapping("/{id}")

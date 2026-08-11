@@ -147,12 +147,12 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
             <PersonnelSearchSelect
               value={formData.personnelId}
               onChange={handlePersonnelChange}
-              label="Personnel *"
+              label="Personnel"
               required
               error={personnelError}
             />
             <FormInput
-              label="Email *"
+              label="Email"
               name="email"
               type="email"
               value={formData.email}
@@ -163,7 +163,7 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
             {!initialData && (
               <>
                 <FormInput
-                  label="Mot de passe *"
+                  label="Mot de passe"
                   name="password"
                   type="password"
                   value={formData.password}
@@ -172,7 +172,7 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
                   error={errors.password}
                 />
                 <FormInput
-                  label="Confirmer le mot de passe *"
+                  label="Confirmer le mot de passe"
                   name="confirmPassword"
                   type="password"
                   value={formData.confirmPassword}

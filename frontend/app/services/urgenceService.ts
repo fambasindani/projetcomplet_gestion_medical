@@ -9,6 +9,7 @@ import {
   StatutAdmissionUrgence,
   StatutInterventionUrgence,
 } from '@/app/types/urgence';
+import { toIsoStartOfDay, toIsoEndOfDay } from '@/app/utils/dateRange';
 
 export const urgenceService = {
   // ---- Admissions ----
@@ -23,7 +24,9 @@ export const urgenceService = {
     pageIndex = 1,
     pageSize = 10,
   ): Promise<PagedResult<AdmissionUrgence>> {
-    const res = await api.get('/urgences/admissions', { params: { ...filters, pageIndex, pageSize } });
+    const res = await api.get('/urgences/admissions', {
+      params: { ...filters, dateStart: toIsoStartOfDay(filters.dateStart), dateEnd: toIsoEndOfDay(filters.dateEnd), pageIndex, pageSize },
+    });
     return res.data;
   },
 
@@ -68,7 +71,9 @@ export const urgenceService = {
     pageIndex = 1,
     pageSize = 10,
   ): Promise<PagedResult<InterventionUrgence>> {
-    const res = await api.get('/urgences/interventions', { params: { ...filters, pageIndex, pageSize } });
+    const res = await api.get('/urgences/interventions', {
+      params: { ...filters, dateStart: toIsoStartOfDay(filters.dateStart), dateEnd: toIsoEndOfDay(filters.dateEnd), pageIndex, pageSize },
+    });
     return res.data;
   },
 

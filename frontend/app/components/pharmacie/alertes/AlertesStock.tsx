@@ -11,6 +11,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import type { PagedResult } from '@/app/types/pagination';
@@ -88,6 +89,7 @@ export default function AlertesStock() {
         subtitle="Gestion des ruptures et péremptions"
         actions={
           <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
             <Button variant="secondary" icon={<FaSync />} onClick={() => alerteStockService.verifier().then(fetchData)}>
               Vérifier
             </Button>

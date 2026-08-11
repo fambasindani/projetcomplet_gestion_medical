@@ -1,6 +1,7 @@
 import api from './api';
 import { PagedResult } from '@/app/types/pagination';
 import { CommandeFournisseur, CommandeCreate, StatutCommandeFournisseur } from '@/app/types/commande';
+import { toIsoStartOfDay, toIsoEndOfDay } from '@/app/utils/dateRange';
 
 export const commandeService = {
   async getAll(pageIndex = 1, pageSize = 10): Promise<PagedResult<CommandeFournisseur>> {
@@ -16,7 +17,13 @@ export const commandeService = {
     pageIndex?: number;
     pageSize?: number;
   }): Promise<PagedResult<CommandeFournisseur>> {
-    const res = await api.get('/commandes-fournisseurs/search', { params });
+    const res = await api.get('/commandes-fournisseurs/search', {
+      params: {
+        ...params,
+        dateStart: toIsoStartOfDay(params.dateStart),
+        dateEnd: toIsoEndOfDay(params.dateEnd),
+      },
+    });
     return res.data;
   },
 

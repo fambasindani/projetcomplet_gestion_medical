@@ -72,7 +72,7 @@ export default function PaiementsList() {
         subtitle={`${paiements.length} paiements enregistrés`}
         actions={
           <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-4 py-2 rounded-lg">
-            <FaMoneyBillWave /> Total encaissé : <strong>{totalEncaissé.toFixed(2)}</strong>
+            <FaMoneyBillWave /> Total encaissé : <strong>{totalEncaissé.toFixed(2)} $</strong>
           </div>
         }
       />
@@ -111,7 +111,7 @@ export default function PaiementsList() {
                     {paiement.patientNom} {paiement.patientPrenom}
                   </Td>
                   <Td className="whitespace-nowrap text-right font-semibold text-green-600">
-                    {paiement.montant.toFixed(2)}
+                    {paiement.montant.toFixed(2)} $
                   </Td>
                   <Td className="whitespace-nowrap">
                     {ModePaiementLabels[paiement.modePaiement]}

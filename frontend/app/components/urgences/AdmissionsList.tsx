@@ -11,6 +11,8 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
+import { useConfirm } from 'react-use-confirming-dialog';
 import { FilterPanel, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { urgenceService } from '@/app/services/urgenceService';
@@ -40,6 +42,7 @@ const statutColors: Record<StatutAdmissionUrgence, string> = {
 export default function AdmissionsList() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const confirm = useConfirm();
   const [pagedData, setPagedData] = useState<PagedResult<AdmissionUrgence> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -79,10 +82,25 @@ export default function AdmissionsList() {
   }, [searchParams]);
 
   const handleDelete = async (adm: AdmissionUrgence) => {
-    if (!confirm(`Supprimer l'admission ${adm.numeroAdmission} ?`)) return;
+    const ok = await confirm({
+      title: 'Suppression',
+      message: `Supprimer l'admission ${adm.numeroAdmission} ?`
+    });
+    if (!ok) return;
     try {
       await urgenceService.deleteAdmission(adm.idAdmissionUrgence);
       toast.success('Admission supprimée');
+      await loadData();
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    }
+  };
+
+  const handleChangerStatut = async (adm: AdmissionUrgence, statut: StatutAdmissionUrgence) => {
+    if (statut === adm.statut) return;
+    try {
+      await urgenceService.changerStatutAdmission(adm.idAdmissionUrgence, statut);
+      toast.success(`Statut mis à jour : ${StatutAdmissionUrgenceLabels[statut]}`);
       await loadData();
     } catch (error) {
       toast.error(extractErrorMessage(error));
@@ -98,6 +116,7 @@ export default function AdmissionsList() {
         subtitle={`${pagedData?.totalCount ?? 0} admission(s)`}
         actions={
           <>
+            <RefreshButton onRefresh={loadData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -171,9 +190,16 @@ export default function AdmissionsList() {
                     </span>
                   </Td>
                   <Td>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statutColors[adm.statut]}`}>
-                      {StatutAdmissionUrgenceLabels[adm.statut]}
-                    </span>
+                    <select
+                      value={adm.statut}
+                      onChange={(e) => void handleChangerStatut(adm, e.target.value as StatutAdmissionUrgence)}
+                      className={`rounded-full border-0 px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-200 ${statutColors[adm.statut]}`}
+                      title="Changer le statut"
+                    >
+                      {StatutAdmissionUrgenceValues.map((s) => (
+                        <option key={s} value={s}>{StatutAdmissionUrgenceLabels[s]}</option>
+                      ))}
+                    </select>
                   </Td>
                   <Td className="text-gray-600">{format(new Date(adm.dateArrivee), 'dd/MM/yyyy HH:mm', { locale: fr })}</Td>
                   <Td className="text-right">

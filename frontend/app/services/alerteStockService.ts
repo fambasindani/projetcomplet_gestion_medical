@@ -2,6 +2,7 @@ import api from './api';
 import { AlerteStock, AlerteStockRequest, AlerteStockUpdate } from '../types/alerte';
 import { PagedResult } from '../types/pagination';
 import { TypeAlerteStock } from '../types/alerte';
+import { toIsoStartOfDay, toIsoEndOfDay } from '../utils/dateRange';
 
 
 export const alerteStockService = {
@@ -15,7 +16,15 @@ export const alerteStockService = {
     pageIndex?: number;
     pageSize?: number;
   }): Promise<PagedResult<AlerteStock>> {
-    const res = await api.get('/alertes-stock', { params });
+    const res = await api.get('/alertes-stock', {
+      params: {
+        ...params,
+        dateStart: undefined,
+        dateEnd: undefined,
+        start: toIsoStartOfDay(params.dateStart),
+        end: toIsoEndOfDay(params.dateEnd),
+      },
+    });
     return res.data;
   },
 

@@ -12,6 +12,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { factureService } from '@/app/services/factureService';
@@ -79,6 +80,7 @@ export default function FacturesList() {
         subtitle={`${pagedData.totalCount} factures`}
         actions={
           <>
+            <RefreshButton onRefresh={loadData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -144,13 +146,13 @@ export default function FacturesList() {
                     {format(new Date(facture.dateEmission), 'dd/MM/yyyy', { locale: fr })}
                   </Td>
                   <Td className="whitespace-nowrap text-right font-semibold">
-                    {facture.montantTtc.toFixed(2)}
+                    {facture.montantTtc.toFixed(2)} $
                   </Td>
                   <Td className="whitespace-nowrap text-right text-green-600">
-                    {facture.montantPaye.toFixed(2)}
+                    {facture.montantPaye.toFixed(2)} $
                   </Td>
                   <Td className="whitespace-nowrap text-right text-red-600">
-                    {facture.montantRestant.toFixed(2)}
+                    {facture.montantRestant.toFixed(2)} $
                   </Td>
                   <Td className="whitespace-nowrap">
                     <span

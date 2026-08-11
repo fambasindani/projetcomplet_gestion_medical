@@ -11,6 +11,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { commandeService } from '@/app/services/commandeService';
@@ -101,6 +102,7 @@ export default function CommandesList() {
         subtitle={`${pagedData.totalCount} commandes`}
         actions={
           <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>

@@ -21,7 +21,7 @@ import {
 } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { examenService } from '@/app/services/examenService';
-import { Examen } from '@/app/types/examen';
+import type { Examen } from '@/app/types/examen';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import PageHeader from '@/app/ui/PageHeader';
 import Button from '@/app/ui/Button';
@@ -70,6 +70,27 @@ export default function ExamenDetails() {
     }
   };
 
+  const hasResultat = (ex: Examen): boolean =>
+    !!(ex.resultat || ex.interpretation || ex.compteRendu || ex.conclusion || ex.anomalies);
+
+  const handlePrintSingle = () => {
+    if (!examen) return;
+    if (!hasResultat(examen)) {
+      toast.error('Résultat pas disponible');
+      return;
+    }
+    router.push(`/examens/${examen.idExamen}/impression`);
+  };
+
+  const handlePrintAll = () => {
+    if (!examen || !examen.idPrescription) return;
+    if (!hasResultat(examen)) {
+      toast.error('Résultat pas disponible');
+      return;
+    }
+    router.push(`/examens/prescriptions/${examen.idPrescription}/impression`);
+  };
+
   if (loading) return <SkeletonDetails />;
   if (!examen) return <div className="p-6 text-center">Examen non trouvé</div>;
 
@@ -87,7 +108,7 @@ export default function ExamenDetails() {
             </Button>
             <Button
               icon={<FaPrint />}
-              onClick={() => router.push(`/examens/${examen.idExamen}/impression`)}
+              onClick={handlePrintSingle}
             >
               Imprimer
             </Button>
@@ -95,9 +116,7 @@ export default function ExamenDetails() {
               <Button
                 variant="secondary"
                 icon={<FaPrint />}
-                onClick={() =>
-                  router.push(`/examens/prescriptions/${examen.idPrescription}/impression`)
-                }
+                onClick={handlePrintAll}
               >
                 Imprimer tous les examens
               </Button>

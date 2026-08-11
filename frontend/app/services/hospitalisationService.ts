@@ -1,6 +1,7 @@
 import api from './api';
 import { PagedResult } from '@/app/types/pagination';
 import { Hospitalisation, HospitalisationCreate, StatutHospitalisation } from '@/app/types/hospitalisation';
+import { toIsoStartOfDay, toIsoEndOfDay } from '@/app/utils/dateRange';
 
 export const hospitalisationService = {
   async getAll(pageIndex = 1, pageSize = 10): Promise<PagedResult<Hospitalisation>> {
@@ -24,7 +25,15 @@ export const hospitalisationService = {
     dateStart?: string;
     dateEnd?: string;
   }, pageIndex = 1, pageSize = 10): Promise<PagedResult<Hospitalisation>> {
-    const res = await api.get('/hospitalisations/search', { params: { ...filters, pageIndex, pageSize } });
+    const res = await api.get('/hospitalisations/search', {
+      params: {
+        ...filters,
+        dateStart: toIsoStartOfDay(filters.dateStart || ''),
+        dateEnd: toIsoEndOfDay(filters.dateEnd || ''),
+        pageIndex,
+        pageSize,
+      },
+    });
     return res.data;
   },
 

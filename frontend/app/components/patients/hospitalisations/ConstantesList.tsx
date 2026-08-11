@@ -12,6 +12,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { constanteService } from '@/app/services/constanteService';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
@@ -95,6 +96,7 @@ export default function ConstantesList() {
           subtitle={`Hospitalisation ${hospitalisation.numeroAdmission} - ${hospitalisation.patientNom} ${hospitalisation.patientPrenom}`}
           actions={
             <>
+              <RefreshButton onRefresh={fetchData} loading={loading} />
               <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.back()}>
                 Retour
               </Button>

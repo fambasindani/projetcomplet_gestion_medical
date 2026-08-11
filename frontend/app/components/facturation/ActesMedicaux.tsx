@@ -10,6 +10,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { FormInput } from '@/app/components/common/FormInput';
@@ -344,6 +345,7 @@ export default function ActesMedicaux() {
         subtitle={`${pagedData.totalCount} actes`}
         actions={
           <>
+            <RefreshButton onRefresh={loadData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -416,7 +418,7 @@ export default function ActesMedicaux() {
                       {CategorieActeLabels[acte.categorie]}
                     </span>
                   </Td>
-                  <Td className="whitespace-nowrap text-right">{acte.prixBase.toFixed(2)}</Td>
+                  <Td className="whitespace-nowrap text-right">{acte.prixBase.toFixed(2)} $</Td>
                   <Td>
                     {acte.remboursable ? (
                       <span className="text-green-600">

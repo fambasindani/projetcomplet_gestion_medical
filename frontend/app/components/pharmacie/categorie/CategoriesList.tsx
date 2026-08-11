@@ -10,6 +10,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { categorieService } from '@/app/services/categorieService';
 import { Categorie } from '@/app/types/categorie';
@@ -63,9 +64,12 @@ export default function CategoriesList() {
         title="Catégories de médicaments"
         subtitle={`${pagedData?.totalCount || 0} catégorie(s)`}
         actions={
-          <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/categories/nouveau')}>
-            Nouvelle catégorie
-          </Button>
+          <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
+            <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/categories/nouveau')}>
+              Nouvelle catégorie
+            </Button>
+          </>
         }
       />
 

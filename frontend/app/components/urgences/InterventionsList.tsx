@@ -11,6 +11,8 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
+import { useConfirm } from 'react-use-confirming-dialog';
 import { FilterPanel, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { urgenceService } from '@/app/services/urgenceService';
@@ -28,6 +30,7 @@ const statutColors: Record<StatutInterventionUrgence, string> = {
 
 export default function InterventionsList() {
   const router = useRouter();
+  const confirm = useConfirm();
   const [pagedData, setPagedData] = useState<PagedResult<InterventionUrgence> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -55,10 +58,25 @@ export default function InterventionsList() {
   }, [loadData]);
 
   const handleDelete = async (int: InterventionUrgence) => {
-    if (!confirm(`Supprimer l'intervention ${int.numeroIntervention} ?`)) return;
+    const ok = await confirm({
+      title: 'Suppression',
+      message: `Supprimer l'intervention ${int.numeroIntervention} ?`
+    });
+    if (!ok) return;
     try {
       await urgenceService.deleteIntervention(int.idInterventionUrgence);
       toast.success('Intervention supprimée');
+      await loadData();
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    }
+  };
+
+  const handleChangerStatut = async (int: InterventionUrgence, statut: StatutInterventionUrgence) => {
+    if (statut === int.statut) return;
+    try {
+      await urgenceService.changerStatutIntervention(int.idInterventionUrgence, statut);
+      toast.success(`Statut mis à jour : ${StatutInterventionUrgenceLabels[statut]}`);
       await loadData();
     } catch (error) {
       toast.error(extractErrorMessage(error));
@@ -74,6 +92,7 @@ export default function InterventionsList() {
         subtitle={`${pagedData?.totalCount ?? 0} intervention(s)`}
         actions={
           <>
+            <RefreshButton onRefresh={loadData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -133,9 +152,16 @@ export default function InterventionsList() {
                   </Td>
                   <Td className="text-gray-600">{format(new Date(int.dateIntervention), 'dd/MM/yyyy HH:mm', { locale: fr })}</Td>
                   <Td>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statutColors[int.statut]}`}>
-                      {StatutInterventionUrgenceLabels[int.statut]}
-                    </span>
+                    <select
+                      value={int.statut}
+                      onChange={(e) => void handleChangerStatut(int, e.target.value as StatutInterventionUrgence)}
+                      className={`rounded-full border-0 px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-200 ${statutColors[int.statut]}`}
+                      title="Changer le statut"
+                    >
+                      {StatutInterventionUrgenceValues.map((s) => (
+                        <option key={s} value={s}>{StatutInterventionUrgenceLabels[s]}</option>
+                      ))}
+                    </select>
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-2">

@@ -8,6 +8,7 @@ import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
@@ -139,6 +140,7 @@ const PersonnelList = () => {
         subtitle={<><FaUsers className="inline mr-1" /> {pagination.totalCount} agent(s) trouvé(s)</>}
         actions={
           <>
+            <RefreshButton onRefresh={() => fetchData(pagination.pageIndex, searchTerm)} loading={loading} />
             <Button
               variant="secondary"
               onClick={() => setShowFilters(!showFilters)}

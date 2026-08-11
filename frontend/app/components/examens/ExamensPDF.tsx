@@ -12,87 +12,134 @@ interface ExamensPDFProps {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 15,
-    fontSize: 8,
-    flexDirection: 'column',
+    padding: 24,
+    fontSize: 9,
+    fontFamily: 'Helvetica',
   },
   title: {
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: 12,
     textAlign: 'center',
     fontWeight: 'bold',
   },
   header: {
     fontSize: 9,
     marginBottom: 2,
+    color: '#333',
   },
-  table: {
-    width: 'auto',
-    marginTop: 8,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#000',
-  },
-  tableRow: {
-    flexDirection: 'row',
+  separator: {
     borderBottomWidth: 1,
-    borderBottomColor: '#000',
-    borderBottomStyle: 'solid',
+    borderBottomColor: '#999',
+    marginVertical: 8,
   },
-  tableHeader: {
-    backgroundColor: '#f0f0f0',
+  examBlock: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginBottom: 10,
+    padding: 8,
+  },
+  examHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  examType: {
+    fontSize: 11,
     fontWeight: 'bold',
   },
-  cellNumero: { width: '8%', padding: 2, fontSize: 7 },
-  cellType: { width: '12%', padding: 2, fontSize: 7 },
-  cellCategorie: { width: '12%', padding: 2, fontSize: 7 },
-  cellDate: { width: '10%', padding: 2, fontSize: 7 },
-  cellResultat: { width: '15%', padding: 2, fontSize: 7 },
-  cellInterpretation: { width: '15%', padding: 2, fontSize: 7 },
-  cellCompteRendu: { width: '12%', padding: 2, fontSize: 7 },
-  cellAnomalies: { width: '10%', padding: 2, fontSize: 7 },
-  cellConclusion: { width: '8%', padding: 2, fontSize: 7 },
+  examMeta: {
+    fontSize: 8,
+    color: '#666',
+    marginTop: 2,
+  },
+  examNumero: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#444',
+  },
+  section: {
+    marginTop: 4,
+  },
+  sectionLabel: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    color: '#555',
+    marginBottom: 2,
+  },
+  sectionBody: {
+    fontSize: 9,
+    lineHeight: 1.4,
+  },
+  missing: {
+    fontSize: 9,
+    fontStyle: 'italic',
+    color: '#b91c1c',
+  },
+  footer: {
+    marginTop: 12,
+    fontSize: 8,
+    color: '#666',
+    textAlign: 'center',
+  },
 });
+
+const formatDate = (dateStr?: string): string => {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleDateString('fr-FR');
+};
 
 export default function ExamensPDF({ examens, titre, patientNom, patientPrenom, medecinNom, medecinPrenom }: ExamensPDFProps) {
   const finalTitre = titre || `Examens (${examens.length})`;
 
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={styles.page}>
+      <Page size="A4" style={styles.page}>
         <Text style={styles.title}>{finalTitre}</Text>
         <Text style={styles.header}>Patient : {patientNom || ''} {patientPrenom || ''}</Text>
-        {medecinNom && <Text style={styles.header}>Médecin : Dr. {medecinNom} {medecinPrenom || ''}</Text>}
+        {medecinNom && <Text style={styles.header}>Médecin prescripteur : Dr. {medecinNom} {medecinPrenom || ''}</Text>}
         <Text style={styles.header}>Date d&apos;impression : {new Date().toLocaleDateString('fr-FR')}</Text>
+        <View style={styles.separator} />
 
-        <View style={styles.table}>
-          {/* En-tête */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={styles.cellNumero}>N°</Text>
-            <Text style={styles.cellType}>Type</Text>
-            <Text style={styles.cellCategorie}>Cat.</Text>
-            <Text style={styles.cellDate}>Date</Text>
-            <Text style={styles.cellResultat}>Résultat</Text>
-            <Text style={styles.cellInterpretation}>Interpr.</Text>
-            <Text style={styles.cellCompteRendu}>CR</Text>
-            <Text style={styles.cellAnomalies}>Ano.</Text>
-            <Text style={styles.cellConclusion}>Concl.</Text>
-          </View>
+        {examens.map((ex, idx) => {
+          const hasResultat = !!(ex.resultat || ex.interpretation || ex.compteRendu || ex.conclusion || ex.anomalies);
+          return (
+            <View key={idx} style={styles.examBlock} wrap={false}>
+              <View style={styles.examHeader}>
+                <View>
+                  <Text style={styles.examType}>{ex.typeExamen}</Text>
+                  <Text style={styles.examMeta}>
+                    {ex.libelleCategorie} · Prescrit le {formatDate(ex.datePrescription)}
+                    {ex.dateRealisation ? ` · Réalisé le ${formatDate(ex.dateRealisation)}` : ''}
+                  </Text>
+                </View>
+                <Text style={styles.examNumero}>{ex.numeroExamen}</Text>
+              </View>
 
-          {examens.map((ex, idx) => (
-            <View key={idx} style={styles.tableRow}>
-              <Text style={styles.cellNumero}>{ex.numeroExamen}</Text>
-              <Text style={styles.cellType}>{ex.typeExamen}</Text>
-              <Text style={styles.cellCategorie}>{ex.libelleCategorie}</Text>
-              <Text style={styles.cellDate}>{new Date(ex.datePrescription).toLocaleDateString('fr-FR')}</Text>
-              <Text style={styles.cellResultat}>{ex.resultat || '-'}</Text>
-              <Text style={styles.cellInterpretation}>{ex.interpretation || '-'}</Text>
-              <Text style={styles.cellCompteRendu}>{ex.compteRendu || '-'}</Text>
-              <Text style={styles.cellAnomalies}>{ex.anomalies || '-'}</Text>
-              <Text style={styles.cellConclusion}>{ex.conclusion || '-'}</Text>
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Résultat</Text>
+                {hasResultat ? (
+                  <Text style={styles.sectionBody}>
+                    {ex.resultat}
+                    {ex.interpretation ? `\n\nInterprétation : ${ex.interpretation}` : ''}
+                    {ex.anomalies ? `\nAnomalies : ${ex.anomalies}` : ''}
+                    {ex.compteRendu ? `\nCompte rendu : ${ex.compteRendu}` : ''}
+                    {ex.conclusion ? `\nConclusion : ${ex.conclusion}` : ''}
+                  </Text>
+                ) : (
+                  <Text style={styles.missing}>Résultat pas disponible</Text>
+                )}
+              </View>
             </View>
-          ))}
-        </View>
+          );
+        })}
+
+        <View style={styles.separator} />
+        <Text style={styles.footer}>Document généré par le système de gestion hospitalière</Text>
       </Page>
     </Document>
   );

@@ -134,7 +134,7 @@ export default function LotForm({ initialData, isEdit = false }: LotFormProps) {
               />
             </div>
             <FormInput
-              label="Numéro de lot *"
+              label="Numéro de lot"
               name="numeroLot"
               value={formData.numeroLot}
               onChange={handleChange}
@@ -164,7 +164,7 @@ export default function LotForm({ initialData, isEdit = false }: LotFormProps) {
               icon={<FaCalendarAlt />}
             />
             <FormInput
-              label="Date de péremption *"
+              label="Date de péremption"
               name="datePeremption"
               type="datetime-local"
               value={formData.datePeremption}
@@ -174,10 +174,10 @@ export default function LotForm({ initialData, isEdit = false }: LotFormProps) {
               icon={<FaCalendarAlt />}
             />
             <FormInput
-              label="Quantité initiale *"
+              label="Quantité initiale"
               name="quantiteInitial"
               type="number"
-              value={formData.quantiteInitial.toString()}
+              value={formData.quantiteInitial?.toString() || ''}
               onChange={handleChange}
               required
               error={errors.quantiteInitial}
@@ -186,7 +186,7 @@ export default function LotForm({ initialData, isEdit = false }: LotFormProps) {
               label="Quantité restante"
               name="quantiteRestante"
               type="number"
-              value={formData.quantiteRestante.toString()}
+              value={formData.quantiteRestante?.toString() || ''}
               onChange={handleChange}
             />
             <FormInput

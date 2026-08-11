@@ -26,6 +26,8 @@ import OrdonnanceModal from '../../prescriptions/OrdonnanceModal';
 import { FormInput } from '../../common/FormInput';
 import { FormSelect } from '../../common/FormSelect';
 import { FormTextarea } from '../../common/FormTextarea';
+import PageHeader from '@/app/ui/PageHeader';
+import Button from '@/app/ui/Button';
 
 type MotifDelivrance = 'SUR_ORDONNANCE' | 'URGENCE' | 'GRATUITE';
 
@@ -224,28 +226,25 @@ const NouvelleDelivrance = () => {
   ];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* En-tête */}
-        <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 transition"
-          >
-            <FaArrowLeft /> Retour
-          </button>
-          <h1 className="text-2xl font-bold text-gray-800">Nouvelle délivrance</h1>
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Nouvelle délivrance"
+        actions={
+          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.back()}>
+            Retour
+          </Button>
+        }
+      />
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Colonne principale */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Section Patient & Prescription */}
-              <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-                <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                  <FaUser /> Patient et prescription
-                </h5>
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Colonne principale */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Section Patient & Prescription */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
+              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
+                <FaUser /> Patient et prescription
+              </h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <PatientSearchSelect
@@ -328,7 +327,7 @@ const NouvelleDelivrance = () => {
               </div>
 
               {/* Section Médicaments délivrés */}
-              <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+              <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
                 <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
                   <FaPills /> Médicaments délivrés
                 </h5>
@@ -366,8 +365,8 @@ const NouvelleDelivrance = () => {
                         placeholder="Qté"
                         value={currentDetail.quantiteDelivree}
                         onChange={handleQuantityChange}
-                        className={`w-full border rounded-md p-2 ${
-                          errors.quantite ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 ${
+                          errors.quantite ? 'border-red-500' : ''
                         }`}
                       />
                       {errors.quantite && (
@@ -385,7 +384,7 @@ const NouvelleDelivrance = () => {
                         value={currentDetail.prixUnitaire}
                         onChange={handlePriceChange}
                         disabled
-                        className="w-full border border-gray-300 rounded-md p-2 bg-gray-100"
+                        className="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 text-sm text-gray-500"
                       />
                       {errors.prix && <p className="mt-1 text-xs text-red-600">{errors.prix}</p>}
                     </div>
@@ -397,17 +396,18 @@ const NouvelleDelivrance = () => {
                         placeholder="Mutuelle"
                         value={currentDetail.priseEnChargeMutuelle}
                         onChange={handleMutuelleChange}
-                        className="w-full border border-gray-300 rounded-md p-2"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                       />
                     </div>
                     <div>
-                      <button
+                      <Button
                         type="button"
                         onClick={addDetail}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center justify-center gap-1 w-full h-10 hover:bg-indigo-700 transition"
+                        icon={<FaPlus size={12} />}
+                        className="w-full h-[42px]"
                       >
-                        <FaPlus size={12} /> Ajouter
-                      </button>
+                        Ajouter
+                      </Button>
                     </div>
                   </div>
                   {form.details.length === 0 && (
@@ -462,7 +462,7 @@ const NouvelleDelivrance = () => {
 
             {/* Colonne latérale : résumé / info */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden sticky top-6">
+              <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
                 <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
                   <h5 className="font-semibold text-gray-800 flex items-center gap-2">
                     <FaClipboardList /> Récapitulatif
@@ -514,33 +514,15 @@ const NouvelleDelivrance = () => {
           </div>
 
           {/* Boutons d'action */}
-          <div className="flex justify-end gap-4 mt-8">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-            >
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={() => router.back()}>
               Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  En cours...
-                </>
-              ) : (
-                <>
-                  <FaSave /> Enregistrer
-                </>
-              )}
-            </button>
+            </Button>
+            <Button type="submit" disabled={loading} icon={<FaSave />}>
+              {loading ? 'Enregistrement...' : 'Enregistrer'}
+            </Button>
           </div>
         </form>
-      </div>
 
       {showOrdonnanceModal && (
         <OrdonnanceModal

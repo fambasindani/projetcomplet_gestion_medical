@@ -13,6 +13,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 import { notificationService } from '@/app/services/notificationService';
@@ -136,6 +137,7 @@ const NotificationsList: React.FC = () => {
         }
         actions={
           <>
+            <RefreshButton onRefresh={loadNotifications} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>

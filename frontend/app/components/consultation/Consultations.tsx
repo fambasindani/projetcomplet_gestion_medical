@@ -11,6 +11,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import type { PagedResult } from '@/app/types/pagination';
 import type { Consultation } from '@/app/types/consultation';
@@ -115,17 +116,27 @@ const ConsultationList: React.FC = () => {
         }
         actions={
           <>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Rechercher patient / médecin..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setSearchTerm(searchInput); setPaginationParams(prev => ({ ...prev, pageIndex: 1 })); } }}
-                className="w-64 rounded-md border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-              <FaSearch className="absolute left-3 top-3 text-gray-400" />
-            </div>
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSearchTerm(searchInput);
+                setPaginationParams((prev) => ({ ...prev, pageIndex: 1 }));
+              }}
+            >
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Rechercher patient / médecin..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-64 rounded-md border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+                <FaSearch className="absolute left-3 top-3 text-gray-400" />
+              </div>
+              <Button type="submit" icon={<FaSearch />}>Rechercher</Button>
+            </form>
+            <RefreshButton onRefresh={fetchConsultations} loading={loading} />
             <Button icon={<FaPlus />} onClick={() => router.push('/consultations/nouveau')}>
               Nouvelle consultation
             </Button>

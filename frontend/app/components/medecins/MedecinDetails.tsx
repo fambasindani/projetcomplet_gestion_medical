@@ -199,7 +199,7 @@ const MedecinDetails: React.FC = () => {
               <p><span className="font-medium">Spécialité :</span> {pr?.specialite}</p>
               <p><span className="font-medium">Diplôme :</span> {pr?.diplome || '-'}</p>
               <p><span className="font-medium">Qualification :</span> {pr?.qualification || '-'}</p>
-              <p><span className="font-medium">Salaire :</span> {pr?.salaire ? `${pr.salaire} €` : '-'}</p>
+              <p><span className="font-medium">Salaire :</span> {pr?.salaire ? `${pr.salaire} $` : '-'}</p>
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { delivranceService } from '@/app/services/delivranceService';
@@ -77,6 +78,7 @@ export default function DelivranceList() {
         subtitle="Suivi des ordonnances et médicaments délivrés"
         actions={
           <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
             <Button variant="secondary" icon={<FaChartBar />} onClick={() => router.push('/pharmacie/delivrances/statistiques')}>
               Statistiques
             </Button>

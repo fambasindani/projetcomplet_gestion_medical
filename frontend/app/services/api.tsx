@@ -28,6 +28,7 @@ api.interceptors.response.use(
       if (!requestUrl.includes('/auth/login') && !requestUrl.includes('/auth/register')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        document.cookie = 'auth_ok=; Max-Age=0; path=/';
         if (!redirectingToLogin) {
           redirectingToLogin = true;
           const current = window.location.pathname;

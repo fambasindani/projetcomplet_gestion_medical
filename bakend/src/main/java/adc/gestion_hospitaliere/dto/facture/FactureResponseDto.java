@@ -20,6 +20,7 @@ public class FactureResponseDto {
     private String patientNom;
     private String patientPrenom;
     private Integer idHospitalisation;
+    private Integer idConsultation;
     private LocalDateTime dateEmission;
     private LocalDateTime dateEcheance;
     private Double montantHt;

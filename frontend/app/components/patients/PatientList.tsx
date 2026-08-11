@@ -10,6 +10,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import type { PagedResult } from '@/app/types/pagination';
@@ -30,6 +31,7 @@ const PatientList: React.FC = () => {
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -52,7 +54,7 @@ const PatientList: React.FC = () => {
       }
     };
     fetchPatients();
-  }, [paginationParams, paginationParams.pageIndex, paginationParams.pageSize, selectedGenre, searchTerm]);
+  }, [paginationParams, paginationParams.pageIndex, paginationParams.pageSize, selectedGenre, searchTerm, reloadTrigger]);
 
   const handleDelete = async (id: number, nom: string, prenom: string) => {
     const ok = await confirm({
@@ -66,6 +68,7 @@ const PatientList: React.FC = () => {
     try {
       await patientService.delete(id);
       toast.success('Patient supprimé');
+      setReloadTrigger(prev => prev + 1);
     } catch {
       toast.error('Erreur lors de la suppression');
     }
@@ -107,6 +110,7 @@ const PatientList: React.FC = () => {
         }
         actions={
           <>
+            <RefreshButton onRefresh={() => setReloadTrigger(prev => prev + 1)} loading={loading} />
             <Button variant="secondary" icon={<FaChartBar />} onClick={handleStats}>
               Statistiques
             </Button>

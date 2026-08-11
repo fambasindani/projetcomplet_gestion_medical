@@ -183,13 +183,13 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
               <FormInput
-                label="Type d'examen *"
+                label="Type d'examen"
                 value={currentLigne.typeExamen}
                 onChange={e => setCurrentLigne({...currentLigne, typeExamen: e.target.value})}
                 required
               />
               <FormSelect
-                label="Catégorie *"
+                label="Catégorie"
                 value={currentLigne.idCategorieExamen}
                 onChange={e => setCurrentLigne({...currentLigne, idCategorieExamen: parseInt(e.target.value)})}
                 options={categories.map((c) => ({ value: c.idCategorieExamen, label: c.libelle }))}

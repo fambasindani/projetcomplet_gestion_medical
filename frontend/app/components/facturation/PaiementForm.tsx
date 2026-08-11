@@ -43,7 +43,7 @@ export default function PaiementForm({ facture }: PaiementFormProps) {
     if (!montant || montant <= 0) {
       err.montant = 'Le montant doit être supérieur à zéro';
     } else if (montant > montantRestant) {
-      err.montant = `Le montant ne peut pas dépasser le restant dû (${montantRestant.toFixed(2)})`;
+      err.montant = `Le montant ne peut pas dépasser le restant dû (${montantRestant.toFixed(2)} $)`;
     }
     setErrors(err);
     return Object.keys(err).length === 0;
@@ -85,7 +85,7 @@ export default function PaiementForm({ facture }: PaiementFormProps) {
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
           <div className="rounded-lg bg-indigo-50 p-4 text-sm text-indigo-700 flex justify-between">
             <span>Facture {facture.numeroFacture}</span>
-            <span className="font-semibold">Restant : {montantRestant.toFixed(2)}</span>
+            <span className="font-semibold">Restant : {montantRestant.toFixed(2)} $</span>
           </div>
 
           <FormInput

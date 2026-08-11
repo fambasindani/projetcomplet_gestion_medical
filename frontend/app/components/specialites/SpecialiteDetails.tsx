@@ -276,7 +276,7 @@ const SpecialiteDetails: React.FC = () => {
                         {c.statut || '-'}
                       </span>
                     </Td>
-                    <Td className="whitespace-nowrap text-gray-600">{c.prixJour ? `${c.prixJour} €` : '-'}</Td>
+                    <Td className="whitespace-nowrap text-gray-600">{c.prixJour ? `${c.prixJour} $` : '-'}</Td>
                   </Tr>
                 ))
               ) : (

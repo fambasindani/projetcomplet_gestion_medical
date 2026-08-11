@@ -208,7 +208,7 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
         </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
-            label="Date consultation *"
+            label="Date consultation"
             name="dateConsultation"
             type="datetime-local"
             value={formData.dateConsultation}
@@ -217,7 +217,7 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
             error={errors.dateConsultation}
           />
           <FormInput
-            label="Motif *"
+            label="Motif"
             name="motifConsultation"
             value={formData.motifConsultation}
             onChange={handleChange}
@@ -258,7 +258,7 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
           <FormInput label="Arrêt début" name="arretTravailDebut" type="date" value={formData.arretTravailDebut || ''} onChange={handleChange} />
           <FormInput label="Arrêt fin" name="arretTravailFin" type="date" value={formData.arretTravailFin || ''} onChange={handleChange} />
           <FormSelect
-            label="Évolution *"
+            label="Évolution"
             name="evolution"
             value={formData.evolution || ''}
             onChange={handleChange}

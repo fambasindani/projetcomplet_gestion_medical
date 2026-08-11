@@ -10,7 +10,8 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
-import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
+import RefreshButton from '@/app/ui/RefreshButton';
+import { FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { medicamentService } from '@/app/services/medicamentService';
 import { Medicament } from '@/app/types/medicament';
@@ -79,7 +80,6 @@ export default function MedicamentsList() {
   };
 
   if (loading) return <SkeletonTable columns={6} rows={8} />;
-  if (!pagedData) return null;
 
   return (
     <div className="space-y-6">
@@ -88,6 +88,7 @@ export default function MedicamentsList() {
         subtitle={`${pagedData?.totalCount || 0} produits`}
         actions={
           <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -100,49 +101,63 @@ export default function MedicamentsList() {
 
       {showFilters && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-          <FilterPanel>
-            <form onSubmit={handleSearch} className="flex gap-2">
+          <form onSubmit={handleSearch} className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">Recherche par nom</label>
               <FilterInput
                 type="text"
-                placeholder="Rechercher par nom..."
+                placeholder="Rechercher par nom commercial..."
                 value={searchNomInput}
                 onChange={(e) => setSearchNomInput(e.target.value)}
               />
-              <Button type="submit" size="sm" icon={<FaSearch />}>Rechercher</Button>
-            </form>
+            </div>
+            <Button type="submit" icon={<FaSearch />} className="h-[42px] w-full sm:w-auto">Rechercher</Button>
+          </form>
+          <div className="mt-5 grid grid-cols-1 gap-4 border-t border-gray-100 pt-5 md:grid-cols-2">
             <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Catégorie</label>
               <CategorieSelect
                 value={selectedCategorie}
                 onChange={setSelectedCategorie}
                 placeholder="Toutes catégories"
+                hideLabel
               />
             </div>
-            <FilterSelect
-              value={filterActif === undefined ? '' : filterActif ? 'true' : 'false'}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === '') setFilterActif(undefined);
-                else setFilterActif(val === 'true');
-              }}
-            >
-              <option value="">Tous (actifs/inactifs)</option>
-              <option value="true">Actifs</option>
-              <option value="false">Inactifs</option>
-            </FilterSelect>
-          </FilterPanel>
-          <div className="mt-4 text-right">
-            <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-700">
-              Effacer les filtres
-            </button>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Statut</label>
+              <FilterSelect
+                value={filterActif === undefined ? '' : filterActif ? 'true' : 'false'}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') setFilterActif(undefined);
+                  else setFilterActif(val === 'true');
+                }}
+              >
+                <option value="">Tous (actifs/inactifs)</option>
+                <option value="true">Actifs</option>
+                <option value="false">Inactifs</option>
+              </FilterSelect>
+            </div>
           </div>
+          {(searchNom || selectedCategorie !== null || filterActif !== undefined) && (
+            <div className="mt-4 text-right">
+              <button type="button" onClick={clearFilters} className="text-sm text-red-600 hover:text-red-700">
+                Effacer les filtres
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {pagedData?.items?.length === 0 ? (
+      {!pagedData || pagedData.items.length === 0 ? (
         <EmptyState
           icon={<FaPills />}
-          title="Aucun médicament"
-          description="Ajoutez un nouveau médicament pour démarrer."
+          title={pagedData ? 'Aucun médicament' : 'Chargement impossible'}
+          description={
+            pagedData
+              ? 'Ajoutez un nouveau médicament pour démarrer.'
+              : 'Impossible de charger la liste des médicaments. Vérifiez que le serveur est démarré puis cliquez sur Actualiser.'
+          }
           action={
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/medicaments/nouveau')}>
               Nouveau médicament

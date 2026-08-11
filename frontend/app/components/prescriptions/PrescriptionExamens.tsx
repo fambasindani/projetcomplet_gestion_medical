@@ -173,7 +173,14 @@ export default function PrescriptionExamens() {
                       <IconButton
                         color="green"
                         title="Imprimer"
-                        onClick={() => router.push(`/examens/${ex.idExamen}/impression`)}
+                        onClick={() => {
+                          const sansResultat = !(ex.resultat || ex.interpretation || ex.compteRendu || ex.conclusion || ex.anomalies);
+                          if (sansResultat) {
+                            toast.error('Résultat pas disponible');
+                          } else {
+                            router.push(`/examens/${ex.idExamen}/impression`);
+                          }
+                        }}
                       >
                         <FaPrint size={14} />
                       </IconButton>

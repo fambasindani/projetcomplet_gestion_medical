@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface DelivranceMedicamentRepository extends JpaRepository<DelivranceMedicament, Integer> {
@@ -28,6 +29,8 @@ public interface DelivranceMedicamentRepository extends JpaRepository<Delivrance
 
     // Par patient
     Page<DelivranceMedicament> findByIdPatient(Integer patientId, Pageable pageable);
+
+    List<DelivranceMedicament> findByIdPrescriptionMed(Integer idPrescriptionMed);
 
     // Par pharmacien
     Page<DelivranceMedicament> findByIdPharmacien(Integer pharmacienId, Pageable pageable);

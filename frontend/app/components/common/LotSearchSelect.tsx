@@ -149,7 +149,7 @@ export const LotSearchSelect: React.FC<LotSearchSelectProps> = ({
                 </span>
               )}
               <span className="ml-2 text-xs text-green-600">
-                {selectedLot.prixVenteUnitaire.toFixed(2)} Ar
+                {selectedLot.prixVenteUnitaire.toFixed(2)} $
               </span>
             </span>
             <button
@@ -204,7 +204,7 @@ export const LotSearchSelect: React.FC<LotSearchSelectProps> = ({
                 <div className="font-medium">{lot.numeroLot}</div>
                 <div className="text-xs text-gray-500">{lot.medicamentNom}</div>
                 <div className="text-xs text-gray-400">
-                  Stock: {lot.quantiteRestante} | Prix: {lot.prixVenteUnitaire.toFixed(2)} Ar
+                  Stock: {lot.quantiteRestante} | Prix: {lot.prixVenteUnitaire.toFixed(2)} $
                 </div>
               </button>
             ))}

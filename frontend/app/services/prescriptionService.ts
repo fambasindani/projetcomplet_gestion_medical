@@ -1,6 +1,7 @@
 import api from './api';
 import { PagedResult } from '@/app/types/pagination';
 import { Prescription, PrescriptionCreate, StatutPrescription, TypePrescription, PrescriptionMedicament } from '@/app/types/prescription';
+import { toIsoStartOfDay, toIsoEndOfDay } from '@/app/utils/dateRange';
 
 export const prescriptionService = {
   async getAll(pageIndex = 1, pageSize = 10): Promise<PagedResult<Prescription>> {
@@ -25,7 +26,9 @@ export const prescriptionService = {
 
   async search(filters: { type?: TypePrescription | string; statut?: StatutPrescription | string; idPatient?: number; dateStart?: string; dateEnd?: string },
               pageIndex = 1, pageSize = 10): Promise<PagedResult<Prescription>> {
-    const res = await api.get('/prescriptions/search', { params: { ...filters, pageIndex, pageSize } });
+    const res = await api.get('/prescriptions/search', {
+      params: { ...filters, dateStart: toIsoStartOfDay(filters.dateStart), dateEnd: toIsoEndOfDay(filters.dateEnd), pageIndex, pageSize },
+    });
     return res.data;
   },
 

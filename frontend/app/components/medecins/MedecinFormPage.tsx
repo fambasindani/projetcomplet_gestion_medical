@@ -438,7 +438,7 @@ const MedecinFormPage: React.FC = () => {
                       icon={<FaCalendarAlt />}
                     />
                     <FormInput
-                      label="Salaire (€)"
+                      label="Salaire ($)"
                       name="salaire"
                       type="number"
                       value={formData.salaire ?? ''}

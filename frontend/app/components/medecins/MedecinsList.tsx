@@ -16,6 +16,7 @@ import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
@@ -194,6 +195,7 @@ const MedecinsList: React.FC = () => {
         subtitle={<><FaUserMd className="mr-1 inline" /> {pagedData.totalCount} médecin(s) trouvé(s)</>}
         actions={
           <>
+            <RefreshButton onRefresh={loadMedecins} loading={loading} />
             <Button variant="secondary" onClick={handleStats} icon={<FaChartBar />}>Statistiques</Button>
             <Button variant="secondary" onClick={() => setShowFilters(!showFilters)} icon={<FaFilter />}>Filtres</Button>
             <Button onClick={handleAdd} icon={<FaPlus />}>Nouveau médecin</Button>

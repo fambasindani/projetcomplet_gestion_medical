@@ -83,21 +83,21 @@ export default function FactureStats() {
   const cards: Array<{ label: string; value: string; icon: IconType; color: string; bg: string }> = [
     {
       label: 'Total émis',
-      value: `${stats.totalMontantEmis.toFixed(2)}`,
+      value: `${stats.totalMontantEmis.toFixed(2)} $`,
       icon: FaDollarSign,
       color: 'text-indigo-600',
       bg: 'bg-indigo-50',
     },
     {
       label: 'Total payé',
-      value: `${stats.totalPaye.toFixed(2)}`,
+      value: `${stats.totalPaye.toFixed(2)} $`,
       icon: FaCheckCircle,
       color: 'text-emerald-600',
       bg: 'bg-emerald-50',
     },
     {
       label: 'Total restant',
-      value: `${stats.totalRestant.toFixed(2)}`,
+      value: `${stats.totalRestant.toFixed(2)} $`,
       icon: FaHourglassHalf,
       color: 'text-red-600',
       bg: 'bg-red-50',

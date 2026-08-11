@@ -11,6 +11,7 @@ import SkeletonTable from '@/app/ui/SkeletonTable';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
+import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterSelect, FilterInput } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { examenService } from '@/app/services/examenService';
@@ -157,6 +158,7 @@ export default function ExamenList() {
                 }
                 actions={
                     <>
+                        <RefreshButton onRefresh={fetchData} loading={loading} />
                         <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
                             Filtres
                         </Button>
@@ -286,7 +288,12 @@ export default function ExamenList() {
                                                 color="green"
                                                 title="Imprimer tous les examens de la prescription"
                                                 onClick={() => {
-                                                    router.push(`/examens/prescriptions/${examen.idPrescription}/impression`);
+                                                    const sansResultat = !(examen.resultat || examen.interpretation || examen.compteRendu || examen.conclusion || examen.anomalies);
+                                                    if (sansResultat) {
+                                                        toast.error('Résultat pas disponible');
+                                                    } else {
+                                                        router.push(`/examens/prescriptions/${examen.idPrescription}/impression`);
+                                                    }
                                                 }}
                                             >
                                                 <FaPrint size={14} />
