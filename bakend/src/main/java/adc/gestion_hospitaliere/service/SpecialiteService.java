@@ -3,9 +3,15 @@ import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
 import adc.gestion_hospitaliere.exception.BusinessException;
 
 import adc.gestion_hospitaliere.Entity.Specialite;
+import adc.gestion_hospitaliere.Entity.Medecin;
+import adc.gestion_hospitaliere.Entity.Chambre;
 import adc.gestion_hospitaliere.Repository.SpecialiteRepository;
+import adc.gestion_hospitaliere.Repository.MedecinRepository;
+import adc.gestion_hospitaliere.Repository.ChambreRepository;
 import adc.gestion_hospitaliere.dto.Specialites.SpecialiteRequestDto;
 import adc.gestion_hospitaliere.dto.Specialites.SpecialiteResponseDto;
+import adc.gestion_hospitaliere.dto.medcin.MedecinResponseDto;
+import adc.gestion_hospitaliere.dto.chambre.ChambreResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +27,8 @@ import java.util.stream.Collectors;
 public class SpecialiteService {
 
     private final SpecialiteRepository specialiteRepository;
+    private final MedecinRepository medecinRepository;
+    private final ChambreRepository chambreRepository;
 
     public Page<SpecialiteResponseDto> getAllSpecialites(Pageable pageable) {
         return specialiteRepository.findAll(pageable)
@@ -111,6 +119,22 @@ public class SpecialiteService {
                 .map(this::convertToResponseDto);
     }
 
+    public Page<MedecinResponseDto> getMedecinsBySpecialite(Integer specialiteId, Pageable pageable) {
+        if (!specialiteRepository.existsById(specialiteId)) {
+            throw new ResourceNotFoundException("Spécialité non trouvée avec l'id : " + specialiteId);
+        }
+        return medecinRepository.findByIdSpecialite(specialiteId, pageable)
+                .map(this::convertMedecin);
+    }
+
+    public Page<ChambreResponseDto> getChambresBySpecialite(Integer specialiteId, Pageable pageable) {
+        if (!specialiteRepository.existsById(specialiteId)) {
+            throw new ResourceNotFoundException("Spécialité non trouvée avec l'id : " + specialiteId);
+        }
+        return chambreRepository.findByIdSpecialite(specialiteId, pageable)
+                .map(this::convertChambre);
+    }
+
     public Map<String, Object> getStatistiques() {
         long totalSpecialites = specialiteRepository.count();
         long specialitesActives = specialiteRepository.countByActifTrue();
@@ -148,6 +172,54 @@ public class SpecialiteService {
                 .actif(specialite.getActif())
                 .nombreMedecins(specialite.getMedecins() != null ? specialite.getMedecins().size() : 0)
                 .nombreChambres(specialite.getChambres() != null ? specialite.getChambres().size() : 0)
+                .build();
+    }
+
+    private MedecinResponseDto convertMedecin(Medecin m) {
+        return MedecinResponseDto.builder()
+                .idMedecin(m.getIdMedecin())
+                .matricule(m.getMatricule())
+                .nom(m.getNom())
+                .prenom(m.getPrenom())
+                .dateNaissance(m.getDateNaissance())
+                .lieuNaissance(m.getLieuNaissance())
+                .genre(m.getGenre())
+                .telephone(m.getTelephone())
+                .email(m.getEmail())
+                .adresse(m.getAdresse())
+                .idSpecialite(m.getIdSpecialite())
+                .nomSpecialite(m.getSpecialite() != null ? m.getSpecialite().getNomSpecialite() : null)
+                .qualification(m.getQualification())
+                .diplome(m.getDiplome())
+                .numeroOrdre(m.getNumeroOrdre())
+                .dateEmbauche(m.getDateEmbauche())
+                .salaire(m.getSalaire())
+                .disponibilite(m.getDisponibilite())
+                .photo(m.getPhoto())
+                .notes(m.getNotes())
+                .dateCreation(m.getDateCreation())
+                .build();
+    }
+
+    private ChambreResponseDto convertChambre(Chambre c) {
+        return ChambreResponseDto.builder()
+                .idChambre(c.getIdChambre())
+                .numeroChambre(c.getNumeroChambre())
+                .etage(c.getEtage())
+                .batiment(c.getBatiment())
+                .typeChambre(c.getTypeChambre())
+                .statut(c.getStatut())
+                .prixJour(c.getPrixJour())
+                .idSpecialite(c.getIdSpecialite())
+                .nomSpecialite(c.getSpecialite() != null ? c.getSpecialite().getNomSpecialite() : null)
+                .equipements(c.getEquipements())
+                .telephone(c.getTelephone())
+                .television(c.getTelevision())
+                .wifi(c.getWifi())
+                .salleBainPrivee(c.getSalleBainPrivee())
+                .accessibiliteHandicape(c.getAccessibiliteHandicape())
+                .notes(c.getNotes())
+                .nombreHospitalisations(c.getHospitalisations() != null ? c.getHospitalisations().size() : 0)
                 .build();
     }
 }

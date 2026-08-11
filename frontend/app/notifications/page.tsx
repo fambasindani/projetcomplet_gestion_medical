@@ -1,5 +1,5 @@
-import UnderConstruction from '../ui/UnderConstruction';
+import NotificationsList from '../components/notifications/NotificationsList';
 
 export default function NotificationsPage() {
-  return <UnderConstruction title="Notifications" backHref="/" />;
+  return <NotificationsList />;
 }

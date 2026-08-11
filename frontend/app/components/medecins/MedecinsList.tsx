@@ -31,6 +31,7 @@ const MedecinsList: React.FC = () => {
   const [specialites, setSpecialites] = useState<Specialite[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [selectedSpecialite, setSelectedSpecialite] = useState<number | null>(null);
   const [selectedDisponibilite, setSelectedDisponibilite] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -135,6 +136,7 @@ const MedecinsList: React.FC = () => {
   };
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchTerm(searchInput);
     setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
     loadMedecins();
   };
@@ -142,6 +144,7 @@ const MedecinsList: React.FC = () => {
     setSelectedSpecialite(null);
     setSelectedDisponibilite(null);
     setSearchTerm('');
+    setSearchInput('');
     setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
   };
 
@@ -206,8 +209,8 @@ const MedecinsList: React.FC = () => {
               <FilterInput
                 type="text"
                 placeholder="Rechercher par nom, prénom, matricule..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
               <Button type="submit" size="sm" icon={<FaSearch />}>Rechercher</Button>
             </form>

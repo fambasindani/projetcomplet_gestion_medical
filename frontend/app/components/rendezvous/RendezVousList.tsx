@@ -12,6 +12,7 @@ import {
   FaUserInjured,
   FaPlus,
   FaBan,
+  FaSearch,
 } from 'react-icons/fa';
 
 import { useConfirm } from 'react-use-confirming-dialog';
@@ -49,6 +50,7 @@ export default function RendezVousList() {
 
   const [filterStatut, setFilterStatut] = useState('');
   const [searchPatient, setSearchPatient] = useState('');
+  const [searchPatientInput, setSearchPatientInput] = useState('');
 
   const [showFilters, setShowFilters] = useState(false);
 
@@ -78,6 +80,20 @@ export default function RendezVousList() {
           pagination.pageSize
         );
       }
+      if (searchPatient) {
+        const term = searchPatient.toLowerCase();
+        const filtered = data.items.filter(
+          (rdv: RendezVous) =>
+            rdv.patientNom?.toLowerCase().includes(term) ||
+            rdv.patientPrenom?.toLowerCase().includes(term)
+        );
+        data = {
+          ...data,
+          items: filtered,
+          totalCount: filtered.length,
+          totalPages: Math.ceil(filtered.length / pagination.pageSize),
+        };
+      }
       setPagedData(data);
     } catch (error) {
       toast.error('Erreur lors du chargement');
@@ -85,7 +101,7 @@ export default function RendezVousList() {
     } finally {
       setLoading(false);
     }
-  }, [filterStatut, pagination.pageIndex, pagination.pageSize]);
+  }, [filterStatut, searchPatient, pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();
@@ -178,12 +194,22 @@ export default function RendezVousList() {
                 </option>
               ))}
             </FilterSelect>
-            <FilterInput
-              type="text"
-              placeholder="Rechercher un patient..."
-              value={searchPatient}
-              onChange={(e) => setSearchPatient(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <FilterInput
+                type="text"
+                placeholder="Rechercher un patient..."
+                value={searchPatientInput}
+                onChange={(e) => setSearchPatientInput(e.target.value)}
+              />
+              <Button
+                type="button"
+                size="sm"
+                icon={<FaSearch />}
+                onClick={() => { setSearchPatient(searchPatientInput); setPagination(prev => ({ ...prev, pageIndex: 1 })); }}
+              >
+                Rechercher
+              </Button>
+            </div>
           </FilterPanel>
         </div>
       )}

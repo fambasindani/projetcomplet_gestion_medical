@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaBuilding } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaBuilding, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
@@ -23,6 +23,7 @@ export default function FournisseursList() {
   const [pagedData, setPagedData] = useState<{ items: Fournisseur[]; totalCount: number; pageIndex: number; totalPages: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchNom, setSearchNom] = useState('');
+  const [searchNomInput, setSearchNomInput] = useState('');
   const [filterActif, setFilterActif] = useState<boolean | undefined>(undefined);
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
@@ -48,6 +49,19 @@ export default function FournisseursList() {
   useEffect(() => {
     void (async () => { await fetchData(); })();
   }, [fetchData]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchNom(searchNomInput);
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  const clearFilters = () => {
+    setSearchNom('');
+    setSearchNomInput('');
+    setFilterActif(undefined);
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
 
   const handleDelete = async (f: Fournisseur) => {
     const ok = await confirm({ title: 'Supprimer', message: `Supprimer "${f.nomFournisseur}" ?` });
@@ -92,12 +106,15 @@ export default function FournisseursList() {
       {showFilters && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
           <FilterPanel>
-            <FilterInput
-              type="text"
-              placeholder="Rechercher par nom..."
-              value={searchNom}
-              onChange={(e) => setSearchNom(e.target.value)}
-            />
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <FilterInput
+                type="text"
+                placeholder="Rechercher par nom..."
+                value={searchNomInput}
+                onChange={(e) => setSearchNomInput(e.target.value)}
+              />
+              <Button type="submit" size="sm" icon={<FaSearch />}>Rechercher</Button>
+            </form>
             <FilterSelect
               value={filterActif === undefined ? '' : filterActif ? 'true' : 'false'}
               onChange={(e) => {
@@ -111,6 +128,11 @@ export default function FournisseursList() {
               <option value="false">Inactifs</option>
             </FilterSelect>
           </FilterPanel>
+          <div className="mt-4 text-right">
+            <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-700">
+              Effacer les filtres
+            </button>
+          </div>
         </div>
       )}
 

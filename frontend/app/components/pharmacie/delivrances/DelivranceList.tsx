@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { FaPills, FaPlus, FaTrash, FaEye, FaEdit, FaChartBar, FaFilter } from 'react-icons/fa';
+import { FaPills, FaPlus, FaTrash, FaEye, FaEdit, FaChartBar, FaFilter, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
@@ -31,6 +31,7 @@ export default function DelivranceList() {
   const [data, setData] = useState<PagedResult<DelivranceResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [pageIndex, setPageIndex] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const pageSize = 10;
@@ -52,6 +53,12 @@ export default function DelivranceList() {
   useEffect(() => {
     void (async () => { await fetchData(); })();
   }, [fetchData]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchTerm(searchInput);
+    setPageIndex(1);
+  };
 
   const handleDelete = async (id: number) => {
     if (await confirm({ title: 'Supprimer', message: 'Supprimer cette délivrance ?' })) {
@@ -86,12 +93,15 @@ export default function DelivranceList() {
       {showFilters && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
           <FilterPanel>
-            <FilterInput
-              type="text"
-              placeholder="Rechercher par patient, ordonnance..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <FilterInput
+                type="text"
+                placeholder="Rechercher par patient, ordonnance..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <Button type="submit" size="sm" icon={<FaSearch />}>Rechercher</Button>
+            </form>
           </FilterPanel>
         </div>
       )}

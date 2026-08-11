@@ -37,6 +37,10 @@ public class ChambreService {
         return chambreRepository.findByTypeChambre(type, pageable).map(this::toResponseDto);
     }
 
+    public Page<ChambreResponseDto> getChambresBySpecialite(Integer idSpecialite, Pageable pageable) {
+        return chambreRepository.findByIdSpecialite(idSpecialite, pageable).map(this::toResponseDto);
+    }
+
     public Page<ChambreResponseDto> searchChambres(StatutChambre statut, TypeChambre type, Integer etage, Pageable pageable) {
         return chambreRepository.searchChambres(statut, type, etage, pageable).map(this::toResponseDto);
     }

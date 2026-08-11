@@ -26,7 +26,8 @@ const PatientList: React.FC = () => {
   const [pagedData, setPagedData] = useState<PagedResult<Patient> | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
 
@@ -81,11 +82,13 @@ const PatientList: React.FC = () => {
   };
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchTerm(searchInput);
     setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
   };
   const clearFilters = () => {
     setSelectedGenre(null);
     setSearchTerm('');
+    setSearchInput('');
     setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
   };
 
@@ -124,18 +127,18 @@ const PatientList: React.FC = () => {
               <FilterInput
                 type="text"
                 placeholder="Rechercher par nom, prénom, numéro sécurité sociale..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
               <Button type="submit" icon={<FaSearch />} />
             </form>
             <FilterSelect
               value={selectedGenre ?? ''}
-              onChange={(e) => setSelectedGenre(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) => setSelectedGenre(e.target.value ? (e.target.value as Genre) : null)}
             >
               <option value="">Tous genres</option>
-              <option value={0}>Masculin</option>
-              <option value={1}>Féminin</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
             </FilterSelect>
           </FilterPanel>
           {(selectedGenre !== null || searchTerm) && (

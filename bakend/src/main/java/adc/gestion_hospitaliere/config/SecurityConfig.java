@@ -261,6 +261,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/factures/**").hasAnyAuthority("ADMIN", "SECRETAIRE")
                         .requestMatchers(HttpMethod.DELETE, "/api/factures/**").hasAuthority("ADMIN")
 
+                        // ===== NOTIFICATIONS =====
+                        .requestMatchers("/api/notifications/**")
+                        .hasAnyAuthority("ADMIN", "MEDECIN", "SECRETAIRE", "PHARMACIEN", "RH", "INFIRMIER")
+
                         // ===== URGENCES =====
                         .requestMatchers(HttpMethod.GET, "/api/urgences/**").hasAnyAuthority("ADMIN", "MEDECIN", "SECRETAIRE", "INFIRMIER")
                         .requestMatchers(HttpMethod.POST, "/api/urgences/**").hasAnyAuthority("ADMIN", "MEDECIN", "INFIRMIER")

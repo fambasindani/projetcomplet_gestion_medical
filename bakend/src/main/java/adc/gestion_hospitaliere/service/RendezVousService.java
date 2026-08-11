@@ -23,6 +23,7 @@ public class RendezVousService {
     private final RendezVousRepository rendezVousRepository;
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
+    private final NotificationService notificationService;
 
     public List<RendezVousResponseDto> getPlanningJournalier(LocalDateTime date, Integer idMedecin) {
         LocalDateTime start = date.withHour(0).withMinute(0).withSecond(0).withNano(0);
@@ -96,6 +97,17 @@ public class RendezVousService {
         rdv.setNotesPreliminaires(dto.getNotesPreliminaires());
         rdv.setRappelEnvoye(dto.getRappelEnvoye() != null ? dto.getRappelEnvoye() : false);
         rdv = rendezVousRepository.save(rdv);
+
+        String patientNom = patientRepository.findById(rdv.getIdPatient())
+                .map(p -> p.getNom() + " " + p.getPrenom())
+                .orElse("Patient");
+        notificationService.notifier(
+                adc.gestion_hospitaliere.Enums.TypeNotification.NOUVEAU_RDV,
+                "Nouveau rendez-vous",
+                "Rendez-vous " + (rdv.getStatut() != null ? rdv.getStatut() : "") +
+                        " pour " + patientNom + " le " +
+                        (rdv.getDateRdv() != null ? rdv.getDateRdv().toLocalDate() : LocalDate.now()) + ".",
+                "RDV", rdv.getIdRdv());
         return toResponseDto(rdv);
     }
 

@@ -22,7 +22,9 @@ export default function SoinsInfirmiersList() {
   const [soins, setSoins] = useState<SoinInfirmier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [typeInput, setTypeInput] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10, totalPages: 0, totalCount: 0 });
 
@@ -79,13 +81,17 @@ export default function SoinsInfirmiersList() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchTerm(searchInput);
+    setTypeFilter(typeInput);
     setPagination(prev => ({ ...prev, pageIndex: 1 }));
     fetchData();
   };
 
   const clearFilters = () => {
     setSearchTerm('');
+    setSearchInput('');
     setTypeFilter('');
+    setTypeInput('');
     setPagination(prev => ({ ...prev, pageIndex: 1 }));
   };
 
@@ -116,8 +122,8 @@ export default function SoinsInfirmiersList() {
               <FilterInput
                 type="text"
                 placeholder="Rechercher par type, description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="flex-1"
               />
               <Button type="submit" size="sm" icon={<FaSearch />}>Rechercher</Button>
@@ -125,8 +131,8 @@ export default function SoinsInfirmiersList() {
             <FilterInput
               type="text"
               placeholder="Type de soin (ex: Pansement)"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              value={typeInput}
+              onChange={(e) => setTypeInput(e.target.value)}
             />
           </FilterPanel>
           {(searchTerm || typeFilter) && (

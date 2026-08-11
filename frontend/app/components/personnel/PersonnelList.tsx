@@ -21,6 +21,7 @@ const PersonnelList = () => {
   const [personnel, setPersonnel] = useState<PersonnelResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [selectedFonction, setSelectedFonction] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -80,11 +81,13 @@ const PersonnelList = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchTerm(searchInput);
     setPagination(prev => ({ ...prev, pageIndex: 1 }));
   };
 
   const clearFilters = () => {
     setSearchTerm('');
+    setSearchInput('');
     setSelectedGenre(null);
     setSelectedFonction(null);
     setPagination(prev => ({ ...prev, pageIndex: 1 }));
@@ -158,8 +161,8 @@ const PersonnelList = () => {
               <FilterInput
                 type="text"
                 placeholder="Rechercher par nom, prénom, matricule..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
               <Button type="submit" size="sm" icon={<FaSearch />}>Rechercher</Button>
             </form>

@@ -1,5 +1,6 @@
 import api from './api';
 import type {
+  Genre,
   Patient,
   PatientCreate,
   PatientUpdate,
@@ -35,7 +36,7 @@ export const patientService = {
     return response.data;
   },
 
-  async getByGenre(genre: number, params?: PaginationParams): Promise<PagedResult<Patient>> {
+  async getByGenre(genre: Genre, params?: PaginationParams): Promise<PagedResult<Patient>> {
     const response = await api.get<PagedResult<Patient>>(`/patient/genre/${genre}`, {
       params: {
         pageIndex: params?.pageIndex ?? 1,

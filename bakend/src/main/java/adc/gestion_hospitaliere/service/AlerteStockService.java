@@ -21,7 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +33,7 @@ public class AlerteStockService {
     private final MedicamentRepository medicamentRepository;
     private final LotMedicamentRepository lotMedicamentRepository;
     private final PersonnelRepository personnelRepository;
+    private final NotificationService notificationService;
 
     // ---------- CRUD ----------
 
@@ -179,7 +179,34 @@ public class AlerteStockService {
                     .datePeremption(datePeremption)
                     .traitee(false)
                     .build();
-            alerteRepository.save(alerte);
+            alerte = alerteRepository.save(alerte);
+
+            String medNom = medicamentRepository.findById(idMedicament)
+                    .map(Medicament::getNomCommercial)
+                    .orElse("Médicament");
+            switch (type) {
+                case STOCK_CRITIQUE -> notificationService.notifier(
+                        adc.gestion_hospitaliere.Enums.TypeNotification.STOCK_CRITIQUE,
+                        "Stock critique",
+                        "Le stock de « " + medNom + " » est critique (" + stockActuel + " restant, minimum " + stockMin + ").",
+                        "MEDICAMENT", idMedicament);
+                case STOCK_FAIBLE -> notificationService.notifier(
+                        adc.gestion_hospitaliere.Enums.TypeNotification.STOCK_FAIBLE,
+                        "Stock faible",
+                        "Le stock de « " + medNom + " » est faible (" + stockActuel + " restant, minimum " + stockMin + ").",
+                        "MEDICAMENT", idMedicament);
+                case PEREMPTION_PROCHAINE -> notificationService.notifier(
+                        adc.gestion_hospitaliere.Enums.TypeNotification.PEREMPTION_PROCHAINE,
+                        "Péremption prochaine",
+                        "Un lot de « " + medNom + " » expire bientôt (" + (datePeremption != null ? datePeremption.toLocalDate() : "?") + ").",
+                        "MEDICAMENT", idMedicament);
+                case PEREMPTION_DEPASSEE -> notificationService.notifier(
+                        adc.gestion_hospitaliere.Enums.TypeNotification.PEREMPTION_DEPASSEE,
+                        "Lot périmé",
+                        "Un lot de « " + medNom + " » est périmé depuis le " + (datePeremption != null ? datePeremption.toLocalDate() : "?") + ".",
+                        "MEDICAMENT", idMedicament);
+                default -> { }
+            }
         }
     }
 

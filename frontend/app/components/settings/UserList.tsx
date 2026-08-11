@@ -30,6 +30,7 @@ export default function UserList() {
   const [data, setData] = useState<PagedResult<User> | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [selectedActive, setSelectedActive] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -96,12 +97,14 @@ export default function UserList() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchTerm(searchInput);
     setPageIndex(1);
     fetchData();
   };
 
   const clearFilters = () => {
     setSearchTerm('');
+    setSearchInput('');
     setSelectedRole(null);
     setSelectedActive(null);
     setPageIndex(1);
@@ -153,8 +156,8 @@ export default function UserList() {
               <FilterInput
                 type="text"
                 placeholder="Rechercher par nom, prénom, email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
               <Button type="submit" size="sm" icon={<FaSearch />}>Rechercher</Button>
             </form>

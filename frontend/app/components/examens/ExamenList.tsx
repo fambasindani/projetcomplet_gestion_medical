@@ -42,6 +42,7 @@ export default function ExamenList() {
     const [categories, setCategories] = useState<CategorieExamen[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchInput, setSearchInput] = useState('');
     const [selectedStatut, setSelectedStatut] = useState('');
     const [selectedCategorie, setSelectedCategorie] = useState<number | null>(null);
     const [showFilters, setShowFilters] = useState(false);
@@ -123,11 +124,13 @@ export default function ExamenList() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
+        setSearchTerm(searchInput);
         setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
     };
 
     const clearFilters = () => {
         setSearchTerm('');
+        setSearchInput('');
         setSelectedStatut('');
         setSelectedCategorie(null);
         setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
@@ -171,8 +174,8 @@ export default function ExamenList() {
                             <FilterInput
                                 type="text"
                                 placeholder="Rechercher par n° examen, patient, type..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
                             />
                             <button type="submit" className="rounded-md bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-500">
                                 <FaSearch />

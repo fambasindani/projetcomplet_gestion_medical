@@ -13,6 +13,7 @@ import java.util.List;
 public interface ChambreRepository extends JpaRepository<Chambre, Integer> {
     Page<Chambre> findByStatut(StatutChambre statut, Pageable pageable);
     Page<Chambre> findByTypeChambre(TypeChambre type, Pageable pageable);
+    Page<Chambre> findByIdSpecialite(Integer idSpecialite, Pageable pageable);
     Page<Chambre> findByBatimentContainingIgnoreCase(String batiment, Pageable pageable);
 
     @Query("SELECT c FROM Chambre c WHERE " +

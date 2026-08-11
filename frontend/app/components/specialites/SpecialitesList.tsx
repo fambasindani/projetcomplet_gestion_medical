@@ -172,7 +172,7 @@ const SpecialitesList: React.FC = () => {
               </THead>
               <TBody>
                 {pagedData.items.map((spec) => (
-                  <Tr key={spec.idSpecialite} className="cursor-pointer">
+                  <Tr key={spec.idSpecialite} onClick={() => router.push(`/specialites/${spec.idSpecialite}/details`)}>
                     <Td className="whitespace-nowrap text-sm font-medium text-gray-900">
                       {spec.nomSpecialite}
                       {spec.description && (
@@ -196,8 +196,8 @@ const SpecialitesList: React.FC = () => {
                     <Td className="whitespace-nowrap text-center">
                       <div className="flex justify-center gap-2">
                         <IconButton
-                          color="gray"
-                          onClick={() => toast.success(`Détails de ${spec.nomSpecialite} à venir`)}
+                          color="indigo"
+                          onClick={() => router.push(`/specialites/${spec.idSpecialite}/details`)}
                           title="Voir détails"
                         >
                           <FaEye size={14} />

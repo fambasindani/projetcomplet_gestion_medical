@@ -46,7 +46,7 @@ public class AuthController {
             throw new ResourceNotFoundException("Utilisateur non connecté");
         }
         Object principal = auth.getPrincipal();
-        String email = principal instanceof User u ? u.getEmail() : principal.toString();
+        String email = auth.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
         UserResponseDto dto = UserResponseDto.builder()

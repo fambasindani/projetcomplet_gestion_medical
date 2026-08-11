@@ -4,6 +4,8 @@ package adc.gestion_hospitaliere.controller;
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.Specialites.SpecialiteRequestDto;
 import adc.gestion_hospitaliere.dto.Specialites.SpecialiteResponseDto;
+import adc.gestion_hospitaliere.dto.medcin.MedecinResponseDto;
+import adc.gestion_hospitaliere.dto.chambre.ChambreResponseDto;
 import adc.gestion_hospitaliere.service.SpecialiteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -104,5 +106,25 @@ public class SpecialitesController {
     @GetMapping("/statistiques")
     public ResponseEntity<Object> getStatistiques() {
         return ResponseEntity.ok(specialiteService.getStatistiques());
+    }
+
+    @GetMapping("/{id}/medecins")
+    public ResponseEntity<PagedResponse<MedecinResponseDto>> getMedecinsBySpecialite(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
+        Page<MedecinResponseDto> page = specialiteService.getMedecinsBySpecialite(id, pageable);
+        return ResponseEntity.ok(PagedResponse.of(page));
+    }
+
+    @GetMapping("/{id}/chambres")
+    public ResponseEntity<PagedResponse<ChambreResponseDto>> getChambresBySpecialite(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
+        Page<ChambreResponseDto> page = specialiteService.getChambresBySpecialite(id, pageable);
+        return ResponseEntity.ok(PagedResponse.of(page));
     }
 }

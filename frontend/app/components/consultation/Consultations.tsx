@@ -23,6 +23,7 @@ const ConsultationList: React.FC = () => {
   const [pagedData, setPagedData] = useState<PagedResult<Consultation> | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
 
   const fetchConsultations = useCallback(async () => {
@@ -118,8 +119,9 @@ const ConsultationList: React.FC = () => {
               <input
                 type="text"
                 placeholder="Rechercher patient / médecin..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setSearchTerm(searchInput); setPaginationParams(prev => ({ ...prev, pageIndex: 1 })); } }}
                 className="w-64 rounded-md border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
               <FaSearch className="absolute left-3 top-3 text-gray-400" />
@@ -142,7 +144,7 @@ const ConsultationList: React.FC = () => {
           }
           action={
             searchTerm && (
-              <Button variant="secondary" onClick={() => setSearchTerm('')}>
+              <Button variant="secondary" onClick={() => { setSearchTerm(''); setSearchInput(''); }}>
                 Effacer la recherche
               </Button>
             )
