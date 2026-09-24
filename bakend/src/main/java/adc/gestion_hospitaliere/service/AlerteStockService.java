@@ -35,6 +35,25 @@ public class AlerteStockService {
     private final PersonnelRepository personnelRepository;
     private final NotificationService notificationService;
 
+    // ---------- API PUBLIQUE (utilisée par les autres services) ----------
+
+    /**
+     * Vérifie et met à jour les alertes (stock + péremption) pour un médicament.
+     * Crée les alertes manquantes et résout automatiquement celles qui ne sont plus pertinentes.
+     */
+    @Transactional
+    public void verifierMedicament(Integer idMedicament) {
+        verifierMedicamentInterne(idMedicament, false);
+    }
+
+    /**
+     * Recalcule les alertes pour un médicament et émet une notification si une alerte vient d'être créée.
+     */
+    @Transactional
+    public void verifierMedicamentAvecNotification(Integer idMedicament) {
+        verifierMedicamentInterne(idMedicament, true);
+    }
+
     // ---------- CRUD ----------
 
     public Page<AlerteStockResponseDto> getAll(Pageable pageable) {
@@ -124,95 +143,136 @@ public class AlerteStockService {
     @Scheduled(cron = "0 0 * * * *") // toutes les heures
     @Transactional
     public void verifierEtGenererAlertes() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime alertePeremption = now.plusDays(30);
-
-        List<Medicament> medicaments = medicamentRepository.findAll();
-
-        for (Medicament med : medicaments) {
-            Integer stockMin = med.getStockMinimum();
-            if (stockMin != null && stockMin > 0) {
-                int stockActuel = calculerStockActuel(med.getIdMedicament());
-                if (stockActuel < stockMin) {
-                    TypeAlerteStock type = stockActuel < (stockMin / 2)
-                            ? TypeAlerteStock.STOCK_CRITIQUE
-                            : TypeAlerteStock.STOCK_FAIBLE;
-                    creerAlerteSiAbsente(med.getIdMedicament(), type, stockActuel, stockMin, null);
-                }
-            }
-
-            List<LotMedicament> lots = lotMedicamentRepository.findByIdMedicament(med.getIdMedicament());
-            for (LotMedicament lot : lots) {
-                if (lot.getDatePeremption() != null) {
-                    if (lot.getDatePeremption().isBefore(now)) {
-                        creerAlerteSiAbsente(med.getIdMedicament(), TypeAlerteStock.PEREMPTION_DEPASSEE,
-                                null, null, lot.getDatePeremption());
-                    } else if (lot.getDatePeremption().isBefore(alertePeremption)) {
-                        creerAlerteSiAbsente(med.getIdMedicament(), TypeAlerteStock.PEREMPTION_PROCHAINE,
-                                null, null, lot.getDatePeremption());
-                    }
-                }
-            }
-        }
-    }
-
-    private int calculerStockActuel(Integer idMedicament) {
-        List<LotMedicament> lots = lotMedicamentRepository.findByIdMedicament(idMedicament);
-        return lots.stream()
-                .filter(lot -> lot.getStatut() != StatutLot.Périmé)
-                .mapToInt(LotMedicament::getQuantiteRestante)
-                .sum();
-    }
-
-    private void creerAlerteSiAbsente(Integer idMedicament, TypeAlerteStock type,
-                                      Integer stockActuel, Integer stockMin, LocalDateTime datePeremption) {
-        List<AlerteStock> existantes = alerteRepository.findByIdMedicament(idMedicament);
-        boolean existe = existantes.stream()
-                .anyMatch(a -> a.getTypeAlerte() == type && !a.getTraitee());
-
-        if (!existe) {
-            AlerteStock alerte = AlerteStock.builder()
-                    .idMedicament(idMedicament)
-                    .typeAlerte(type)
-                    .seuilActuel(stockActuel)
-                    .seuilMinimum(stockMin)
-                    .datePeremption(datePeremption)
-                    .traitee(false)
-                    .build();
-            alerte = alerteRepository.save(alerte);
-
-            String medNom = medicamentRepository.findById(idMedicament)
-                    .map(Medicament::getNomCommercial)
-                    .orElse("Médicament");
-            switch (type) {
-                case STOCK_CRITIQUE -> notificationService.notifier(
-                        adc.gestion_hospitaliere.Enums.TypeNotification.STOCK_CRITIQUE,
-                        "Stock critique",
-                        "Le stock de « " + medNom + " » est critique (" + stockActuel + " restant, minimum " + stockMin + ").",
-                        "MEDICAMENT", idMedicament);
-                case STOCK_FAIBLE -> notificationService.notifier(
-                        adc.gestion_hospitaliere.Enums.TypeNotification.STOCK_FAIBLE,
-                        "Stock faible",
-                        "Le stock de « " + medNom + " » est faible (" + stockActuel + " restant, minimum " + stockMin + ").",
-                        "MEDICAMENT", idMedicament);
-                case PEREMPTION_PROCHAINE -> notificationService.notifier(
-                        adc.gestion_hospitaliere.Enums.TypeNotification.PEREMPTION_PROCHAINE,
-                        "Péremption prochaine",
-                        "Un lot de « " + medNom + " » expire bientôt (" + (datePeremption != null ? datePeremption.toLocalDate() : "?") + ").",
-                        "MEDICAMENT", idMedicament);
-                case PEREMPTION_DEPASSEE -> notificationService.notifier(
-                        adc.gestion_hospitaliere.Enums.TypeNotification.PEREMPTION_DEPASSEE,
-                        "Lot périmé",
-                        "Un lot de « " + medNom + " » est périmé depuis le " + (datePeremption != null ? datePeremption.toLocalDate() : "?") + ".",
-                        "MEDICAMENT", idMedicament);
-                default -> { }
-            }
+        for (Medicament med : medicamentRepository.findAll()) {
+            verifierMedicamentInterne(med.getIdMedicament(), true);
         }
     }
 
     @Transactional
     public void genererAlertesManuellement() {
         verifierEtGenererAlertes();
+    }
+
+    /**
+     * Logique unique de vérification des alertes (stock + péremption) pour un médicament.
+     * @param avecNotification émet une notification lors de la création d'une alerte
+     */
+    private void verifierMedicamentInterne(Integer idMedicament, boolean avecNotification) {
+        Medicament med = medicamentRepository.findById(idMedicament).orElse(null);
+        if (med == null) return;
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime seuilPeremption = now.plusDays(30);
+
+        // 1. Stock
+        Integer stockMin = med.getStockMinimum();
+        if (stockMin != null && stockMin > 0) {
+            int stockActuel = calculerStockActuel(idMedicament);
+            if (stockActuel < stockMin) {
+                TypeAlerteStock type = stockActuel < (stockMin / 2)
+                        ? TypeAlerteStock.STOCK_CRITIQUE
+                        : TypeAlerteStock.STOCK_FAIBLE;
+                creerAlerteSiAbsente(idMedicament, type, stockActuel, stockMin, null, avecNotification);
+            } else {
+                desactiverAlertes(idMedicament, TypeAlerteStock.STOCK_FAIBLE, TypeAlerteStock.STOCK_CRITIQUE);
+            }
+        }
+
+        // 2. Péremption
+        List<LotMedicament> lots = lotMedicamentRepository.findByIdMedicament(idMedicament);
+        boolean peremptionDepassee = false;
+        boolean peremptionProchaine = false;
+        for (LotMedicament lot : lots) {
+            if (lot.getDatePeremption() == null) continue;
+            if (lot.getDatePeremption().isBefore(now)) {
+                peremptionDepassee = true;
+            } else if (lot.getDatePeremption().isBefore(seuilPeremption)) {
+                peremptionProchaine = true;
+            }
+        }
+        if (peremptionDepassee) {
+            creerAlerteSiAbsente(idMedicament, TypeAlerteStock.PEREMPTION_DEPASSEE, null, null, null, avecNotification);
+        } else {
+            desactiverAlertes(idMedicament, TypeAlerteStock.PEREMPTION_DEPASSEE);
+        }
+        if (peremptionProchaine) {
+            creerAlerteSiAbsente(idMedicament, TypeAlerteStock.PEREMPTION_PROCHAINE, null, null, null, avecNotification);
+        } else {
+            desactiverAlertes(idMedicament, TypeAlerteStock.PEREMPTION_PROCHAINE);
+        }
+    }
+
+    private int calculerStockActuel(Integer idMedicament) {
+        List<LotMedicament> lots = lotMedicamentRepository.findByIdMedicament(idMedicament);
+        LocalDateTime now = LocalDateTime.now();
+        return lots.stream()
+                .filter(lot -> lot.getStatut() != StatutLot.Périmé && lot.getStatut() != StatutLot.Retiré)
+                .filter(lot -> lot.getDatePeremption() == null || !lot.getDatePeremption().isBefore(now))
+                .mapToInt(lot -> lot.getQuantiteRestante() != null ? lot.getQuantiteRestante() : 0)
+                .sum();
+    }
+
+    private void creerAlerteSiAbsente(Integer idMedicament, TypeAlerteStock type,
+                                      Integer stockActuel, Integer stockMin, LocalDateTime datePeremption,
+                                      boolean avecNotification) {
+        List<AlerteStock> existantes = alerteRepository.findByIdMedicament(idMedicament);
+        boolean existe = existantes.stream()
+                .anyMatch(a -> a.getTypeAlerte() == type && !a.getTraitee());
+        if (existe) return;
+
+        AlerteStock alerte = AlerteStock.builder()
+                .idMedicament(idMedicament)
+                .typeAlerte(type)
+                .seuilActuel(stockActuel)
+                .seuilMinimum(stockMin)
+                .datePeremption(datePeremption)
+                .traitee(false)
+                .build();
+        alerteRepository.save(alerte);
+
+        if (!avecNotification) return;
+
+        String medNom = medicamentRepository.findById(idMedicament)
+                .map(Medicament::getNomCommercial)
+                .orElse("Médicament");
+        switch (type) {
+            case STOCK_CRITIQUE -> notificationService.notifier(
+                    adc.gestion_hospitaliere.Enums.TypeNotification.STOCK_CRITIQUE,
+                    "Stock critique",
+                    "Le stock de « " + medNom + " » est critique (" + stockActuel + " restant, minimum " + stockMin + ").",
+                    "MEDICAMENT", idMedicament, adc.gestion_hospitaliere.Enums.Role.PHARMACIEN, null);
+            case STOCK_FAIBLE -> notificationService.notifier(
+                    adc.gestion_hospitaliere.Enums.TypeNotification.STOCK_FAIBLE,
+                    "Stock faible",
+                    "Le stock de « " + medNom + " » est faible (" + stockActuel + " restant, minimum " + stockMin + ").",
+                    "MEDICAMENT", idMedicament, adc.gestion_hospitaliere.Enums.Role.PHARMACIEN, null);
+            case PEREMPTION_PROCHAINE -> notificationService.notifier(
+                    adc.gestion_hospitaliere.Enums.TypeNotification.PEREMPTION_PROCHAINE,
+                    "Péremption prochaine",
+                    "Un lot de « " + medNom + " » expire bientôt (" + (datePeremption != null ? datePeremption.toLocalDate() : "?") + ").",
+                    "MEDICAMENT", idMedicament, adc.gestion_hospitaliere.Enums.Role.PHARMACIEN, null);
+            case PEREMPTION_DEPASSEE -> notificationService.notifier(
+                    adc.gestion_hospitaliere.Enums.TypeNotification.PEREMPTION_DEPASSEE,
+                    "Lot périmé",
+                    "Un lot de « " + medNom + " » est périmé depuis le " + (datePeremption != null ? datePeremption.toLocalDate() : "?") + ".",
+                    "MEDICAMENT", idMedicament, adc.gestion_hospitaliere.Enums.Role.PHARMACIEN, null);
+            default -> { }
+        }
+    }
+
+    private void desactiverAlertes(Integer idMedicament, TypeAlerteStock... types) {
+        List<AlerteStock> alertes = alerteRepository.findByIdMedicament(idMedicament);
+        for (AlerteStock alerte : alertes) {
+            if (Boolean.TRUE.equals(alerte.getTraitee())) continue;
+            for (TypeAlerteStock type : types) {
+                if (alerte.getTypeAlerte() == type) {
+                    alerte.setTraitee(true);
+                    alerte.setDateTraitement(LocalDateTime.now());
+                    alerte.setActionEntreprise("Alerte automatiquement résolue");
+                    alerteRepository.save(alerte);
+                }
+            }
+        }
     }
 
     // ---------- CONVERSION ----------

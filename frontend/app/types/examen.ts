@@ -1,11 +1,11 @@
-export type StatutExamen = 'Prescrit' | 'Planifié' | 'Réalisé' | 'Validé' | 'Annulé';
-export type ConfidentialiteExamen = 'Normal' | 'Confidentiel' | 'Très confidentiel';
+export type StatutExamen = 'Prescrit' | 'Planifié' | 'En_cours' | 'Réalisé' | 'Validé' | 'Annulé';
+export type ConfidentialiteExamen = 'Normal' | 'Confidentiel' | 'Très_confidentiel';
 
 export const STATUT_EXAMEN_OPTIONS: StatutExamen[] = [
-  'Prescrit', 'Planifié', 'Réalisé', 'Validé', 'Annulé'
+  'Prescrit', 'Planifié', 'En_cours', 'Réalisé', 'Validé', 'Annulé'
 ];
 export const CONFIDENTIALITE_OPTIONS: ConfidentialiteExamen[] = [
-  'Normal', 'Confidentiel', 'Très confidentiel'
+  'Normal', 'Confidentiel', 'Très_confidentiel'
 ];
 
 export interface CategorieExamen {
@@ -28,6 +28,9 @@ export interface Examen {
   typeExamen: string;
   idCategorieExamen: number;
   libelleCategorie: string;
+  idActeCatalogue?: number;
+  libelleActeCatalogue?: string;
+  prixActeCatalogue?: number;
   datePrescription: string;
   datePlanification?: string;
   dateRealisation?: string;
@@ -52,6 +55,7 @@ export interface ExamenRequest {
   idMedecinPrescripteur: number;
   typeExamen: string;
   idCategorieExamen: number;
+  idActeCatalogue?: number | null;
   datePrescription?: string;
   datePlanification?: string;
   dateRealisation?: string;

@@ -3,6 +3,7 @@ import adc.gestion_hospitaliere.Enums.StatutRendezVous;
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.rendezvous.RendezVousRequestDto;
 import adc.gestion_hospitaliere.dto.rendezvous.RendezVousResponseDto;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import adc.gestion_hospitaliere.service.RendezVousService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RendezVousController {
     private final RendezVousService rendezVousService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<PagedResponse<RendezVousResponseDto>> getAll(
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<RendezVousResponseDto> page = rendezVousService.getAll(pageable);
+        // Un médecin ne voit que ses propres rendez-vous (rien s'il n'est pas rattaché) ; les autres voient tout.
+        Integer filtre = currentUserService.filtreMedecinId();
+        Page<RendezVousResponseDto> page = (filtre != null)
+                ? rendezVousService.search(null, null, null, filtre, null, pageable)
+                : rendezVousService.getAll(pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 
@@ -40,7 +46,9 @@ public class RendezVousController {
 
     @GetMapping("/stats/aujourdhui")
     public ResponseEntity<Map<String, Long>> getAujourdhui(@RequestParam(required = false) Integer idMedecin) {
-        long count = rendezVousService.compterAujourdhui(idMedecin);
+        // Un médecin ne compte que ses rendez-vous.
+        Integer force = currentUserService.filtreMedecinId();
+        long count = rendezVousService.compterAujourdhui(force != null ? force : idMedecin);
         return ResponseEntity.ok(Map.of("aujourdhui", count));
     }
 
@@ -55,7 +63,10 @@ public class RendezVousController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<RendezVousResponseDto> page = rendezVousService.search(statut, start, end, idMedecin, idPatient, pageable);
+        // Force le filtre sur le médecin connecté.
+        Integer force = currentUserService.filtreMedecinId();
+        Page<RendezVousResponseDto> page = rendezVousService.search(
+                statut, start, end, force != null ? force : idMedecin, idPatient, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 
@@ -113,7 +124,8 @@ public class RendezVousController {
     public ResponseEntity<List<RendezVousResponseDto>> getPlanningJournalier(
             @RequestParam LocalDateTime date,
             @RequestParam(required = false) Integer idMedecin) {
-        return ResponseEntity.ok(rendezVousService.getPlanningJournalier(date, idMedecin));
+        Integer force = currentUserService.filtreMedecinId();
+        return ResponseEntity.ok(rendezVousService.getPlanningJournalier(date, force != null ? force : idMedecin));
     }
 
     @DeleteMapping("/{id}")

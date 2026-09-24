@@ -1,10 +1,15 @@
 package adc.gestion_hospitaliere.service;
 
+import adc.gestion_hospitaliere.Entity.Medecin;
 import adc.gestion_hospitaliere.Entity.Notification;
 import adc.gestion_hospitaliere.Entity.RendezVous;
+import adc.gestion_hospitaliere.Entity.User;
+import adc.gestion_hospitaliere.Enums.Role;
 import adc.gestion_hospitaliere.Enums.TypeNotification;
+import adc.gestion_hospitaliere.Repository.MedecinRepository;
 import adc.gestion_hospitaliere.Repository.NotificationRepository;
 import adc.gestion_hospitaliere.Repository.RendezVousRepository;
+import adc.gestion_hospitaliere.Repository.UserRepository;
 import adc.gestion_hospitaliere.dto.notification.NotificationRequestDto;
 import adc.gestion_hospitaliere.dto.notification.NotificationResponseDto;
 import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
@@ -26,22 +31,64 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final RendezVousRepository rendezVousRepository;
+    private final MedecinRepository medecinRepository;
+    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
+
+    /** Utilisateur (compte) associé à un médecin, ou null. */
+    private Long userIdPourMedecin(Integer idMedecin) {
+        if (idMedecin == null) return null;
+        return medecinRepository.findById(idMedecin)
+                .map(Medecin::getEmail)
+                .flatMap(userRepository::findByEmail)
+                .map(User::getId)
+                .orElse(null);
+    }
+
+    // ---------- CONtexte UTILISATEUR ----------
+
+    private Role roleCourant() {
+        return currentUserService.roleCourant();
+    }
+
+    private Long userIdCourant() {
+        User u = currentUserService.utilisateurCourant();
+        return u != null ? u.getId() : null;
+    }
+
+    private boolean estAdmin() {
+        return roleCourant() == Role.ADMIN;
+    }
 
     // ---------- LECTURE ----------
 
     public Page<NotificationResponseDto> getAll(Boolean lue, Pageable pageable) {
-        Page<Notification> page = (lue != null)
-                ? notificationRepository.findByLue(lue, pageable)
-                : notificationRepository.findAllByOrderByDateCreationDesc(pageable);
-        return page.map(this::toDto);
+        if (estAdmin()) {
+            Page<Notification> page = (lue != null)
+                    ? notificationRepository.findByLue(lue, pageable)
+                    : notificationRepository.findAllByOrderByDateCreationDesc(pageable);
+            return page.map(this::toDto);
+        }
+        Role role = roleCourant();
+        Long userId = userIdCourant();
+        if (Boolean.FALSE.equals(lue)) {
+            return notificationRepository.findNonLuesPourUtilisateur(role, userId, pageable).map(this::toDto);
+        }
+        return notificationRepository.findPourUtilisateur(role, userId, pageable).map(this::toDto);
     }
 
     public Page<NotificationResponseDto> getNonLues(Pageable pageable) {
-        return notificationRepository.findByLue(false, pageable).map(this::toDto);
+        if (estAdmin()) {
+            return notificationRepository.findByLue(false, pageable).map(this::toDto);
+        }
+        return notificationRepository.findNonLuesPourUtilisateur(roleCourant(), userIdCourant(), pageable).map(this::toDto);
     }
 
     public long countNonLues() {
-        return notificationRepository.countByLue(false);
+        if (estAdmin()) {
+            return notificationRepository.countByLue(false);
+        }
+        return notificationRepository.countNonLuesPourUtilisateur(roleCourant(), userIdCourant());
     }
 
     public NotificationResponseDto getById(Integer id) {
@@ -76,13 +123,12 @@ public class NotificationService {
 
     @Transactional
     public long marquerToutesLues() {
-        int updated = notificationRepository.findAll().stream()
-                .filter(n -> !Boolean.TRUE.equals(n.getLue()))
-                .map(n -> { n.setLue(true); return n; })
-                .map(notificationRepository::save)
-                .toList()
-                .size();
-        return updated;
+        List<Notification> aMarquer = estAdmin()
+                ? notificationRepository.findAll().stream().filter(n -> !Boolean.TRUE.equals(n.getLue())).toList()
+                : notificationRepository.findNonLuesListePourUtilisateur(roleCourant(), userIdCourant());
+        aMarquer.forEach(n -> n.setLue(true));
+        notificationRepository.saveAll(aMarquer);
+        return aMarquer.size();
     }
 
     // ---------- SUPPRESSION ----------
@@ -94,21 +140,32 @@ public class NotificationService {
 
     // ---------- CRÉATION PROGRAMMÉE (déclencheurs métier) ----------
 
+    /** Diffusion générale (visible par tous). */
     @Transactional
     public NotificationResponseDto notifier(TypeNotification type, String titre, String message,
                                             String referenceType, Integer referenceId) {
+        return notifier(type, titre, message, referenceType, referenceId, null, null);
+    }
+
+    /** Notification ciblée sur un rôle et/ou un utilisateur précis. */
+    @Transactional
+    public NotificationResponseDto notifier(TypeNotification type, String titre, String message,
+                                            String referenceType, Integer referenceId,
+                                            Role roleDestinataire, Long idDestinataire) {
         Notification notification = Notification.builder()
                 .typeNotification(type)
                 .titre(titre)
                 .message(message)
                 .referenceType(referenceType)
                 .referenceId(referenceId)
+                .roleDestinataire(roleDestinataire)
+                .idDestinataire(idDestinataire)
                 .lue(false)
                 .build();
         return toDto(notificationRepository.save(notification));
     }
 
-    // Tous les matins à 07h00 : rappel des rendez-vous du jour
+    // Tous les matins à 07h00 : rappel des rendez-vous du jour (ciblé médecins)
     @Scheduled(cron = "0 0 7 * * *")
     @Transactional
     public void genererRappelRdvDuJour() {
@@ -119,12 +176,14 @@ public class NotificationService {
             String patientNom = rdv.getPatient() != null
                     ? rdv.getPatient().getNom() + " " + rdv.getPatient().getPrenom()
                     : "Patient";
+            Long destinataire = userIdPourMedecin(rdv.getIdMedecin());
             notifier(
                     TypeNotification.RDV_AUJOURDHUI,
                     "Rendez-vous aujourd'hui",
                     "Rendez-vous de " + patientNom + " prévu aujourd'hui à " +
                             (rdv.getDateRdv() != null ? rdv.getDateRdv().toLocalTime() : LocalTime.now()) + ".",
-                    "RDV", rdv.getIdRdv());
+                    "RDV", rdv.getIdRdv(),
+                    destinataire != null ? null : Role.MEDECIN, destinataire);
         }
     }
 

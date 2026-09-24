@@ -49,10 +49,11 @@ public class FactureController {
     public ResponseEntity<PagedResponse<ElementFacturableDto>> getElementsFacturables(
             @PathVariable Integer idPatient,
             @RequestParam(required = false) Integer idConsultation,
+            @RequestParam(required = false) Integer idHospitalisation,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "100") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<ElementFacturableDto> page = factureService.getElementsFacturables(idPatient, idConsultation, pageable);
+        Page<ElementFacturableDto> page = factureService.getElementsFacturables(idPatient, idConsultation, idHospitalisation, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

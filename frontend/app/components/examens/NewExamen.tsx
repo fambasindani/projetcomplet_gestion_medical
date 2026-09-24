@@ -6,6 +6,8 @@ import { toast } from 'react-hot-toast';
 import { FaSave, FaArrowLeft, FaPlus, FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { examenService } from '@/app/services/examenService';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
+import { acteCatalogueService, type GroupeActe } from '@/app/services/acteCatalogueService';
+import ActeAutocomplete from '@/app/components/facturation/ActeAutocomplete';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { MedecinSearchSelect } from '@/app/components/common/MedecinSearchSelect';
 import { FormInput } from '../common/FormInput';
@@ -13,11 +15,15 @@ import { FormSelect } from '../common/FormSelect';
 import { FormTextarea } from '../common/FormTextarea';
 import { CategorieExamen, StatutExamen, ConfidentialiteExamen } from '@/app/types/examen';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 
 interface ExamenLigne {
   typeExamen: string;
   idCategorieExamen: number;
+  idActeCatalogue: number | null;
   datePlanification: string;
   dateRealisation: string;
   laboratoire: string;
@@ -34,6 +40,7 @@ interface ExamenLigne {
 const statutOptions = [
   { value: 'Prescrit', label: 'Prescrit' },
   { value: 'Planifié', label: 'Planifié' },
+  { value: 'En_cours', label: 'En cours' },
   { value: 'Réalisé', label: 'Réalisé' },
   { value: 'Validé', label: 'Validé' },
   { value: 'Annulé', label: 'Annulé' },
@@ -42,6 +49,7 @@ const statutOptions = [
 export default function NouveauBatchExamens() {
   const router = useRouter();
   const [categories, setCategories] = useState<CategorieExamen[]>([]);
+  const [groupesCatalogue, setGroupesCatalogue] = useState<GroupeActe[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResultFields, setShowResultFields] = useState(false);
   const [form, setForm] = useState({
@@ -54,6 +62,7 @@ export default function NouveauBatchExamens() {
   const [currentLigne, setCurrentLigne] = useState<ExamenLigne>({
     typeExamen: '',
     idCategorieExamen: 0,
+    idActeCatalogue: null,
     datePlanification: '',
     dateRealisation: '',
     laboratoire: '',
@@ -69,7 +78,26 @@ export default function NouveauBatchExamens() {
 
   useEffect(() => {
     categorieExamenService.getAllList().then(setCategories).catch(console.error);
+    acteCatalogueService.getGroupes('Examen').then(setGroupesCatalogue).catch(console.error);
   }, []);
+
+  const normalize = (s: string) =>
+    s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+  const idGroupeCataloguePourCategorie = (idCategorieExamen: number): number | null => {
+    const categorie = categories.find((c) => c.idCategorieExamen === idCategorieExamen);
+    if (!categorie) return null;
+    const match = groupesCatalogue.find((g) => normalize(g.libelle) === normalize(categorie.libelle));
+    return match ? match.idGroupe : null;
+  };
+
+  const handleCategorieChange = (idCategorieExamen: number) => {
+    setCurrentLigne((prev) => ({ ...prev, idCategorieExamen, typeExamen: '', idActeCatalogue: null }));
+  };
+
+  const handleCatalogueSelect = (acte: { libelle: string; idActeCatalogue: number }) => {
+    setCurrentLigne((prev) => ({ ...prev, typeExamen: acte.libelle, idActeCatalogue: acte.idActeCatalogue }));
+  };
 
   const addLigne = () => {
     if (!currentLigne.typeExamen || !currentLigne.idCategorieExamen) {
@@ -83,6 +111,7 @@ export default function NouveauBatchExamens() {
     setCurrentLigne({
       typeExamen: '',
       idCategorieExamen: 0,
+      idActeCatalogue: null,
       datePlanification: '',
       dateRealisation: '',
       laboratoire: '',
@@ -137,13 +166,13 @@ const handleSubmit = async (e: React.FormEvent) => {
 };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-5xl mx-auto">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-6">
-          <FaArrowLeft /> Retour
-        </button>
-        <h1 className="text-2xl font-bold mb-6">Prescription multiple d&apos;examens</h1>
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 space-y-6">
+    <PageShell
+      title="Prescription multiple d'examens"
+      maxWidth="max-w-6xl"
+      onBack={() => router.back()}
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <FormSection>
           {/* Infos communes */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <PatientSearchSelect
@@ -182,19 +211,26 @@ const handleSubmit = async (e: React.FormEvent) => {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-              <FormInput
-                label="Type d'examen"
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-gray-800">
+                Examen précis
+              </label>
+              <ActeAutocomplete
+                categorie="Examen"
+                idGroupe={idGroupeCataloguePourCategorie(currentLigne.idCategorieExamen)}
                 value={currentLigne.typeExamen}
-                onChange={e => setCurrentLigne({...currentLigne, typeExamen: e.target.value})}
-                required
+                onChange={(text) => setCurrentLigne({ ...currentLigne, typeExamen: text })}
+                onSelect={handleCatalogueSelect}
+                placeholder={currentLigne.idCategorieExamen ? 'Tapez pour rechercher (ex. : radio, ECG...)' : 'Choisissez d\'abord une catégorie'}
               />
-              <FormSelect
-                label="Catégorie"
-                value={currentLigne.idCategorieExamen}
-                onChange={e => setCurrentLigne({...currentLigne, idCategorieExamen: parseInt(e.target.value)})}
-                options={categories.map((c) => ({ value: c.idCategorieExamen, label: c.libelle }))}
-                required
-              />
+            </div>
+            <FormSelect
+              label="Catégorie"
+              value={currentLigne.idCategorieExamen}
+              onChange={(e) => handleCategorieChange(parseInt(e.target.value))}
+              options={categories.map((c) => ({ value: c.idCategorieExamen, label: c.libelle }))}
+              required
+            />
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -232,7 +268,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             {/* Champs de résultats (affichés si showResultFields est true) */}
             {showResultFields && (
-              <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+              <div className="mt-4 p-4 border border-slate-200 rounded-lg bg-slate-50">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Résultats et interprétation</h4>
                 <div className="grid grid-cols-1 gap-3">
                   <FormTextarea
@@ -286,7 +322,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       options={[
                         { value: 'Normal', label: 'Normal' },
                         { value: 'Confidentiel', label: 'Confidentiel' },
-                        { value: 'Très confidentiel', label: 'Très confidentiel' },
+                        { value: 'Très_confidentiel', label: 'Très confidentiel' },
                       ]}
                     />
                   </div>
@@ -301,7 +337,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <h3 className="text-lg font-semibold mb-3">Examens à créer ({form.examens.length})</h3>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-slate-50">
                     <tr>
                       <th className="px-3 py-2 text-left">Type</th>
                       <th className="px-3 py-2 text-left">Catégorie</th>
@@ -342,14 +378,16 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           )}
 
-          <div className="flex justify-end gap-4 pt-4">
-            <button type="button" onClick={() => router.back()} className="border px-4 py-2 rounded">Annuler</button>
-            <button type="submit" disabled={loading} className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-2">
-              <FaSave /> {loading ? 'Création...' : `Créer ${form.examens.length} examen(s)`}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </FormSection>
+
+        <FormActions
+          onCancel={() => router.back()}
+          submitLabel={`Créer ${form.examens.length} examen(s)`}
+          loading={loading}
+          loadingLabel="Création..."
+          submitIcon={<FaSave />}
+        />
+      </form>
+    </PageShell>
   );
 }

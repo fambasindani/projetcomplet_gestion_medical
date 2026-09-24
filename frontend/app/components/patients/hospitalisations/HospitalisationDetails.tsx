@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import {
-  FaArrowLeft,
   FaCalendarAlt,
   FaUserMd,
   FaUserInjured,
@@ -18,10 +17,15 @@ import {
 } from 'react-icons/fa';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import DetailBanner from '@/app/ui/DetailBanner';
+import FormSection from '@/app/ui/FormSection';
+import { InfoCard, InfoGrid } from '@/app/ui/InfoCard';
 import Button, { IconButton } from '@/app/ui/Button';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 import { Hospitalisation, StatutHospitalisation } from '@/app/types/hospitalisation';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { peutModifier } from '@/app/utils/permissions';
 
 const statutColors: Record<StatutHospitalisation, string> = {
   En_cours: 'bg-blue-100 text-blue-800',
@@ -37,6 +41,7 @@ const allStatuts = Object.values(StatutHospitalisation);
 export default function HospitalisationDetails() {
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [hospitalisation, setHospitalisation] = useState<Hospitalisation | null>(null);
   const [loading, setLoading] = useState(true);
   const [showStatutModal, setShowStatutModal] = useState(false);
@@ -71,175 +76,140 @@ const handleStatutChange = async () => {
   if (loading) return <SkeletonDetails />;
   if (!hospitalisation) return <div className="space-y-6 text-center">Hospitalisation non trouvée</div>;
 
+  // Un médecin ne peut modifier que les hospitalisations dont il est responsable.
+  const editable = peutModifier(user?.role, user?.medecinId, hospitalisation.idMedecinResponsable);
+
+  // Nombre de jours de séjour (même règle que la facturation : bornes incluses).
+  const nbJours = (() => {
+    const debut = new Date(hospitalisation.dateAdmission);
+    const fin = hospitalisation.dateSortie ? new Date(hospitalisation.dateSortie) : new Date();
+    const d0 = new Date(debut.getFullYear(), debut.getMonth(), debut.getDate()).getTime();
+    const d1 = new Date(fin.getFullYear(), fin.getMonth(), fin.getDate()).getTime();
+    return Math.max(1, Math.round((d1 - d0) / 86400000) + 1);
+  })();
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Détails de l'hospitalisation"
-        actions={
+    <PageShell
+      title="Détails de l'hospitalisation"
+      onBack={() => router.push('/patients/hospitalisations')}
+      actions={
+        editable ? (
+          <Button icon={<FaEdit />} onClick={() => router.push(`/patients/hospitalisations/${hospitalisation.idHospitalisation}/modifier`)}>
+            Modifier
+          </Button>
+        ) : (
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+            Lecture seule
+          </span>
+        )
+      }
+      maxWidth="max-w-6xl"
+    >
+      <DetailBanner
+        meta="Hospitalisation"
+        title={`Hospitalisation du ${format(new Date(hospitalisation.dateAdmission), 'dd MMMM yyyy', { locale: fr })}`}
+        subtitle={`N° admission : ${hospitalisation.numeroAdmission}`}
+        badges={
           <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/patients/hospitalisations')}>
-              Retour
-            </Button>
-            <Button icon={<FaEdit />} onClick={() => router.push(`/patients/hospitalisations/${hospitalisation.idHospitalisation}/modifier`)}>
-              Modifier
-            </Button>
+            <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statutColors[hospitalisation.statut]}`}>
+              {hospitalisation.statut}
+            </span>
+            {editable && (
+              <IconButton color="blue" title="Changer le statut" onClick={() => setShowStatutModal(true)}>
+                <FaExchangeAlt size={14} />
+              </IconButton>
+            )}
           </>
         }
-      />
+      >
+        <InfoGrid>
+          <InfoCard icon={FaUserInjured} label="Patient" value={`${hospitalisation.patientNom} ${hospitalisation.patientPrenom}`} />
+          <InfoCard icon={FaUserMd} label="Médecin responsable" value={`Dr. ${hospitalisation.medecinNom} ${hospitalisation.medecinPrenom}`} />
+          <InfoCard icon={FaBed} label="Chambre" value={hospitalisation.chambreNumero || 'Non attribuée'} />
+          <InfoCard
+            icon={FaCalendarAlt}
+            label="Date d'admission"
+            value={format(new Date(hospitalisation.dateAdmission), "EEEE d MMMM yyyy 'à' HH'h'mm", { locale: fr })}
+          />
+          {hospitalisation.dateSortie && (
+            <InfoCard
+              icon={FaCalendarAlt}
+              label="Date de sortie"
+              value={format(new Date(hospitalisation.dateSortie), "EEEE d MMMM yyyy 'à' HH'h'mm", { locale: fr })}
+            />
+          )}
+          <InfoCard
+            icon={FaCalendarAlt}
+            label="Durée du séjour"
+            value={`${nbJours} jour${nbJours > 1 ? 's' : ''}${!hospitalisation.dateSortie ? ' (en cours)' : ''}`}
+          />
+          <InfoCard icon={FaClipboardList} label="Mode d'entrée" value={hospitalisation.modeEntree} />
+          <InfoCard icon={FaClipboardList} label="Provenance" value={hospitalisation.provenance || '—'} />
+        </InfoGrid>
+      </DetailBanner>
 
-      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
-          {/* En-tête */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-            <h1 className="text-2xl font-bold text-white">
-              Hospitalisation du {format(new Date(hospitalisation.dateAdmission), 'dd MMMM yyyy', { locale: fr })}
-            </h1>
-            <p className="text-indigo-100 text-sm">
-              N° admission : {hospitalisation.numeroAdmission}
-            </p>
+      {/* Détails médicaux */}
+      <FormSection title="Informations médicales" icon={<FaHeartbeat />}>
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Motif d&apos;admission</p>
+            <p className="font-medium">{hospitalisation.motifAdmission}</p>
           </div>
-
-          {/* Corps */}
-          <div className="p-6 space-y-6">
-            {/* Informations générales */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <FaUserInjured className="text-blue-500 text-xl" />
-                  <div>
-                    <p className="text-sm text-gray-500">Patient</p>
-                    <p className="font-semibold">
-                      {hospitalisation.patientNom} {hospitalisation.patientPrenom}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <FaUserMd className="text-green-500 text-xl" />
-                  <div>
-                    <p className="text-sm text-gray-500">Médecin responsable</p>
-                    <p className="font-semibold">
-                      Dr. {hospitalisation.medecinNom} {hospitalisation.medecinPrenom}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <FaBed className="text-purple-500 text-xl" />
-                  <div>
-                    <p className="text-sm text-gray-500">Chambre</p>
-                    <p className="font-semibold">{hospitalisation.chambreNumero || 'Non attribuée'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <FaCalendarAlt className="text-indigo-500 text-xl" />
-                  <div>
-                    <p className="text-sm text-gray-500">Date d&apos;admission</p>
-                    <p className="font-semibold">
-                      {format(new Date(hospitalisation.dateAdmission), "EEEE d MMMM yyyy 'à' HH'h'mm", { locale: fr })}
-                    </p>
-                  </div>
-                </div>
-                {hospitalisation.dateSortie && (
-                  <div className="flex items-center gap-3">
-                    <FaCalendarAlt className="text-orange-500 text-xl" />
-                    <div>
-                      <p className="text-sm text-gray-500">Date de sortie</p>
-                      <p className="font-semibold">
-                        {format(new Date(hospitalisation.dateSortie), "EEEE d MMMM yyyy 'à' HH'h'mm", { locale: fr })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-3">
-                  <FaClipboardList className="text-gray-500 text-xl" />
-                  <div>
-                    <p className="text-sm text-gray-500">Mode {"d'entrée"}</p>
-                    <p className="font-semibold">{hospitalisation.modeEntree}</p>
-                    {hospitalisation.provenance && (
-                      <p className="text-xs text-gray-500">Provenance : {hospitalisation.provenance}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+          {hospitalisation.diagnosticPrincipal && (
+            <div>
+              <p className="text-sm text-gray-500">Diagnostic principal</p>
+              <p className="font-medium">{hospitalisation.diagnosticPrincipal}</p>
             </div>
-
-            {/* Détails médicaux */}
-            <div className="border-t pt-4 space-y-4">
-              <h3 className="text-lg font-semibold text-indigo-700 flex items-center gap-2">
-                <FaHeartbeat /> Informations médicales
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Motif d&apos;admission</p>
-                  <p className="font-medium">{hospitalisation.motifAdmission}</p>
-                </div>
-                {hospitalisation.diagnosticPrincipal && (
-                  <div>
-                    <p className="text-sm text-gray-500">Diagnostic principal</p>
-                    <p className="font-medium">{hospitalisation.diagnosticPrincipal}</p>
-                  </div>
-                )}
-                {hospitalisation.traitementsEnCours && (
-                  <div>
-                    <p className="text-sm text-gray-500">Traitements en cours</p>
-                    <p>{hospitalisation.traitementsEnCours}</p>
-                  </div>
-                )}
-                {hospitalisation.examensRealises && (
-                  <div>
-                    <p className="text-sm text-gray-500">Examens réalisés</p>
-                    <p>{hospitalisation.examensRealises}</p>
-                  </div>
-                )}
-                {hospitalisation.regimeAlimentaire && (
-                  <div>
-                    <p className="text-sm text-gray-500">Régime alimentaire</p>
-                    <p>{hospitalisation.regimeAlimentaire}</p>
-                  </div>
-                )}
-                {hospitalisation.consignesParticulieres && (
-                  <div>
-                    <p className="text-sm text-gray-500">Consignes particulières</p>
-                    <p>{hospitalisation.consignesParticulieres}</p>
-                  </div>
-                )}
-              </div>
+          )}
+          {hospitalisation.traitementsEnCours && (
+            <div>
+              <p className="text-sm text-gray-500">Traitements en cours</p>
+              <p>{hospitalisation.traitementsEnCours}</p>
             </div>
-
-            {/* Statut et sortie */}
-            <div className="border-t pt-4 space-y-4">
-              <div className="flex flex-wrap gap-6 items-start">
-                <div>
-                  <p className="text-sm text-gray-500">Statut</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statutColors[hospitalisation.statut]}`}>
-                      {hospitalisation.statut}
-                    </span>
-                    <IconButton color="blue" title="Changer le statut" onClick={() => setShowStatutModal(true)}>
-                      <FaExchangeAlt size={14} />
-                    </IconButton>
-                  </div>
-                </div>
-                {hospitalisation.modeSortie && (
-                  <div>
-                    <p className="text-sm text-gray-500">Mode de sortie</p>
-                    <p className="font-semibold">{hospitalisation.modeSortie}</p>
-                    {hospitalisation.destinationSortie && (
-                      <p className="text-xs text-gray-500">Destination : {hospitalisation.destinationSortie}</p>
-                    )}
-                  </div>
-                )}
-                {hospitalisation.notesSortie && (
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Notes de sortie</p>
-                    <p className="text-sm bg-gray-50 p-2 rounded">{hospitalisation.notesSortie}</p>
-                  </div>
-                )}
-              </div>
+          )}
+          {hospitalisation.examensRealises && (
+            <div>
+              <p className="text-sm text-gray-500">Examens réalisés</p>
+              <p>{hospitalisation.examensRealises}</p>
             </div>
-          </div>
+          )}
+          {hospitalisation.regimeAlimentaire && (
+            <div>
+              <p className="text-sm text-gray-500">Régime alimentaire</p>
+              <p>{hospitalisation.regimeAlimentaire}</p>
+            </div>
+          )}
+          {hospitalisation.consignesParticulieres && (
+            <div>
+              <p className="text-sm text-gray-500">Consignes particulières</p>
+              <p>{hospitalisation.consignesParticulieres}</p>
+            </div>
+          )}
         </div>
+      </FormSection>
+
+      {/* Statut et sortie */}
+      {(hospitalisation.modeSortie || hospitalisation.notesSortie) && (
+        <FormSection title="Statut et sortie" icon={<FaExchangeAlt />}>
+          <div className="flex flex-wrap gap-6 items-start">
+            {hospitalisation.modeSortie && (
+              <div>
+                <p className="text-sm text-gray-500">Mode de sortie</p>
+                <p className="font-semibold">{hospitalisation.modeSortie}</p>
+                {hospitalisation.destinationSortie && (
+                  <p className="text-xs text-gray-500">Destination : {hospitalisation.destinationSortie}</p>
+                )}
+              </div>
+            )}
+            {hospitalisation.notesSortie && (
+              <div className="flex-1">
+                <p className="text-sm text-gray-500">Notes de sortie</p>
+                <p className="text-sm bg-slate-50 p-2 rounded">{hospitalisation.notesSortie}</p>
+              </div>
+            )}
+          </div>
+        </FormSection>
+      )}
 
       {/* Modal de changement de statut */}
       {showStatutModal && (
@@ -259,7 +229,7 @@ const handleStatutChange = async () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowStatutModal(false)}
-                className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-slate-50"
               >
                 Annuler
               </button>
@@ -274,6 +244,6 @@ const handleStatutChange = async () => {
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

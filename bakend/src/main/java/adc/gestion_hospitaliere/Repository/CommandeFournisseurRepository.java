@@ -13,6 +13,8 @@ public interface CommandeFournisseurRepository extends JpaRepository<CommandeFou
     Page<CommandeFournisseur> findByStatut(StatutCommandeFournisseur statut, Pageable pageable);
     Page<CommandeFournisseur> findByIdFournisseur(Integer idFournisseur, Pageable pageable);
 
+    boolean existsByNumeroCommande(String numeroCommande);
+
     @Query("SELECT c FROM CommandeFournisseur c WHERE " +
             "(:statut IS NULL OR c.statut = :statut) AND " +
             "(:idFournisseur IS NULL OR c.idFournisseur = :idFournisseur) AND " +

@@ -101,6 +101,29 @@ public class InventairePharmacieService {
             return toDto(inv);
         }
 
+        // ---------- STOCK THÉORIQUE ----------
+
+        @Transactional
+        public List<adc.gestion_hospitaliere.dto.inventaire.LigneStockTheoriqueDto> getStockTheorique() {
+            List<adc.gestion_hospitaliere.dto.inventaire.LigneStockTheoriqueDto> result = new ArrayList<>();
+            for (LotMedicament lot : lotMedicamentRepository.findAll()) {
+                String medicamentNom = medicamentRepository.findById(lot.getIdMedicament())
+                        .map(Medicament::getNomCommercial).orElse(null);
+                result.add(adc.gestion_hospitaliere.dto.inventaire.LigneStockTheoriqueDto.builder()
+                        .idMedicament(lot.getIdMedicament())
+                        .medicamentNom(medicamentNom)
+                        .idLot(lot.getIdLot())
+                        .numeroLot(lot.getNumeroLot())
+                        .quantiteTheorique(lot.getQuantiteRestante() != null ? lot.getQuantiteRestante() : 0)
+                        .prixUnitaire(lot.getPrixAchatUnitaire())
+                        .statutLot(lot.getStatut())
+                        .datePeremption(lot.getDatePeremption())
+                        .build());
+            }
+            result.sort((a, b) -> String.valueOf(a.getMedicamentNom()).compareToIgnoreCase(String.valueOf(b.getMedicamentNom())));
+            return result;
+        }
+
         // ---------- VALIDER ----------
 
         @Transactional
@@ -112,6 +135,8 @@ public class InventairePharmacieService {
                 throw new BusinessException("Seul un inventaire en cours peut être validé");
             }
 
+            appliquerAjustement(inv);
+
             inv.setStatut(StatutInventaire.Validé);
             inv.setDateValidation(LocalDateTime.now());
             inv.setValidePar(validePar);
@@ -119,10 +144,60 @@ public class InventairePharmacieService {
             return toDto(inv);
         }
 
+        // ---------- AJUSTER LE STOCK ----------
+
+        @Transactional
+        public InventaireResponseDto ajuster(Integer id) {
+            InventairePharmacie inv = inventaireRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventaire non trouvé"));
+            if (inv.getStatut() == StatutInventaire.Clôturé) {
+                throw new BusinessException("Un inventaire clôturé ne peut plus être ajusté");
+            }
+            appliquerAjustement(inv);
+            return toDto(inv);
+        }
+
+        // ---------- CLÔTURER ----------
+
+        @Transactional
+        public InventaireResponseDto cloturer(Integer id) {
+            InventairePharmacie inv = inventaireRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventaire non trouvé"));
+            if (inv.getStatut() != StatutInventaire.Validé) {
+                throw new BusinessException("Seul un inventaire validé peut être clôturé");
+            }
+            inv.setStatut(StatutInventaire.Clôturé);
+            inv = inventaireRepository.save(inv);
+            return toDto(inv);
+        }
+
+        /**
+         * Réconcilie le stock réel des lots avec les quantités comptées de l'inventaire.
+         */
+        private void appliquerAjustement(InventairePharmacie inv) {
+            for (LigneInventaire ligne : ligneRepository.findByIdInventaire(inv.getIdInventaire())) {
+                if (ligne.getIdLot() == null || ligne.getQuantiteReelle() == null) continue;
+                LotMedicament lot = lotMedicamentRepository.findById(ligne.getIdLot()).orElse(null);
+                if (lot == null) continue;
+                lot.setQuantiteRestante(ligne.getQuantiteReelle());
+                if (ligne.getQuantiteReelle() <= 0) {
+                    lot.setStatut(adc.gestion_hospitaliere.Enums.StatutLot.Rupture);
+                } else if (lot.getStatut() == adc.gestion_hospitaliere.Enums.StatutLot.Rupture) {
+                    lot.setStatut(adc.gestion_hospitaliere.Enums.StatutLot.Disponible);
+                }
+                lotMedicamentRepository.save(lot);
+            }
+        }
+
         // ---------- DELETE ----------
 
         @Transactional
         public void delete(Integer id) {
+            InventairePharmacie inv = inventaireRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventaire non trouvé"));
+            if (inv.getStatut() != StatutInventaire.En_cours) {
+                throw new BusinessException("Seul un inventaire en cours peut être supprimé");
+            }
             ligneRepository.deleteByIdInventaire(id);
             inventaireRepository.deleteById(id);
         }

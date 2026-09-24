@@ -42,7 +42,7 @@ const StatsDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Cartes statistiques */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 p-5 text-white shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl">
+        <div className="rounded-2xl bg-indigo-600 p-5 text-white shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl">
           <div className="flex items-center gap-4">
             <div className="rounded-xl bg-white/20 p-3">
               <FaBuilding className="text-2xl" />
@@ -92,8 +92,8 @@ const StatsDashboard: React.FC = () => {
       </div>
 
       {/* Détails par spécialité */}
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-        <div className="border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4">
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+        <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
             <FaChartBar className="text-indigo-500" /> Détails par spécialité
           </h3>
@@ -103,7 +103,7 @@ const StatsDashboard: React.FC = () => {
             {stats.detailsParSpecialite.map((item, idx) => (
               <div
                 key={idx}
-                className="rounded-xl bg-gray-50 p-4 transition-all hover:bg-white hover:shadow-md"
+                className="rounded-xl bg-slate-50 p-4 transition-all hover:bg-white hover:shadow-md"
               >
                 <h4 className="font-semibold text-gray-800">{item.specialite}</h4>
                 <div className="mt-2 flex gap-4 text-sm">

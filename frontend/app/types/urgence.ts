@@ -101,6 +101,9 @@ export interface InterventionUrgence {
   medecinNom: string | null;
   medecinPrenom: string | null;
   typeIntervention: string;
+  idActeCatalogue?: number | null;
+  libelleActeCatalogue?: string | null;
+  prixActeCatalogue?: number | null;
   dateIntervention: string;
   lieu: string | null;
   dureePrevue: number | null;
@@ -119,6 +122,7 @@ export interface InterventionUrgenceCreate {
   idAdmissionUrgence?: number | null;
   idMedecinPrincipal: number | null;
   typeIntervention: string;
+  idActeCatalogue?: number | null;
   dateIntervention: string;
   lieu?: string | null;
   dureePrevue?: number | null;

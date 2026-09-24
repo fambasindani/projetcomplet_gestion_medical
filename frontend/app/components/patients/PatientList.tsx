@@ -19,10 +19,15 @@ import { GenreLabels } from '@/app/types/patient';
 
 import type { Genre, Patient } from '@/app/types/patient';
 import { patientService } from '@/app/services/patientService';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 const PatientList: React.FC = () => {
   const router = useRouter();
   const confirm = useConfirm();
+  const { hasPermission } = useAuth();
+  const peutAjouter = hasPermission('PATIENTS_AJOUTER');
+  const peutModifier = hasPermission('PATIENTS_MODIFIER');
+  const peutSupprimer = hasPermission('PATIENTS_SUPPRIMER');
 
   const [pagedData, setPagedData] = useState<PagedResult<Patient> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,15 +122,17 @@ const PatientList: React.FC = () => {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
-            <Button icon={<FaPlus />} onClick={handleAdd}>
-              Nouveau patient
-            </Button>
+            {peutAjouter && (
+              <Button icon={<FaPlus />} onClick={handleAdd}>
+                Nouveau patient
+              </Button>
+            )}
           </>
         }
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <form onSubmit={handleSearch} className="flex gap-2">
               <FilterInput
@@ -211,15 +218,19 @@ const PatientList: React.FC = () => {
                       <IconButton color="gray" title="Voir détails" onClick={() => handleViewDetails(patient)}>
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton color="blue" title="Modifier" onClick={() => handleEdit(patient)}>
-                        <FaEdit size={14} />
-                      </IconButton>
+                      {peutModifier && (
+                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(patient)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      )}
                       <IconButton color="green" title="Dossier médical" onClick={() => handleDossierMedical(patient)}>
                         <FaFileMedical size={14} />
                       </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(patient.idPatient, patient.nom, patient.prenom)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      {peutSupprimer && (
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(patient.idPatient, patient.nom, patient.prenom)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      )}
                     </div>
                   </Td>
                 </Tr>

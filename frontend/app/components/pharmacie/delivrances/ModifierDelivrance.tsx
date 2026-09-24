@@ -6,7 +6,6 @@ import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
   FaSave,
-  FaArrowLeft,
   FaPlus,
   FaTrash,
   FaPrint,
@@ -25,7 +24,9 @@ import { LotSearchSelect } from '@/app/components/common/LotSearchSelect';
 import { PrescriptionSearchSelect } from '@/app/components/common/PrescriptionSearchSelect';
 import OrdonnanceModal from '../../prescriptions/OrdonnanceModal';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import Button, { IconButton } from '@/app/ui/Button';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { FormInput } from '@/app/components/common/FormInput';
@@ -268,25 +269,17 @@ export default function ModifierDelivrance() {
   if (loading) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Modifier la délivrance n°${id}`}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.back()}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate>
+    <PageShell
+      title={`Modifier la délivrance n°${id}`}
+      onBack={() => router.back()}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Colonne principale */}
           <div className="lg:col-span-2 space-y-6">
             {/* Section Patient & Prescription */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                <FaUser /> Patient et prescription
-              </h5>
+            <FormSection title="Patient et prescription" icon={<FaUser />}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <PatientSearchSelect
@@ -366,16 +359,12 @@ export default function ModifierDelivrance() {
                 rows={2}
                 placeholder="Informations complémentaires…"
               />
-            </div>
+            </FormSection>
 
             {/* Section Médicaments délivrés */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                <FaPills /> Médicaments délivrés
-              </h5>
-
+            <FormSection title="Médicaments délivrés" icon={<FaPills />}>
               {/* Ligne d'ajout */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="bg-slate-50 p-4 rounded-lg space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3 items-end">
                   <div className="col-span-2">
                     <MedicamentSearchSelect
@@ -500,80 +489,62 @@ export default function ModifierDelivrance() {
                   </Table>
                 </TableContainer>
               )}
-            </div>
+            </FormSection>
           </div>
 
           {/* Colonne latérale : résumé / info */}
           <div className="lg:col-span-1">
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
-                <h5 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <FaClipboardList /> Récapitulatif
-                </h5>
+            <FormSection title="Récapitulatif" icon={<FaClipboardList />} className="sticky top-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Médicaments</span>
+                <span className="font-medium">{form.details.length}</span>
               </div>
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Médicaments</span>
-                  <span className="font-medium">{form.details.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Total (hors mutuelle)</span>
-                  <span className="font-medium">
-                    {form.details
-                      .reduce((acc, d) => acc + d.quantiteDelivree * d.prixUnitaire, 0)
-                      .toFixed(2)}{' '}
-                    $
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Prise en charge mutuelle</span>
-                  <span className="font-medium">
-                    {form.details
-                      .reduce((acc, d) => acc + d.priseEnChargeMutuelle, 0)
-                      .toFixed(2)}{' '}
-                    $
-                  </span>
-                </div>
-                <hr className="my-2" />
-                <div className="flex justify-between text-sm font-semibold">
-                  <span>Net à payer</span>
-                  <span>
-                    {form.details
-                      .reduce(
-                        (acc, d) => acc + d.quantiteDelivree * d.prixUnitaire - d.priseEnChargeMutuelle,
-                        0
-                      )
-                      .toFixed(2)}{' '}
-                    $
-                  </span>
-                </div>
-                <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
-                  <FaCheckCircle className="inline mr-1" /> Les champs marqués d&apos;une étoile (*) sont
-                  obligatoires.
-                </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Total (hors mutuelle)</span>
+                <span className="font-medium">
+                  {form.details
+                    .reduce((acc, d) => acc + d.quantiteDelivree * d.prixUnitaire, 0)
+                    .toFixed(2)}{' '}
+                  $
+                </span>
               </div>
-            </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Prise en charge mutuelle</span>
+                <span className="font-medium">
+                  {form.details
+                    .reduce((acc, d) => acc + d.priseEnChargeMutuelle, 0)
+                    .toFixed(2)}{' '}
+                  $
+                </span>
+              </div>
+              <hr className="my-2" />
+              <div className="flex justify-between text-sm font-semibold">
+                <span>Net à payer</span>
+                <span>
+                  {form.details
+                    .reduce(
+                      (acc, d) => acc + d.quantiteDelivree * d.prixUnitaire - d.priseEnChargeMutuelle,
+                      0
+                    )
+                    .toFixed(2)}{' '}
+                  $
+                </span>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
+                <FaCheckCircle className="inline mr-1" /> Les champs marqués d&apos;une étoile (*) sont
+                obligatoires.
+              </div>
+            </FormSection>
           </div>
         </div>
 
         {/* Boutons d'action */}
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.back()}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={saving}>
-            {saving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                En cours...
-              </>
-            ) : (
-              <>
-                <FaSave /> Enregistrer les modifications
-              </>
-            )}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.back()}
+          loading={saving}
+          submitLabel="Enregistrer les modifications"
+          submitIcon={<FaSave />}
+        />
       </form>
 
       {showOrdonnanceModal && (
@@ -583,6 +554,6 @@ export default function ModifierDelivrance() {
           onClose={() => setShowOrdonnanceModal(false)}
         />
       )}
-    </div>
+    </PageShell>
   );
 }

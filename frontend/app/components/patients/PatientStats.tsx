@@ -129,7 +129,7 @@ const PatientStats: React.FC = () => {
 
       {/* KPI */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-6 text-white shadow-lg">
+        <div className="relative overflow-hidden rounded-2xl bg-indigo-600 p-6 text-white shadow-lg">
           <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/10" />
           <div className="absolute -bottom-8 right-10 h-20 w-20 rounded-full bg-white/10" />
           <div className="flex items-center justify-between">
@@ -183,8 +183,8 @@ const PatientStats: React.FC = () => {
 
       {/* Graphiques */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
+          <div className="bg-slate-50 px-6 py-3 border-b">
             <h5 className="font-semibold text-gray-800 flex items-center gap-2"><FaVenusMars className="text-indigo-500" /> Répartition par genre</h5>
           </div>
           <div className="relative h-80 p-4">
@@ -204,8 +204,8 @@ const PatientStats: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
+          <div className="bg-slate-50 px-6 py-3 border-b">
             <h5 className="font-semibold text-gray-800 flex items-center gap-2"><FaTint className="text-red-400" /> Groupe sanguin</h5>
           </div>
           <div className="h-80 p-4">
@@ -213,8 +213,8 @@ const PatientStats: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
+          <div className="bg-slate-50 px-6 py-3 border-b">
             <h5 className="font-semibold text-gray-800 flex items-center gap-2"><FaHeart className="text-pink-500" /> Situation familiale</h5>
           </div>
           <div className="h-80 p-4">
@@ -230,8 +230,8 @@ const PatientStats: React.FC = () => {
           { title: 'Par groupe sanguin', icon: <FaTint className="text-red-400" />, items: breakdown('sang') },
           { title: 'Par situation familiale', icon: <FaHeart className="text-pink-500" />, items: breakdown('famille') },
         ].map((section) => (
-          <div key={section.title} className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
+          <div key={section.title} className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
+            <div className="bg-slate-50 px-6 py-3 border-b">
               <h5 className="font-semibold text-gray-800 flex items-center gap-2">{section.icon} {section.title}</h5>
             </div>
             <div className="p-5 space-y-4">

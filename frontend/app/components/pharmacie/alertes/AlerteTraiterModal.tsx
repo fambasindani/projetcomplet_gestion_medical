@@ -44,12 +44,12 @@ export default function AlerteTraiterModal({ isOpen, alerte, onClose, onSuccess 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 bg-gradient-to-r from-indigo-600 to-purple-600 p-4 flex justify-between items-center rounded-t-xl">
+        <div className="sticky top-0 bg-indigo-600 p-4 flex justify-between items-center rounded-t-xl">
           <h3 className="text-xl font-semibold text-white">Traiter l&apos;alerte</h3>
           <button onClick={onClose} className="text-white hover:text-gray-200"><FaTimes /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+          <div className="bg-slate-50 p-4 rounded-lg space-y-2">
             <p><strong>Médicament :</strong> {alerte.medicamentNom}</p>
             <p><strong>Type :</strong> {alerte.typeAlerte}</p>
             {alerte.seuilActuel !== null && <p><strong>Stock actuel :</strong> {alerte.seuilActuel}</p>}

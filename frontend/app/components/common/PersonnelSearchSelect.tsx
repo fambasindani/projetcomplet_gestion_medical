@@ -19,6 +19,7 @@ interface PersonnelSearchSelectProps {
   label?: string;
   required?: boolean;
   placeholder?: string;
+  fonction?: string;
 }
 
 export const PersonnelSearchSelect: React.FC<PersonnelSearchSelectProps> = ({
@@ -27,7 +28,8 @@ export const PersonnelSearchSelect: React.FC<PersonnelSearchSelectProps> = ({
   error,
   label = 'Personnel',
   required = false,
-  placeholder = 'Rechercher un personnel...'
+  placeholder = 'Rechercher un personnel...',
+  fonction,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,7 +66,7 @@ export const PersonnelSearchSelect: React.FC<PersonnelSearchSelectProps> = ({
     setLoading(true);
     try {
       // Utiliser l'API de recherche existante (search) plutôt que getSimpleList
-      const result = await personnelService.search(search, 1, 20);
+      const result = await personnelService.search(search, 1, 20, fonction);
       const items = result.items.map(p => ({
         idPersonnel: p.idPersonnel,
         nom: p.nom,
@@ -80,6 +82,15 @@ export const PersonnelSearchSelect: React.FC<PersonnelSearchSelectProps> = ({
       setLoading(false);
     }
   };
+
+  // Recharge quand la fonction filtrée change.
+  useEffect(() => {
+    setPersonnels([]);
+    if (isOpen) {
+      void searchPersonnel('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fonction]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
@@ -149,14 +160,14 @@ export const PersonnelSearchSelect: React.FC<PersonnelSearchSelectProps> = ({
 
       {isOpen && (
         <div className="absolute z-50 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
-          <div className="border-b border-gray-200 p-2">
+          <div className="border-b border-slate-200 p-2">
             <div className="relative">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={handleSearchChange}
                 placeholder="Rechercher par nom, prénom, fonction..."
-                className="w-full rounded-md border border-gray-200 py-1.5 pr-8 pl-2 text-sm focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-200 py-1.5 pr-8 pl-2 text-sm focus:border-indigo-500 focus:outline-none"
                 autoFocus
               />
               <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />

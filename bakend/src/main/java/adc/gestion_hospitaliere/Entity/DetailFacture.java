@@ -41,6 +41,12 @@ public class DetailFacture {
     @JoinColumn(name = "id_medicament", insertable = false, updatable = false)
     private Medicament medicament;
 
+    @Column(name = "source", length = 30)
+    private String source;
+
+    @Column(name = "id_source")
+    private Integer idSource;
+
     @Column(name = "description", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String description;
 

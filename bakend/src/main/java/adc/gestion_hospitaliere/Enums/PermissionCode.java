@@ -1,0 +1,64 @@
+package adc.gestion_hospitaliere.Enums;
+
+/**
+ * Catalogue des permissions granulaires de l'application.
+ * Le code est utilisé comme autorité Spring Security (ex. "FACTURATION_VOIR")
+ * et comme identifiant de menu côté frontend.
+ */
+public enum PermissionCode {
+    DASHBOARD_VOIR,
+
+    PATIENTS_VOIR,
+    PATIENTS_AJOUTER,
+    PATIENTS_MODIFIER,
+    PATIENTS_SUPPRIMER,
+
+    CONSULTATIONS_VOIR,
+    CONSULTATIONS_GERER,
+
+    RENDEZ_VOUS_VOIR,
+    RENDEZ_VOUS_GERER,
+
+    PRESCRIPTIONS_VOIR,
+    PRESCRIPTIONS_GERER,
+
+    EXAMENS_VOIR,
+    EXAMENS_GERER,
+    CATEGORIES_EXAMEN_VOIR,
+    CATEGORIES_EXAMEN_GERER,
+
+    HOSPITALISATIONS_VOIR,
+    HOSPITALISATIONS_GERER,
+    CONSTANTES_VOIR,
+    CONSTANTES_GERER,
+
+    CHAMBRES_VOIR,
+    CHAMBRES_GERER,
+
+    SOINS_VOIR,
+    SOINS_GERER,
+
+    MEDECINS_VOIR,
+    MEDECINS_GERER,
+    SPECIALITES_VOIR,
+    SPECIALITES_GERER,
+
+    PERSONNEL_VOIR,
+    PERSONNEL_GERER,
+
+    PHARMACIE_VOIR,
+    PHARMACIE_GERER,
+
+    URGENCES_VOIR,
+    URGENCES_GERER,
+
+    FACTURATION_VOIR,
+    FACTURATION_GERER,
+
+    CATALOGUE_VOIR,
+    CATALOGUE_GERER,
+
+    NOTIFICATIONS_VOIR,
+
+    UTILISATEURS_GERER
+}

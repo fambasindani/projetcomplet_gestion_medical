@@ -23,7 +23,7 @@ type DelivranceListItem = DelivranceResponse & { niveauPriorite?: string };
 const prioriteStyles: Record<string, string> = {
   URGENTE: 'bg-rose-50 text-rose-700 border-rose-200',
   NORMALE: 'bg-sky-50 text-sky-700 border-sky-200',
-  FAIBLE: 'bg-gray-50 text-gray-600 border-gray-200',
+  FAIBLE: 'bg-slate-50 text-gray-600 border-slate-200',
 };
 
 export default function DelivranceList() {
@@ -82,6 +82,9 @@ export default function DelivranceList() {
             <Button variant="secondary" icon={<FaChartBar />} onClick={() => router.push('/pharmacie/delivrances/statistiques')}>
               Statistiques
             </Button>
+            <Button variant="secondary" icon={<FaChartBar />} onClick={() => router.push('/pharmacie/delivrances/marges')}>
+              Marges
+            </Button>
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -93,7 +96,7 @@ export default function DelivranceList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <form onSubmit={handleSearch} className="flex gap-2">
               <FilterInput
@@ -140,7 +143,7 @@ export default function DelivranceList() {
                   <Td className="text-gray-600">{d.pharmacienNom}</Td>
                   <Td>{format(new Date(d.dateDelivrance), 'dd MMM yyyy')}</Td>
                   <Td>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${prioriteStyles[d.niveauPriorite ?? ''] || 'bg-gray-50'}`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${prioriteStyles[d.niveauPriorite ?? ''] || 'bg-slate-50'}`}>
                       {d.niveauPriorite || 'NORMALE'}
                     </span>
                   </Td>

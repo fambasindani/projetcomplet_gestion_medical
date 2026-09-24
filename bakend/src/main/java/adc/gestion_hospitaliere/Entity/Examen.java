@@ -26,6 +26,14 @@ public class Examen {
     @Column(name = "numero_examen", nullable = false, unique = true, length = 20)
     private String numeroExamen;
 
+    // --- Relation vers le référentiel d'actes (catalogue) ---
+    @Column(name = "id_acte_catalogue")
+    private Integer idActeCatalogue;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_acte_catalogue", insertable = false, updatable = false)
+    private ActeCatalogue acteCatalogue;
+
     // --- Relations et clés étrangères ---
 
     @Column(name = "id_prescription")

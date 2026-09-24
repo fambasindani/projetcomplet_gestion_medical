@@ -1,5 +1,11 @@
-import UnderConstruction from '../../ui/UnderConstruction';
+import PersonnelList from '@/app/components/personnel/PersonnelList';
 
 export default function PersonnelInfirmiersPage() {
-  return <UnderConstruction title="Personnel - Infirmiers" backHref="/personnel" />;
+  return (
+    <PersonnelList
+      fonctionFixe="Infirmier"
+      titre="Infirmiers"
+      labelAjout="Nouvel infirmier"
+    />
+  );
 }

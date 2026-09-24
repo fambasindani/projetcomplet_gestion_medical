@@ -7,7 +7,6 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import {
-  FaArrowLeft,
   FaUserMd,
   FaUserInjured,
   FaHeartbeat,
@@ -17,15 +16,20 @@ import {
 import { useConfirm } from 'react-use-confirming-dialog';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoGrid, InfoCard } from '@/app/ui/InfoCard';
 import Button from '@/app/ui/Button';
 import { consultationService } from '@/app/services/consultationService';
 import { Consultation } from '@/app/types/consultation';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { peutModifier } from '@/app/utils/permissions';
 
 export default function ConsultationDetails() {
   const { id } = useParams();
   const router = useRouter();
   const confirm = useConfirm();
+  const { user } = useAuth();
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -60,15 +64,17 @@ export default function ConsultationDetails() {
   if (loading) return <SkeletonDetails />;
   if (!consultation) return <div className="p-6 text-center">Consultation non trouvée</div>;
 
+  // Un médecin ne peut modifier/supprimer que ses propres consultations.
+  const editable = peutModifier(user?.role, user?.medecinId, consultation.idMedecin);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Détails de la consultation"
-        actions={
+    <PageShell
+      title="Détails de la consultation"
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/consultations')}
+      actions={
+        editable ? (
           <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/consultations')}>
-              Retour
-            </Button>
             <Button icon={<FaEdit />} onClick={() => router.push(`/consultations/${consultation.idConsultation}/modifier`)}>
               Modifier
             </Button>
@@ -76,142 +82,107 @@ export default function ConsultationDetails() {
               Supprimer
             </Button>
           </>
-        }
-      />
+        ) : (
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+            Consultation d&apos;un autre médecin — lecture seule
+          </span>
+        )
+      }
+    >
+      <DetailBanner
+        meta="Consultation"
+        title={`Consultation du ${format(new Date(consultation.dateConsultation), 'dd MMMM yyyy', { locale: fr })}`}
+        subtitle={format(new Date(consultation.dateConsultation), "HH'h'mm", { locale: fr })}
+      >
+        <InfoGrid>
+          <InfoCard
+            icon={FaUserInjured}
+            label="Patient"
+            value={`${consultation.patientNom} ${consultation.patientPrenom}`}
+          />
+          <InfoCard
+            icon={FaUserMd}
+            label="Médecin"
+            value={`Dr. ${consultation.medecinNom} ${consultation.medecinPrenom}`}
+          />
+        </InfoGrid>
 
-      {/* Carte principale (pleine largeur) */}
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-        {/* En-tête */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-          <h1 className="text-2xl font-bold text-white">
-            Consultation du {format(new Date(consultation.dateConsultation), 'dd MMMM yyyy', { locale: fr })}
-          </h1>
-          <p className="text-indigo-100 text-sm">
-            {format(new Date(consultation.dateConsultation), "HH'h'mm", { locale: fr })}
-          </p>
-        </div>
-
-        {/* Corps */}
-        <div className="p-6 space-y-6">
-          {/* Patient et médecin */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-center gap-3">
-              <FaUserInjured className="text-blue-500 text-xl" />
-              <div>
-                <p className="text-sm text-gray-500">Patient</p>
-                <p className="font-semibold">
-                  {consultation.patientNom} {consultation.patientPrenom}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <FaUserMd className="text-green-500 text-xl" />
-              <div>
-                <p className="text-sm text-gray-500">Médecin</p>
-                <p className="font-semibold">
-                  Dr. {consultation.medecinNom} {consultation.medecinPrenom}
-                </p>
-              </div>
-            </div>
-          </div>
-
+        <div className="space-y-6 px-6 pb-6">
           {/* Motif, diagnostic, histoire, traitement, observations */}
-          <div className="border-t pt-4 space-y-4">
-            <div>
-              <p className="text-sm text-gray-500">Motif de la consultation</p>
-              <p className="font-medium">{consultation.motifConsultation}</p>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Motif de la consultation</p>
+              <p className="mt-1 font-medium text-gray-700">{consultation.motifConsultation}</p>
             </div>
             {consultation.diagnostic && (
-              <div>
-                <p className="text-sm text-gray-500">Diagnostic</p>
-                <p>{consultation.diagnostic}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Diagnostic</p>
+                <p className="mt-1 text-gray-700">{consultation.diagnostic}</p>
               </div>
             )}
             {consultation.histoireMaladie && (
-              <div>
-                <p className="text-sm text-gray-500">Histoire de la maladie</p>
-                <p>{consultation.histoireMaladie}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Histoire de la maladie</p>
+                <p className="mt-1 text-gray-700">{consultation.histoireMaladie}</p>
               </div>
             )}
             {consultation.traitementPrescris && (
-              <div>
-                <p className="text-sm text-gray-500">Traitement prescrit</p>
-                <p>{consultation.traitementPrescris}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Traitement prescrit</p>
+                <p className="mt-1 text-gray-700">{consultation.traitementPrescris}</p>
               </div>
             )}
             {consultation.observations && (
-              <div>
-                <p className="text-sm text-gray-500">Observations</p>
-                <p>{consultation.observations}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Observations</p>
+                <p className="mt-1 text-gray-700">{consultation.observations}</p>
               </div>
             )}
           </div>
 
           {/* Constantes vitales */}
-          <div className="border-t pt-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2 mb-3">
+          <div className="space-y-3">
+            <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-400">
               <FaHeartbeat className="text-red-500" /> Constantes
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <InfoGrid className="p-0">
               {consultation.temperature && (
-                <div>
-                  <p className="text-sm text-gray-500">Température</p>
-                  <p>{consultation.temperature} °C</p>
-                </div>
+                <InfoCard icon={FaHeartbeat} label="Température" value={`${consultation.temperature} °C`} />
               )}
               {consultation.pouls && (
-                <div>
-                  <p className="text-sm text-gray-500">Pouls</p>
-                  <p>{consultation.pouls} bpm</p>
-                </div>
+                <InfoCard icon={FaHeartbeat} label="Pouls" value={`${consultation.pouls} bpm`} />
               )}
               {consultation.pressionSystolique && consultation.pressionDiastolique && (
-                <div>
-                  <p className="text-sm text-gray-500">Tension artérielle</p>
-                  <p>
-                    {consultation.pressionSystolique}/{consultation.pressionDiastolique} mmHg
-                  </p>
-                </div>
+                <InfoCard
+                  icon={FaHeartbeat}
+                  label="Tension artérielle"
+                  value={`${consultation.pressionSystolique}/${consultation.pressionDiastolique} mmHg`}
+                />
               )}
               {consultation.saturation && (
-                <div>
-                  <p className="text-sm text-gray-500">Saturation O₂</p>
-                  <p>{consultation.saturation} %</p>
-                </div>
+                <InfoCard icon={FaHeartbeat} label="Saturation O₂" value={`${consultation.saturation} %`} />
               )}
               {consultation.glycemie && (
-                <div>
-                  <p className="text-sm text-gray-500">Glycémie</p>
-                  <p>{consultation.glycemie} g/L</p>
-                </div>
+                <InfoCard icon={FaHeartbeat} label="Glycémie" value={`${consultation.glycemie} g/L`} />
               )}
               {consultation.poids && (
-                <div>
-                  <p className="text-sm text-gray-500">Poids</p>
-                  <p>{consultation.poids} kg</p>
-                </div>
+                <InfoCard icon={FaHeartbeat} label="Poids" value={`${consultation.poids} kg`} />
               )}
               {consultation.taille && (
-                <div>
-                  <p className="text-sm text-gray-500">Taille</p>
-                  <p>{consultation.taille} m</p>
-                </div>
+                <InfoCard icon={FaHeartbeat} label="Taille" value={`${consultation.taille} m`} />
               )}
               {consultation.imc && (
-                <div>
-                  <p className="text-sm text-gray-500">IMC</p>
-                  <p>{consultation.imc}</p>
-                </div>
+                <InfoCard icon={FaHeartbeat} label="IMC" value={consultation.imc} />
               )}
-            </div>
+            </InfoGrid>
           </div>
 
           {/* Arrêt de travail, certificat, évolution, prochain RDV, notes */}
-          <div className="border-t pt-4 space-y-4">
+          <div className="space-y-4">
             {consultation.arretTravailDebut && (
-              <div>
-                <p className="text-sm text-gray-500">Arrêt de travail</p>
-                <p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Arrêt de travail</p>
+                <p className="mt-1 text-gray-700">
                   du {format(new Date(consultation.arretTravailDebut), 'dd/MM/yyyy')}
                   {consultation.arretTravailFin &&
                     ` au ${format(new Date(consultation.arretTravailFin), 'dd/MM/yyyy')}`}
@@ -219,32 +190,32 @@ export default function ConsultationDetails() {
               </div>
             )}
             {consultation.certificatMedical && (
-              <div>
-                <p className="text-sm text-gray-500">Certificat médical</p>
-                <p>{consultation.certificatMedical}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Certificat médical</p>
+                <p className="mt-1 text-gray-700">{consultation.certificatMedical}</p>
               </div>
             )}
             {consultation.evolution && (
-              <div>
-                <p className="text-sm text-gray-500">Évolution</p>
-                <p>{consultation.evolution}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Évolution</p>
+                <p className="mt-1 text-gray-700">{consultation.evolution}</p>
               </div>
             )}
             {consultation.prochainRdv && (
-              <div>
-                <p className="text-sm text-gray-500">Prochain rendez-vous</p>
-                <p>{format(new Date(consultation.prochainRdv), 'dd/MM/yyyy HH:mm')}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Prochain rendez-vous</p>
+                <p className="mt-1 text-gray-700">{format(new Date(consultation.prochainRdv), 'dd/MM/yyyy HH:mm')}</p>
               </div>
             )}
             {consultation.notesConfidentielles && (
-              <div>
-                <p className="text-sm text-gray-500">Notes confidentielles</p>
-                <p className="italic">{consultation.notesConfidentielles}</p>
+              <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Notes confidentielles</p>
+                <p className="mt-1 italic text-gray-700">{consultation.notesConfidentielles}</p>
               </div>
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </DetailBanner>
+    </PageShell>
   );
 }

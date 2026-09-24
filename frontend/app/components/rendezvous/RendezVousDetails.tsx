@@ -12,7 +12,9 @@ import {
 import type { IconType } from 'react-icons';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoGrid, InfoCard } from '@/app/ui/InfoCard';
 import Button from '@/app/ui/Button';
 import { rendezvousService } from '@/app/services/rendezvousService';
 import { RendezVous, StatutRendezVous } from '@/app/types/rendezvous';
@@ -85,14 +87,12 @@ export default function RendezVousDetails() {
   if (!rdv) return <div className="p-10 text-center text-gray-500">Rendez-vous introuvable.</div>;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Détails du rendez-vous"
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/rendezvous')}>
-              Retour
-            </Button>
+    <PageShell
+      title="Détails du rendez-vous"
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/rendezvous')}
+      actions={
+        <>
             <Button icon={<FaEdit />} onClick={() => router.push(`/rendezvous/${id}/modifier`)}>
               Modifier
             </Button>
@@ -101,34 +101,45 @@ export default function RendezVousDetails() {
                 Annuler
               </Button>
             )}
-          </>
+        </>
+      }
+    >
+
+      <DetailBanner
+        meta="Rendez-vous"
+        title="Détails du Rendez-vous"
+        subtitle={format(new Date(rdv.dateRdv), "EEEE d MMMM yyyy", { locale: fr })}
+        badges={
+          <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${statutStyles[rdv.statut]}`}>
+            {rdv.statut}
+          </span>
         }
-      />
-
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Détails du Rendez-vous</h1>
-              <p className="flex items-center gap-2 opacity-90">
-                <FaCalendarAlt /> {format(new Date(rdv.dateRdv), "EEEE d MMMM yyyy", { locale: fr })}
-              </p>
-            </div>
-            <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${statutStyles[rdv.statut]}`}>
-              {rdv.statut}
-            </span>
-          </div>
-        </div>
-
-        {/* Content */}
+      >
         <div className="p-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <InfoBlock icon={FaUserInjured} label="Patient" value={`${rdv.patientNom} ${rdv.patientPrenom}`} />
-            <InfoBlock icon={FaUserMd} label="Médecin" value={`Dr. ${rdv.medecinNom} ${rdv.medecinPrenom}`} subValue={rdv.medecinSpecialite} />
-            <InfoBlock icon={FaClock} label="Horaire" value={format(new Date(rdv.dateRdv), "HH'h'mm")} subValue={`${rdv.dureeEstimee || 30} minutes`} />
-            <InfoBlock icon={FaStethoscope} label="Type" value={rdv.typeConsultation || 'Standard'} />
-          </div>
+          <InfoGrid className="p-0">
+            <InfoCard icon={FaUserInjured} label="Patient" value={`${rdv.patientNom} ${rdv.patientPrenom}`} />
+            <InfoCard
+              icon={FaUserMd}
+              label="Médecin"
+              value={
+                <>
+                  {`Dr. ${rdv.medecinNom} ${rdv.medecinPrenom}`}
+                  {rdv.medecinSpecialite && <span className="block text-sm font-normal text-slate-500">{rdv.medecinSpecialite}</span>}
+                </>
+              }
+            />
+            <InfoCard
+              icon={FaClock}
+              label="Horaire"
+              value={
+                <>
+                  {format(new Date(rdv.dateRdv), "HH'h'mm")}
+                  <span className="block text-sm font-normal text-slate-500">{rdv.dureeEstimee || 30} minutes</span>
+                </>
+              }
+            />
+            <InfoCard icon={FaStethoscope} label="Type" value={rdv.typeConsultation || 'Standard'} />
+          </InfoGrid>
 
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 space-y-3">
             <h3 className="text-sm font-bold text-indigo-700 uppercase tracking-wider">Changer le statut</h3>
@@ -150,7 +161,7 @@ export default function RendezVousDetails() {
 
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Informations cliniques</h3>
-            <div className="bg-gray-50 p-4 rounded-xl space-y-4">
+            <div className="bg-slate-50 p-4 rounded-xl space-y-4">
               <p className="text-gray-700"><strong className="block text-xs uppercase">Motif</strong>{rdv.motif}</p>
               <p className="text-gray-700"><strong className="block text-xs uppercase">Notes</strong>{rdv.notesPreliminaires || 'Aucune note'}</p>
             </div>
@@ -162,28 +173,7 @@ export default function RendezVousDetails() {
             </div>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-// Sous-composant pour éviter la répétition
-interface InfoBlockProps {
-  icon: IconType;
-  label: string;
-  value: string;
-  subValue?: string;
-}
-
-function InfoBlock({ icon: Icon, label, value, subValue }: InfoBlockProps) {
-  return (
-    <div className="flex gap-4">
-      <div className="text-indigo-500 pt-1"><Icon size={20} /></div>
-      <div>
-        <p className="text-xs text-gray-400 font-bold uppercase">{label}</p>
-        <p className="font-semibold text-gray-800">{value}</p>
-        {subValue && <p className="text-sm text-gray-500">{subValue}</p>}
-      </div>
-    </div>
+      </DetailBanner>
+    </PageShell>
   );
 }

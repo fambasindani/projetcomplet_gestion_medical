@@ -1,5 +1,5 @@
-import UnderConstruction from '../ui/UnderConstruction';
+import ChangePasswordForm from '@/app/components/settings/ChangePasswordForm';
 
 export default function ChangePasswordPage() {
-  return <UnderConstruction title="Changer mot de passe" backHref="/" />;
+  return <ChangePasswordForm />;
 }

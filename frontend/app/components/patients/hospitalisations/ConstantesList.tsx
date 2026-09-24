@@ -5,11 +5,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { FaPlus, FaEdit, FaTrash, FaArrowLeft } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
 import RefreshButton from '@/app/ui/RefreshButton';
@@ -89,81 +89,76 @@ export default function ConstantesList() {
   if (!hospitalisation) return <div className="space-y-6 text-center">Hospitalisation non trouvée</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <PageHeader
-          title="Constantes vitales"
-          subtitle={`Hospitalisation ${hospitalisation.numeroAdmission} - ${hospitalisation.patientNom} ${hospitalisation.patientPrenom}`}
-          actions={
-            <>
-              <RefreshButton onRefresh={fetchData} loading={loading} />
-              <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.back()}>
-                Retour
-              </Button>
-              <Button icon={<FaPlus />} onClick={handleAdd}>
-                Nouvelle mesure
-              </Button>
-            </>
-          }
+    <PageShell
+      title="Constantes vitales"
+      subtitle={`Hospitalisation ${hospitalisation.numeroAdmission} - ${hospitalisation.patientNom} ${hospitalisation.patientPrenom}`}
+      onBack={() => router.back()}
+      actions={
+        <>
+          <RefreshButton onRefresh={fetchData} loading={loading} />
+          <Button icon={<FaPlus />} onClick={handleAdd}>
+            Nouvelle mesure
+          </Button>
+        </>
+      }
+      maxWidth="max-w-6xl"
+    >
+      {!pagedData?.items?.length ? (
+        <EmptyState
+          icon={<FaPlus />}
+          title="Aucune mesure enregistrée"
+          description="Ajoutez une nouvelle mesure pour démarrer"
         />
-
-        {!pagedData?.items?.length ? (
-          <EmptyState
-            icon={<FaPlus />}
-            title="Aucune mesure enregistrée"
-            description="Ajoutez une nouvelle mesure pour démarrer"
-          />
-        ) : (
-          <TableContainer>
-            <Table>
-              <THead>
-                <tr>
-                  <Th>Date/heure</Th>
-                  <Th>Température</Th>
-                  <Th>Pouls</Th>
-                  <Th>Tension</Th>
-                  <Th>SpO₂</Th>
-                  <Th>Douleur</Th>
-                  <Th align="center">Actions</Th>
-                </tr>
-              </THead>
-              <TBody>
-                {pagedData.items.map((c: Constante) => (
-                  <Tr key={c.idConstante}>
-                    <Td className="whitespace-nowrap text-sm">
-                      {format(new Date(c.dateMesure), 'dd/MM/yyyy HH:mm')}
-                    </Td>
-                    <Td className="text-sm">{c.temperature ? `${c.temperature} °C` : '-'}</Td>
-                    <Td className="text-sm">{c.pouls ? `${c.pouls} bpm` : '-'}</Td>
-                    <Td className="text-sm">
-                      {c.pressionSystolique && c.pressionDiastolique ? `${c.pressionSystolique}/${c.pressionDiastolique}` : '-'}
-                    </Td>
-                    <Td className="text-sm">{c.saturation ? `${c.saturation} %` : '-'}</Td>
-                    <Td className="text-sm">{c.douleurEchelle ? `${c.douleurEchelle}/10` : '-'}</Td>
-                    <Td className="text-center whitespace-nowrap">
-                      <div className="flex justify-center gap-2">
-                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(c)}>
-                          <FaEdit size={14} />
-                        </IconButton>
-                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(c)}>
-                          <FaTrash size={14} />
-                        </IconButton>
-                      </div>
-                    </Td>
-                  </Tr>
-                ))}
-              </TBody>
-            </Table>
-            {pagedData.totalPages > 1 && (
-              <Pagination
-                pageIndex={pagedData.pageIndex}
-                totalPages={pagedData.totalPages}
-                onPageChange={(page) => setPagination(prev => ({ ...prev, pageIndex: page }))}
-              />
-            )}
-          </TableContainer>
-        )}
-      </div>
-    </div>
+      ) : (
+        <TableContainer>
+          <Table>
+            <THead>
+              <tr>
+                <Th>Date/heure</Th>
+                <Th>Température</Th>
+                <Th>Pouls</Th>
+                <Th>Tension</Th>
+                <Th>SpO₂</Th>
+                <Th>Douleur</Th>
+                <Th align="center">Actions</Th>
+              </tr>
+            </THead>
+            <TBody>
+              {pagedData.items.map((c: Constante) => (
+                <Tr key={c.idConstante}>
+                  <Td className="whitespace-nowrap text-sm">
+                    {format(new Date(c.dateMesure), 'dd/MM/yyyy HH:mm')}
+                  </Td>
+                  <Td className="text-sm">{c.temperature ? `${c.temperature} °C` : '-'}</Td>
+                  <Td className="text-sm">{c.pouls ? `${c.pouls} bpm` : '-'}</Td>
+                  <Td className="text-sm">
+                    {c.pressionSystolique && c.pressionDiastolique ? `${c.pressionSystolique}/${c.pressionDiastolique}` : '-'}
+                  </Td>
+                  <Td className="text-sm">{c.saturation ? `${c.saturation} %` : '-'}</Td>
+                  <Td className="text-sm">{c.douleurEchelle ? `${c.douleurEchelle}/10` : '-'}</Td>
+                  <Td className="text-center whitespace-nowrap">
+                    <div className="flex justify-center gap-2">
+                      <IconButton color="blue" title="Modifier" onClick={() => handleEdit(c)}>
+                        <FaEdit size={14} />
+                      </IconButton>
+                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(c)}>
+                        <FaTrash size={14} />
+                      </IconButton>
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+          {pagedData.totalPages > 1 && (
+            <Pagination
+              pageIndex={pagedData.pageIndex}
+              totalPages={pagedData.totalPages}
+              onPageChange={(page) => setPagination(prev => ({ ...prev, pageIndex: page }))}
+            />
+          )}
+        </TableContainer>
+      )}
+    </PageShell>
   );
 }

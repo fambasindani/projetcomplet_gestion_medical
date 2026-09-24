@@ -14,6 +14,7 @@ public class SoinInfirmierRequestDto {
     private LocalDateTime dateSoin;
     @NotBlank
     private String typeSoin;
+    private Integer idActeCatalogue; // acte du référentiel (soins infirmiers)
     private String description;
     private String observations;
     private Boolean signatureInfirmier;

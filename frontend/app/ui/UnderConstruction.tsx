@@ -18,8 +18,8 @@ const UnderConstruction: React.FC<UnderConstructionProps> = ({
 }) => {
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-6">
-      <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 shadow-md">
+      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 shadow-md">
           <FaTools className="text-2xl text-white" />
         </div>
         <h1 className="mb-2 text-xl font-bold text-gray-900">{title}</h1>
@@ -27,7 +27,7 @@ const UnderConstruction: React.FC<UnderConstructionProps> = ({
         {backHref && (
           <Link
             href={backHref}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:opacity-90"
           >
             {backLabel}
           </Link>

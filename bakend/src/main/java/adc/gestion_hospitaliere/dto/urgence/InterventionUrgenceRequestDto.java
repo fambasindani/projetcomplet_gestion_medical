@@ -30,6 +30,8 @@ public class InterventionUrgenceRequestDto {
     @NotBlank
     private String typeIntervention;
 
+    private Integer idActeCatalogue; // acte du référentiel (intervention)
+
     @NotNull
     private LocalDateTime dateIntervention;
 

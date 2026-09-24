@@ -5,15 +5,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import {
-  FaArrowLeft, FaPills, FaUser, FaUserMd, FaCalendarAlt,
+  FaPills, FaUser, FaUserMd, FaCalendarAlt,
   FaFileAlt, FaTrash, FaPrint, FaEdit
 } from 'react-icons/fa';
-import type { IconType } from 'react-icons';
 import { useConfirm } from 'react-use-confirming-dialog';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import EmptyState from '@/app/ui/EmptyState';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
 import Button from '@/app/ui/Button';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoCard, InfoGrid } from '@/app/ui/InfoCard';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { delivranceService } from '@/app/services/delivranceService';
 import { DelivranceResponse } from '@/app/types/delivrance';
@@ -66,59 +67,47 @@ export default function DelivranceDetails() {
   const totalMontant = delivrance.details.reduce((sum, d) => sum + (d.montantLigne || 0), 0);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Détails de la délivrance"
-        actions={
+    <PageShell
+      title="Détails de la délivrance"
+      onBack={() => router.back()}
+      actions={
+        <>
+          <Button icon={<FaEdit />} onClick={() => router.push(`/pharmacie/delivrances/${id}/modifier`)}>
+            Modifier
+          </Button>
+          <Button variant="secondary" icon={<FaPrint />} onClick={() => setShowOrdonnanceModal(true)} disabled={!delivrance.idPrescriptionMed}>
+            {delivrance.idPrescriptionMed ? "Imprimer l'ordonnance" : "Aucune ordonnance"}
+          </Button>
+          <Button variant="danger" icon={<FaTrash />} onClick={handleDelete}>
+            Supprimer
+          </Button>
+        </>
+      }
+    >
+      <DetailBanner
+        meta="Délivrance"
+        title={`Délivrance #${delivrance.idDelivrance}`}
+        subtitle={delivrance.numeroOrdonnance || 'Sans numéro d\'ordonnance'}
+        badges={
           <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/pharmacie/delivrances')}>
-              Retour
-            </Button>
-            <Button icon={<FaEdit />} onClick={() => router.push(`/pharmacie/delivrances/${id}/modifier`)}>
-              Modifier
-            </Button>
-            <Button variant="secondary" icon={<FaPrint />} onClick={() => setShowOrdonnanceModal(true)} disabled={!delivrance.idPrescriptionMed}>
-              {delivrance.idPrescriptionMed ? "Imprimer l'ordonnance" : "Aucune ordonnance"}
-            </Button>
-            <Button variant="danger" icon={<FaTrash />} onClick={handleDelete}>
-              Supprimer
-            </Button>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${delivrance.signatureElectronique ? 'bg-green-500/20 text-green-100' : 'bg-slate-500/20 text-gray-100'}`}>
+              {delivrance.signatureElectronique ? 'Signée' : 'Non signée'}
+            </span>
+            <span className="text-sm font-medium self-center">{motifLabels[delivrance.motifDelivrance]}</span>
           </>
         }
-      />
+      >
+        <InfoGrid>
+          <InfoCard icon={FaUser} label="Patient" value={delivrance.patientNom} />
+          <InfoCard icon={FaUserMd} label="Médecin" value={delivrance.medecinNom || '-'} />
+          <InfoCard icon={FaUserMd} label="Pharmacien" value={delivrance.pharmacienNom} />
+          <InfoCard icon={FaCalendarAlt} label="Date" value={format(new Date(delivrance.dateDelivrance), 'dd/MM/yyyy')} />
+        </InfoGrid>
 
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold">Délivrance #{delivrance.idDelivrance}</h1>
-              <p className="opacity-90 mt-1 flex items-center gap-2">
-                <FaFileAlt /> {delivrance.numeroOrdonnance || 'Sans numéro d\'ordonnance'}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${delivrance.signatureElectronique ? 'bg-green-500/20 text-green-100' : 'bg-gray-500/20 text-gray-100'}`}>
-                {delivrance.signatureElectronique ? 'Signée' : 'Non signée'}
-              </span>
-              <span className="text-sm font-medium">{motifLabels[delivrance.motifDelivrance]}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8 space-y-8">
-          {/* Grille Infos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <InfoBox title="Patient" value={delivrance.patientNom} icon={FaUser} />
-            <InfoBox title="Médecin" value={delivrance.medecinNom || '-'} icon={FaUserMd} />
-            <InfoBox title="Pharmacien" value={delivrance.pharmacienNom} icon={FaUserMd} />
-            <InfoBox title="Date" value={format(new Date(delivrance.dateDelivrance), 'dd/MM/yyyy')} icon={FaCalendarAlt} />
-          </div>
-
-          {/* Table Médicaments */}
+        <div className="px-6 pb-6">
           <section>
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <FaPills /> Médicaments délivrés
+              <FaFileAlt /> Médicaments délivrés
             </h3>
             <TableContainer>
               <Table>
@@ -142,7 +131,7 @@ export default function DelivranceDetails() {
                     </Tr>
                   ))}
                 </TBody>
-                <tfoot className="bg-gray-50 font-bold">
+                <tfoot className="bg-slate-50 font-bold">
                   <tr>
                     <td colSpan={2} className="px-5 py-3 text-right">Totaux</td>
                     <td className="px-5 py-3 text-right">${totalMutuelle.toFixed(2)}</td>
@@ -153,9 +142,8 @@ export default function DelivranceDetails() {
               </Table>
             </TableContainer>
           </section>
-
         </div>
-      </div>
+      </DetailBanner>
 
       {showOrdonnanceModal && (
         <OrdonnanceModal
@@ -164,17 +152,6 @@ export default function DelivranceDetails() {
           onClose={() => setShowOrdonnanceModal(false)}
         />
       )}
-    </div>
-  );
-}
-
-function InfoBox({ title, value, icon: Icon }: { title: string; value: string; icon: IconType }) {
-  return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-      <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 flex items-center gap-2">
-        <Icon /> {title}
-      </p>
-      <p className="font-semibold text-gray-800">{value}</p>
-    </div>
+    </PageShell>
   );
 }

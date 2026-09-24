@@ -4,6 +4,7 @@ import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Facture, StatutFactureLabels } from '@/app/types/facture';
+import { grouperDetails } from '@/app/utils/factureGrouping';
 
 const styles = StyleSheet.create({
   page: {
@@ -78,6 +79,22 @@ const styles = StyleSheet.create({
   colPu: { width: '18%', textAlign: 'right' },
   colRemise: { width: '12%', textAlign: 'right' },
   colMontant: { width: '18%', textAlign: 'right' },
+  groupHeader: {
+    backgroundColor: '#eef2ff',
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    marginTop: 6,
+  },
+  groupTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#4338ca',
+    textTransform: 'uppercase',
+  },
+  subtotalRow: {
+    backgroundColor: '#f9fafb',
+    fontWeight: 'bold',
+  },
   totals: {
     marginTop: 16,
     marginLeft: 'auto',
@@ -182,17 +199,31 @@ export default function FacturePDF({ facture, etablissement }: Props) {
             <Text style={styles.colRemise}>Remise</Text>
             <Text style={styles.colMontant}>Montant</Text>
           </View>
-          {facture.details?.map((detail) => (
-            <View key={detail.idDetail} style={styles.tableRow}>
-              <Text style={styles.colDescription}>
-                {detail.description || detail.acteLibelle || detail.medicamentNom || '-'}
-              </Text>
-              <Text style={styles.colQte}>{detail.quantite}</Text>
-              <Text style={styles.colPu}>{detail.prixUnitaire.toFixed(2)}</Text>
-              <Text style={styles.colRemise}>
-                {detail.remise > 0 ? `${detail.remise.toFixed(2)} $` : '-'}
-              </Text>
-              <Text style={styles.colMontant}>{detail.montantHt.toFixed(2)}</Text>
+          {grouperDetails(facture.details).map((groupe) => (
+            <View key={groupe.key} wrap={false}>
+              <View style={styles.groupHeader}>
+                <Text style={styles.groupTitle}>{groupe.label} ({groupe.items.length})</Text>
+              </View>
+              {groupe.items.map((detail) => (
+                <View key={detail.idDetail} style={styles.tableRow}>
+                  <Text style={styles.colDescription}>
+                    {detail.description || detail.acteLibelle || detail.medicamentNom || '-'}
+                  </Text>
+                  <Text style={styles.colQte}>{detail.quantite}</Text>
+                  <Text style={styles.colPu}>{detail.prixUnitaire.toFixed(2)}</Text>
+                  <Text style={styles.colRemise}>
+                    {detail.remise > 0 ? `${detail.remise.toFixed(2)} $` : '-'}
+                  </Text>
+                  <Text style={styles.colMontant}>{detail.montantHt.toFixed(2)}</Text>
+                </View>
+              ))}
+              <View style={[styles.tableRow, styles.subtotalRow]}>
+                <Text style={styles.colDescription}>Sous-total {groupe.label}</Text>
+                <Text style={styles.colQte}></Text>
+                <Text style={styles.colPu}></Text>
+                <Text style={styles.colRemise}></Text>
+                <Text style={styles.colMontant}>{groupe.sousTotalHt.toFixed(2)}</Text>
+              </View>
             </View>
           ))}
         </View>

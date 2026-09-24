@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
@@ -19,16 +19,21 @@ import { FormTextarea } from '@/app/components/common/FormTextarea';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { acteMedicalService } from '@/app/services/acteMedicalService';
 import { consultationService } from '@/app/services/consultationService';
-import { factureService, SourceElementLabels, type ElementFacturable } from '@/app/services/factureService';
+import { hospitalisationService } from '@/app/services/hospitalisationService';
+import { factureService, SourceElementLabels, type ElementFacturable, type SourceElement } from '@/app/services/factureService';
 import type { FactureCreate } from '@/app/types/facture';
 import type { Consultation } from '@/app/types/consultation';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import Button, { IconButton } from '@/app/ui/Button';
 
 interface LigneFacture {
   idActe: number | null;
   idMedicament: number | null;
+  source: string | null;
+  idSource: number | null;
   description: string;
   quantite: number;
   prixUnitaire: number;
@@ -45,6 +50,8 @@ interface ActeOption {
 const nouvelleLigne = (): LigneFacture => ({
   idActe: null,
   idMedicament: null,
+  source: null,
+  idSource: null,
   description: '',
   quantite: 1,
   prixUnitaire: 0,
@@ -84,6 +91,8 @@ export default function FactureForm() {
   const [consultationsPatient, setConsultationsPatient] = useState<Consultation[]>([]);
   const [idConsultation, setIdConsultation] = useState<number | ''>('');
   const [chargementConsultations, setChargementConsultations] = useState(false);
+  const [hospitalisationsPatient, setHospitalisationsPatient] = useState<{ idHospitalisation: number; numeroAdmission?: string; chambreNumero?: string; statut?: string }[]>([]);
+  const [idHospitalisation, setIdHospitalisation] = useState<number | ''>('');
 
   const loadActes = useCallback(async () => {
     try {
@@ -124,16 +133,35 @@ export default function FactureForm() {
     }
   };
 
+  const chargerHospitalisationsPatient = async (patientId: number) => {
+    try {
+      const resultat = await hospitalisationService.search({ idPatient: patientId }, 1, 100);
+      setHospitalisationsPatient(
+        (resultat.items ?? []).map((h) => ({
+          idHospitalisation: h.idHospitalisation,
+          numeroAdmission: h.numeroAdmission ?? undefined,
+          chambreNumero: h.chambreNumero ?? undefined,
+          statut: h.statut,
+        }))
+      );
+    } catch {
+      setHospitalisationsPatient([]);
+    }
+  };
+
   const handlePatientChange = (value: number | null) => {
     setIdPatient(value);
     setElementsPatient([]);
     setElementsCharges(false);
     setSelectionElements(new Set());
     setIdConsultation('');
+    setIdHospitalisation('');
     if (value) {
       void chargerConsultationsPatient(value);
+      void chargerHospitalisationsPatient(value);
     } else {
       setConsultationsPatient([]);
+      setHospitalisationsPatient([]);
     }
   };
 
@@ -144,7 +172,11 @@ export default function FactureForm() {
     }
     setChargementElements(true);
     try {
-      const elements = await factureService.getElementsPatient(idPatient, idConsultation || null);
+      const elements = await factureService.getElementsPatient(
+        idPatient,
+        idConsultation || null,
+        idHospitalisation || null
+      );
       setElementsPatient(elements);
       setElementsCharges(true);
       setSelectionElements(new Set(elements.map((_, i) => i)));
@@ -181,6 +213,8 @@ export default function FactureForm() {
       const nouvelles = elementsAjoutes.map(({ el }) => ({
         idActe: el.idActe,
         idMedicament: el.idMedicament,
+        source: el.source,
+        idSource: el.idSource,
         description: el.description,
         quantite: el.quantite > 0 ? el.quantite : 1,
         prixUnitaire: el.prixUnitaire,
@@ -223,6 +257,31 @@ export default function FactureForm() {
 
   const { totalHt, montantTva, totalTtc } = calculs();
 
+  const ORDRE_SOURCES: SourceElement[] = ['CONSULTATION', 'EXAMEN', 'MEDICAMENT', 'HOSPITALISATION', 'SOIN', 'INTERVENTION'];
+
+  const groupesElements = useMemo(() => {
+    const map = new Map<SourceElement, { el: ElementFacturable; index: number }[]>();
+    elementsPatient.forEach((el, index) => {
+      const arr = map.get(el.source) ?? [];
+      arr.push({ el, index });
+      map.set(el.source, arr);
+    });
+    return ORDRE_SOURCES.filter((s) => map.has(s)).map((s) => ({ source: s, items: map.get(s)! }));
+  }, [elementsPatient]);
+
+  const totalSelectionne = useMemo(
+    () => elementsPatient.reduce((acc, el, i) => (selectionElements.has(i) ? acc + el.prixUnitaire * el.quantite : acc), 0),
+    [elementsPatient, selectionElements]
+  );
+
+  const toggleGroup = (indices: number[], checked: boolean) => {
+    setSelectionElements((prev) => {
+      const next = new Set(prev);
+      indices.forEach((i) => (checked ? next.add(i) : next.delete(i)));
+      return next;
+    });
+  };
+
   const validate = (): boolean => {
     const err: Record<string, string> = {};
     if (!idPatient) {
@@ -248,7 +307,7 @@ export default function FactureForm() {
     try {
       const payload: FactureCreate = {
         idPatient,
-        idHospitalisation: null,
+        idHospitalisation: idHospitalisation === '' ? null : idHospitalisation,
         idConsultation: idConsultation === '' ? null : idConsultation,
         dateEcheance: formatDateForBackend(dateEcheance),
         tva,
@@ -259,6 +318,8 @@ export default function FactureForm() {
         details: lignes.map((ligne) => ({
           idActe: ligne.idActe,
           idMedicament: ligne.idMedicament,
+          source: ligne.source,
+          idSource: ligne.idSource,
           description: ligne.description || null,
           quantite: ligne.quantite,
           prixUnitaire: ligne.prixUnitaire,
@@ -276,23 +337,15 @@ export default function FactureForm() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <PageHeader
-        title="Nouvelle facture"
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/factures')}>
-            Retour
-          </Button>
-        }
-      />
-
+    <PageShell
+      title="Nouvelle facture"
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/factures')}
+    >
       <form onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                <FaUserInjured /> Informations générales
-              </h5>
+            <FormSection title="Informations générales" icon={<FaUserInjured />}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <PatientSearchSelect
@@ -354,6 +407,35 @@ export default function FactureForm() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Hospitalisation liée (chambre)</label>
+                <select
+                  value={idHospitalisation}
+                  onChange={(e) => {
+                    setIdHospitalisation(e.target.value === '' ? '' : Number(e.target.value));
+                    setElementsPatient([]);
+                    setElementsCharges(false);
+                    setSelectionElements(new Set());
+                  }}
+                  className="block w-full rounded-lg border border-gray-300 p-2 text-sm disabled:bg-gray-100"
+                  disabled={!idPatient}
+                >
+                  <option value="">
+                    {idPatient ? 'Aucune hospitalisation liée' : 'Sélectionnez d\'abord un patient'}
+                  </option>
+                  {hospitalisationsPatient.map((h) => (
+                    <option key={h.idHospitalisation} value={h.idHospitalisation}>
+                      #{h.idHospitalisation} {h.numeroAdmission ? `- ${h.numeroAdmission}` : ''}
+                      {h.chambreNumero ? ` - Chambre ${h.chambreNumero}` : ' - sans chambre'}
+                      {h.statut ? ` (${h.statut})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-gray-500">
+                  Associe la facture à une hospitalisation : les frais de chambre/ séjour sont calculés automatiquement (nombre de jours × prix/jour).
+                </p>
+              </div>
+
+              <div>
                 <Button
                   type="button"
                   variant="secondary"
@@ -369,12 +451,15 @@ export default function FactureForm() {
               </div>
 
               {elementsCharges && elementsPatient.length > 0 && (
-                <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
+                <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <h6 className="text-sm font-semibold text-indigo-700">
                       {elementsPatient.length} élément(s) à facturer
                     </h6>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-semibold text-indigo-700">
+                        Sélection : {totalSelectionne.toFixed(2)} $
+                      </span>
                       <button
                         type="button"
                         onClick={() => setSelectionElements(new Set(elementsPatient.map((_, i) => i)))}
@@ -391,40 +476,68 @@ export default function FactureForm() {
                       </button>
                     </div>
                   </div>
-                  <div className="max-h-64 overflow-y-auto space-y-2">
-                    {elementsPatient.map((el, index) => (
-                      <label
-                        key={index}
-                        className="flex items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-gray-100 cursor-pointer hover:ring-indigo-200"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectionElements.has(index)}
-                          onChange={() => toggleElement(index)}
-                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600">
-                              {SourceElementLabels[el.source]}
+
+                  <div className="max-h-80 space-y-5 overflow-y-auto">
+                    {groupesElements.map(({ source, items }) => {
+                      const indices = items.map((i) => i.index);
+                      const tousCoches = indices.every((i) => selectionElements.has(i));
+                      const sousTotal = items.reduce((a, { el }) => a + el.prixUnitaire * el.quantite, 0);
+                      return (
+                        <div key={source}>
+                          <div className="mb-2 flex items-center justify-between border-b border-indigo-100 pb-1">
+                            <span className="text-xs font-bold uppercase tracking-wide text-indigo-600">
+                              {SourceElementLabels[source]} ({items.length})
                             </span>
-                            <span className="text-xs text-gray-500">
-                              {el.dateElement ? new Date(el.dateElement).toLocaleDateString('fr-FR') : ''}
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs font-semibold text-gray-600">Sous-total : {sousTotal.toFixed(2)} $</span>
+                              <button
+                                type="button"
+                                onClick={() => toggleGroup(indices, !tousCoches)}
+                                className="text-xs text-indigo-600 hover:underline"
+                              >
+                                {tousCoches ? 'Décocher tout' : 'Cocher tout'}
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-700 truncate">{el.description}</p>
+                          <div className="space-y-2">
+                            {items.map(({ el, index }) => (
+                              <label
+                                key={index}
+                                className="flex items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-slate-200 cursor-pointer hover:ring-indigo-200"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectionElements.has(index)}
+                                  onChange={() => toggleElement(index)}
+                                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600">
+                                      {SourceElementLabels[el.source]}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {el.dateElement ? new Date(el.dateElement).toLocaleDateString('fr-FR') : ''}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-gray-700 truncate">{el.description}</p>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <p className="text-sm font-semibold text-gray-800">
+                                    {(el.prixUnitaire * el.quantite).toFixed(2)} $
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {el.quantite} × {el.prixUnitaire.toFixed(2)} $
+                                  </p>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
                         </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-sm font-semibold text-gray-800">
-                            {(el.prixUnitaire * el.quantite).toFixed(2)} $
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {el.quantite} × {el.prixUnitaire.toFixed(2)} $
-                          </p>
-                        </div>
-                      </label>
-                    ))}
+                      );
+                    })}
                   </div>
+
                   <Button type="button" onClick={ajouterElementsSelectionnes} icon={<FaPlus size={12} />}>
                     Ajouter la sélection à la facture
                   </Button>
@@ -482,12 +595,9 @@ export default function FactureForm() {
                 rows={3}
                 placeholder="Informations comptables complémentaires..."
               />
-            </div>
+            </FormSection>
 
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                <FaClipboardList /> Lignes de la facture
-              </h5>
+            <FormSection title="Lignes de la facture" icon={<FaClipboardList />}>
 
               {lignes.length === 0 && (
                 <p className="text-sm text-gray-500">Aucune ligne. Ajoutez au moins une prestation.</p>
@@ -495,9 +605,16 @@ export default function FactureForm() {
 
               <div className="space-y-4">
                 {lignes.map((ligne, index) => (
-                  <div key={index} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <div key={index} className="bg-slate-50 p-4 rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-600">Ligne {index + 1}</span>
+                      <span className="flex items-center gap-2 text-sm font-semibold text-gray-600">
+                        Ligne {index + 1}
+                        {ligne.source && SourceElementLabels[ligne.source as SourceElement] && (
+                          <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-600">
+                            {SourceElementLabels[ligne.source as SourceElement]}
+                          </span>
+                        )}
+                      </span>
                       <IconButton
                         color="red"
                         title="Supprimer la ligne"
@@ -577,12 +694,12 @@ export default function FactureForm() {
               >
                 Ajouter une ligne
               </Button>
-            </div>
+            </FormSection>
           </div>
 
           <div className="lg:col-span-1">
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
+            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden sticky top-6">
+              <div className="bg-slate-50 px-6 py-3 border-b">
                 <h5 className="font-semibold text-gray-800 flex items-center gap-2">
                   <FaFileInvoice /> Récapitulatif
                 </h5>
@@ -610,22 +727,16 @@ export default function FactureForm() {
           </div>
         </div>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <Button variant="secondary" type="button" onClick={() => router.push('/factures')}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={loading} icon={!loading ? <FaSave /> : undefined}>
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                En cours...
-              </>
-            ) : (
-              'Créer la facture'
-            )}
-          </Button>
+        <div className="mt-8">
+          <FormActions
+            onCancel={() => router.push('/factures')}
+            submitLabel="Créer la facture"
+            loading={loading}
+            loadingLabel="En cours..."
+            submitIcon={<FaSave />}
+          />
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }

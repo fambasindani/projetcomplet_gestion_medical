@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaSave, FaArrowLeft, FaBoxes, FaCalendarAlt, FaDollarSign } from 'react-icons/fa';
+import { FaSave, FaBoxes, FaCalendarAlt, FaDollarSign } from 'react-icons/fa';
 import { FormInput } from '../../common/FormInput';
 import { FormTextarea } from '../../common/FormTextarea';
 import { FormSelect } from '../../common/FormSelect';
@@ -14,8 +14,9 @@ import { lotService } from '@/app/services/lotService';
 import { LotCreate, LotMedicament, StatutLot } from '@/app/types/lot';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 interface LotFormProps {
   initialData?: LotMedicament | null;
@@ -112,18 +113,13 @@ export default function LotForm({ initialData, isEdit = false }: LotFormProps) {
   if (isEdit && !initialData) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier le lot' : 'Nouveau lot'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/pharmacie/lots')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+    <PageShell
+      title={isEdit ? 'Modifier le lot' : 'Nouveau lot'}
+      onBack={() => router.back()}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <FormSection title="Informations du lot" icon={<FaBoxes />}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
               <MedicamentSearchSelect
@@ -254,15 +250,15 @@ export default function LotForm({ initialData, isEdit = false }: LotFormProps) {
               rows={2}
             />
           </div>
+        </FormSection>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="secondary" onClick={() => router.push('/pharmacie/lots')}>Annuler</Button>
-            <Button type="submit" disabled={loading} icon={<FaSave />}>
-              {loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Ajouter')}
-            </Button>
-          </div>
-        </div>
+        <FormActions
+          onCancel={() => router.back()}
+          loading={loading}
+          submitLabel={isEdit ? 'Modifier' : 'Ajouter'}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

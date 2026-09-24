@@ -3,12 +3,8 @@ import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
 import adc.gestion_hospitaliere.exception.BusinessException;
 
 
-import adc.gestion_hospitaliere.Entity.AlerteStock;
 import adc.gestion_hospitaliere.Entity.LotMedicament;
-import adc.gestion_hospitaliere.Entity.Medicament;
 import adc.gestion_hospitaliere.Enums.StatutLot;
-import adc.gestion_hospitaliere.Enums.TypeAlerteStock;
-import adc.gestion_hospitaliere.Repository.AlerteStockRepository;
 import adc.gestion_hospitaliere.Repository.LotMedicamentRepository;
 import adc.gestion_hospitaliere.Repository.MedicamentRepository;
 import adc.gestion_hospitaliere.Repository.FournisseurPharmaRepository;
@@ -17,11 +13,9 @@ import adc.gestion_hospitaliere.dto.lot.LotResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,7 +25,7 @@ public class LotMedicamentService {
     private final LotMedicamentRepository repository;
     private final MedicamentRepository medicamentRepository;
     private final FournisseurPharmaRepository fournisseurRepository;
-    private final AlerteStockRepository alerteStockRepository;
+    private final AlerteStockService alerteStockService;
 
     // ---------- CRUD ----------
 
@@ -60,7 +54,7 @@ public class LotMedicamentService {
         LotMedicament lot = new LotMedicament();
         updateEntity(lot, dto);
         lot = repository.save(lot);
-        verifierAlertesPourMedicament(dto.getIdMedicament());
+        alerteStockService.verifierMedicamentAvecNotification(dto.getIdMedicament());
         return toResponseDto(lot);
     }
 
@@ -70,7 +64,7 @@ public class LotMedicamentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lot non trouvé"));
         updateEntity(lot, dto);
         lot = repository.save(lot);
-        verifierAlertesPourMedicament(lot.getIdMedicament());
+        alerteStockService.verifierMedicamentAvecNotification(lot.getIdMedicament());
         return toResponseDto(lot);
     }
 
@@ -83,125 +77,7 @@ public class LotMedicamentService {
         }
         Integer idMedicament = lot.getIdMedicament();
         repository.delete(lot);
-        verifierAlertesPourMedicament(idMedicament);
-    }
-
-    // ---------- GESTION DES ALERTES ----------
-
-    /**
-     * Vérifie les alertes pour un médicament spécifique (stocks, péremption)
-     */
-    @Transactional
-    public void verifierAlertesPourMedicament(Integer idMedicament) {
-        Medicament medicament = medicamentRepository.findById(idMedicament)
-                .orElseThrow(() -> new ResourceNotFoundException("Médicament non trouvé"));
-
-        Integer stockMin = medicament.getStockMinimum();
-        Integer stockActuel = calculerStockActuel(idMedicament);
-
-        // 1. Vérifier le stock minimum
-        if (stockMin != null && stockMin > 0) {
-            if (stockActuel < stockMin) {
-                TypeAlerteStock type = (stockActuel < stockMin / 2) ? TypeAlerteStock.STOCK_CRITIQUE : TypeAlerteStock.STOCK_FAIBLE;
-                creerAlerteSiNonExistante(medicament, type, stockActuel, stockMin, null);
-            } else {
-                desactiverAlertes(medicament.getIdMedicament(), TypeAlerteStock.STOCK_FAIBLE, TypeAlerteStock.STOCK_CRITIQUE);
-            }
-        }
-
-        // 2. Vérifier les péremptions des lots de ce médicament
-        List<LotMedicament> lots = repository.findByIdMedicament(idMedicament);
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime seuilPeremption = now.plusDays(30);
-
-        boolean hasPeremptionProchaine = false;
-        boolean hasPeremptionDepassee = false;
-
-        for (LotMedicament lot : lots) {
-            if (lot.getDatePeremption() != null) {
-                if (lot.getDatePeremption().isBefore(now)) {
-                    hasPeremptionDepassee = true;
-                } else if (lot.getDatePeremption().isBefore(seuilPeremption)) {
-                    hasPeremptionProchaine = true;
-                }
-            }
-        }
-
-        if (hasPeremptionDepassee) {
-            creerAlerteSiNonExistante(medicament, TypeAlerteStock.PEREMPTION_DEPASSEE, null, null, null);
-        } else {
-            desactiverAlertes(medicament.getIdMedicament(), TypeAlerteStock.PEREMPTION_DEPASSEE);
-        }
-
-        if (hasPeremptionProchaine) {
-            creerAlerteSiNonExistante(medicament, TypeAlerteStock.PEREMPTION_PROCHAINE, null, null, null);
-        } else {
-            desactiverAlertes(medicament.getIdMedicament(), TypeAlerteStock.PEREMPTION_PROCHAINE);
-        }
-    }
-
-    /**
-     * Calcule le stock actuel d'un médicament à partir de ses lots.
-     */
-    private int calculerStockActuel(Integer idMedicament) {
-        List<LotMedicament> lots = repository.findByIdMedicament(idMedicament);
-        return lots.stream()
-                .filter(lot -> lot.getStatut() != StatutLot.Périmé)
-                .mapToInt(LotMedicament::getQuantiteRestante)
-                .sum();
-    }
-
-    /**
-     * Crée une alerte uniquement si aucune alerte non traitée du même type n'existe déjà.
-     */
-    private void creerAlerteSiNonExistante(Medicament medicament, TypeAlerteStock type,
-                                           Integer stockActuel, Integer stockMin, LocalDateTime datePeremption) {
-        boolean existe = alerteStockRepository.findByIdMedicament(medicament.getIdMedicament())
-                .stream()
-                .anyMatch(a -> a.getTypeAlerte() == type && !a.getTraitee());
-
-        if (!existe) {
-            AlerteStock alerte = AlerteStock.builder()
-                    .idMedicament(medicament.getIdMedicament())
-                    .typeAlerte(type)
-                    .seuilActuel(stockActuel)
-                    .seuilMinimum(stockMin)
-                    .datePeremption(datePeremption)
-                    .traitee(false)
-                    .build();
-            alerteStockRepository.save(alerte);
-        }
-    }
-
-    /**
-     * Désactive (marque comme traitées) les alertes non traitées d'un type donné pour un médicament.
-     */
-    private void desactiverAlertes(Integer idMedicament, TypeAlerteStock... types) {
-        List<AlerteStock> alertes = alerteStockRepository.findByIdMedicament(idMedicament);
-        for (AlerteStock alerte : alertes) {
-            if (!alerte.getTraitee()) {
-                for (TypeAlerteStock type : types) {
-                    if (alerte.getTypeAlerte() == type) {
-                        alerte.setTraitee(true);
-                        alerte.setDateTraitement(LocalDateTime.now());
-                        alerte.setActionEntreprise("Alerte automatiquement résolue");
-                        alerteStockRepository.save(alerte);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Vérification automatique toutes les heures (planifiée).
-     */
-    @Scheduled(cron = "0 0 * * * *")
-    @Transactional
-    public void schedulerVerifierToutesAlertes() {
-        List<Medicament> medicaments = medicamentRepository.findAll();
-        for (Medicament med : medicaments) {
-            verifierAlertesPourMedicament(med.getIdMedicament());
-        }
+        alerteStockService.verifierMedicamentAvecNotification(idMedicament);
     }
 
     // ---------- MAPPING ----------

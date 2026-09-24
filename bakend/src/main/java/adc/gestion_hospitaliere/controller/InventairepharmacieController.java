@@ -5,6 +5,7 @@ import adc.gestion_hospitaliere.Enums.TypeInventaire;
 import adc.gestion_hospitaliere.dto.Inventairepharmacie.InventaireResponseDto;
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.inventaire.InventaireRequestDto;
+import adc.gestion_hospitaliere.dto.inventaire.LigneStockTheoriqueDto;
 import adc.gestion_hospitaliere.service.InventairePharmacieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @RestController
@@ -41,6 +43,11 @@ public class InventairepharmacieController {
             return ResponseEntity.ok(PagedResponse.of(page));
         }
 
+        @GetMapping("/stock-theorique")
+        public ResponseEntity<List<LigneStockTheoriqueDto>> getStockTheorique() {
+            return ResponseEntity.ok(service.getStockTheorique());
+        }
+
         @GetMapping("/{id}")
         public ResponseEntity<InventaireResponseDto> getById(@PathVariable Integer id) {
             return ResponseEntity.ok(service.getById(id));
@@ -56,6 +63,16 @@ public class InventairepharmacieController {
                 @PathVariable Integer id,
                 @RequestParam Integer validePar) {
             return ResponseEntity.ok(service.valider(id, validePar));
+        }
+
+        @PatchMapping("/{id}/ajuster")
+        public ResponseEntity<InventaireResponseDto> ajuster(@PathVariable Integer id) {
+            return ResponseEntity.ok(service.ajuster(id));
+        }
+
+        @PatchMapping("/{id}/cloturer")
+        public ResponseEntity<InventaireResponseDto> cloturer(@PathVariable Integer id) {
+            return ResponseEntity.ok(service.cloturer(id));
         }
 
         @DeleteMapping("/{id}")

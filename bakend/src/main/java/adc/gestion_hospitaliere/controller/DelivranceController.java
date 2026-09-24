@@ -4,6 +4,7 @@ import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.delivrance.DelivranceRequestDto;
 import adc.gestion_hospitaliere.dto.delivrance.DelivranceResponseDto;
 import adc.gestion_hospitaliere.dto.delivrance.DelivranceUpdateDto;
+import adc.gestion_hospitaliere.dto.pharmacie.RapportMargePharmacieDto;
 import adc.gestion_hospitaliere.service.DelivranceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -45,7 +47,7 @@ public class DelivranceController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'PHARMACIEN', 'MEDECIN')")
+    @PreAuthorize("hasAuthority('PHARMACIE_VOIR')")
     public ResponseEntity<PagedResponse<DelivranceResponseDto>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int pageIndex,
@@ -84,5 +86,13 @@ public class DelivranceController {
     @GetMapping("/statistiques")
     public ResponseEntity<Map<String, Object>> getStatistiques() {
         return ResponseEntity.ok(service.getStatistiques());
+    }
+
+    // AVANT /{id} pour ne pas être capturé par la variable de chemin
+    @GetMapping("/marges")
+    public ResponseEntity<RapportMargePharmacieDto> getRapportMarge(
+            @RequestParam(required = false) LocalDate dateDebut,
+            @RequestParam(required = false) LocalDate dateFin) {
+        return ResponseEntity.ok(service.getRapportMarge(dateDebut, dateFin));
     }
 }

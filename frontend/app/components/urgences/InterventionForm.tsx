@@ -7,6 +7,7 @@ import { FaSave, FaArrowLeft } from 'react-icons/fa';
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
+import ActeAutocomplete from '@/app/components/facturation/ActeAutocomplete';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { MedecinSearchSelect } from '@/app/components/common/MedecinSearchSelect';
 import { urgenceService } from '@/app/services/urgenceService';
@@ -45,6 +46,8 @@ export default function InterventionForm({ initialData, isEdit = false }: Interv
     initialData?.idAdmissionUrgence ?? (admissionParam ? Number(admissionParam) : null),
   );
   const [typeIntervention, setTypeIntervention] = useState(initialData?.typeIntervention ?? '');
+  const [idActeCatalogue, setIdActeCatalogue] = useState<number | null>(initialData?.idActeCatalogue ?? null);
+  const [acteCatalogueLibelle, setActeCatalogueLibelle] = useState(initialData?.libelleActeCatalogue ?? '');
   const [dateIntervention, setDateIntervention] = useState(
     initialData?.dateIntervention ? initialData.dateIntervention.slice(0, 16) : new Date().toISOString().slice(0, 16),
   );
@@ -79,6 +82,7 @@ export default function InterventionForm({ initialData, isEdit = false }: Interv
         idAdmissionUrgence,
         idMedecinPrincipal: idMedecin,
         typeIntervention: typeIntervention.trim(),
+        idActeCatalogue: idActeCatalogue ?? null,
         dateIntervention: formatDateForBackend(dateIntervention),
         lieu: lieu || null,
         dureePrevue: dureePrevue ? Number(dureePrevue) : null,
@@ -117,8 +121,8 @@ export default function InterventionForm({ initialData, isEdit = false }: Interv
         }
       />
 
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+      <form onSubmit={handleSubmit} noValidate className="mx-auto w-full max-w-6xl">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <PatientSearchSelect value={idPatient} onChange={setIdPatient} error={errors.idPatient} required label="Patient" />
@@ -128,9 +132,26 @@ export default function InterventionForm({ initialData, isEdit = false }: Interv
               value={idAdmissionUrgence ?? ''} onChange={(e) => setIdAdmissionUrgence(e.target.value ? Number(e.target.value) : null)}
               placeholder="Optionnel" />
             <div className="md:col-span-2">
-              <FormInput label="Type d'intervention" name="typeIntervention" value={typeIntervention}
-                onChange={(e) => setTypeIntervention(e.target.value)} error={errors.typeIntervention} required
-                placeholder="Ex : pose de voie veineuse, suture, débridement..." />
+              <label className="mb-1.5 block text-sm font-semibold text-gray-800">
+                Type d'intervention <span className="text-red-500">*</span>
+              </label>
+              <ActeAutocomplete
+                categorie="Intervention"
+                value={acteCatalogueLibelle}
+                onChange={(text) => {
+                  setActeCatalogueLibelle(text);
+                  setTypeIntervention(text);
+                  if (!text) setIdActeCatalogue(null);
+                }}
+                onSelect={(acte) => {
+                  setActeCatalogueLibelle(acte.libelle);
+                  setTypeIntervention(acte.libelle);
+                  setIdActeCatalogue(acte.idActeCatalogue);
+                }}
+                onClear={() => setIdActeCatalogue(null)}
+                placeholder="Tapez pour rechercher (ex. : appendicectomie, césarienne, suture...)"
+              />
+              {errors.typeIntervention && <p className="mt-1.5 text-xs font-medium text-red-600">{errors.typeIntervention}</p>}
             </div>
             <FormInput label="Date et heure" name="dateIntervention" type="datetime-local" value={dateIntervention}
               onChange={(e) => setDateIntervention(e.target.value)} error={errors.dateIntervention} required />

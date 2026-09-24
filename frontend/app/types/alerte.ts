@@ -2,7 +2,8 @@ export type TypeAlerteStock =
   | 'STOCK_FAIBLE'
   | 'STOCK_CRITIQUE'
   | 'PEREMPTION_PROCHAINE'
-  | 'PEREMPTION_DEPASSEE';
+  | 'PEREMPTION_DEPASSEE'
+  | 'STOCK_BAS';
 
 export interface AlerteStock {
   idAlerte: number;

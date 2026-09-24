@@ -7,8 +7,10 @@ import adc.gestion_hospitaliere.Enums.StatutInterventionUrgence;
 import adc.gestion_hospitaliere.Repository.InterventionUrgenceRepository;
 import adc.gestion_hospitaliere.Repository.MedecinRepository;
 import adc.gestion_hospitaliere.Repository.PatientRepository;
+import adc.gestion_hospitaliere.Repository.ActeCatalogueRepository;
 import adc.gestion_hospitaliere.dto.urgence.InterventionUrgenceRequestDto;
 import adc.gestion_hospitaliere.dto.urgence.InterventionUrgenceResponseDto;
+import adc.gestion_hospitaliere.util.TransitionsStatut;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,7 @@ public class InterventionUrgenceService {
     private final InterventionUrgenceRepository interventionUrgenceRepository;
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
+    private final ActeCatalogueRepository acteCatalogueRepository;
 
     private String generateNumeroIntervention() {
         String prefix = "INTU-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMdd")) + "-";
@@ -88,6 +91,7 @@ public class InterventionUrgenceService {
     public InterventionUrgenceResponseDto changerStatut(Integer id, StatutInterventionUrgence nouveauStatut) {
         InterventionUrgence i = interventionUrgenceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Intervention d'urgence non trouvée"));
+        TransitionsStatut.verifierInterventionUrgence(i.getStatut(), nouveauStatut);
         i.setStatut(nouveauStatut);
         i = interventionUrgenceRepository.save(i);
         return toResponseDto(i);
@@ -110,6 +114,11 @@ public class InterventionUrgenceService {
             Medecin m = medecinRepository.findById(dto.getIdMedecinPrincipal())
                     .orElseThrow(() -> new ResourceNotFoundException("Médecin non trouvé"));
             i.setIdMedecinPrincipal(m.getIdMedecin());
+        }
+        if (dto.getIdActeCatalogue() != null) {
+            acteCatalogueRepository.findById(dto.getIdActeCatalogue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Acte du référentiel non trouvé"));
+            i.setIdActeCatalogue(dto.getIdActeCatalogue());
         }
         i.setIdAdmissionUrgence(dto.getIdAdmissionUrgence());
         i.setTypeIntervention(dto.getTypeIntervention());
@@ -146,6 +155,9 @@ public class InterventionUrgenceService {
                 .medecinNom(medecinNom)
                 .medecinPrenom(medecinPrenom)
                 .typeIntervention(i.getTypeIntervention())
+                .idActeCatalogue(i.getIdActeCatalogue())
+                .libelleActeCatalogue(i.getActeCatalogue() != null ? i.getActeCatalogue().getLibelle() : null)
+                .prixActeCatalogue(i.getActeCatalogue() != null ? i.getActeCatalogue().getPrixDefaut().doubleValue() : null)
                 .dateIntervention(i.getDateIntervention())
                 .lieu(i.getLieu())
                 .dureePrevue(i.getDureePrevue())

@@ -14,6 +14,7 @@ import {
 import { toast } from 'react-hot-toast';
 import Card from '../components/common/Card';
 import SkeletonCards from '../ui/SkeletonCards';
+import { useAuth } from '../contexts/AuthContext';
 import { patientService } from '../services/patientService';
 import { medecinService } from '../services/medecinService';
 import { planningService } from '../services/planningService';
@@ -61,16 +62,21 @@ const AlerteTypeLabels: Record<string, string> = {
 const Dashboard = () => {
   const [data, setData] = useState<DashboardData>(emptyData);
   const [loading, setLoading] = useState(true);
+  const { permissions, hasPermission } = useAuth();
+
+  // Si l'utilisateur a des permissions connues, on n'appelle que ce qu'il peut consulter.
+  const peut = (permission: string) =>
+    permissions.length === 0 || hasPermission(permission);
 
   const loadData = async () => {
     try {
       const [patientStats, medecinStats, consultationStats, rdvStats, rdvDuJourRes, alertesRes] = await Promise.allSettled([
-        patientService.getStatistiques(),
-        medecinService.getStatistiques(),
-        consultationService.getStats(),
-        planningService.getStats(),
-        rendezvousService.getPlanningJournalier(new Date()),
-        alerteStockService.search({ traitee: false, pageSize: 5 }),
+        peut('PATIENTS_VOIR') ? patientService.getStatistiques() : Promise.resolve(null),
+        peut('MEDECINS_VOIR') ? medecinService.getStatistiques() : Promise.resolve(null),
+        peut('CONSULTATIONS_VOIR') ? consultationService.getStats() : Promise.resolve(null),
+        peut('RENDEZ_VOUS_VOIR') ? planningService.getStats() : Promise.resolve(null),
+        peut('RENDEZ_VOUS_VOIR') ? rendezvousService.getPlanningJournalier(new Date()) : Promise.resolve(null),
+        peut('PHARMACIE_VOIR') ? alerteStockService.search({ traitee: false, pageSize: 5 }) : Promise.resolve(null),
       ]);
 
       const patientVal = patientStats.status === 'fulfilled' ? patientStats.value : null;
@@ -133,7 +139,7 @@ const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-8 text-white shadow-xl shadow-indigo-200"
+        className="relative overflow-hidden rounded-3xl bg-slate-900 p-8 text-white shadow-xl shadow-indigo-200"
       >
         <div className="absolute -right-10 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-fuchsia-400/20 blur-3xl" />
@@ -162,7 +168,7 @@ const Dashboard = () => {
             className="group"
           >
             <Link href={card.href} className="block">
-              <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl">
+              <div className="relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl">
                 <div className="absolute right-0 top-0 h-24 w-24 rounded-full opacity-10 blur-2xl transition-all group-hover:opacity-20" style={{ background: card.color }} />
                 <div className="flex items-center justify-between">
                   <div>
@@ -188,8 +194,8 @@ const Dashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-gray-100">
-            <Card.Header className="flex items-center justify-between border-gray-100">
+          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-slate-200">
+            <Card.Header className="flex items-center justify-between border-slate-100">
               <span className="flex items-center gap-2 text-gray-800"><FaStethoscope className="text-indigo-500" /> Évolution des consultations</span>
               <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
                 {data.consultationsMois} ce mois-ci
@@ -229,8 +235,8 @@ const Dashboard = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-gray-100">
-            <Card.Header className="flex items-center justify-between border-gray-100">
+          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-slate-200">
+            <Card.Header className="flex items-center justify-between border-slate-100">
               <span className="flex items-center gap-2 text-gray-800"><FaHospital className="text-purple-500" /> Médecins par spécialité</span>
             </Card.Header>
             <Card.Body>
@@ -270,8 +276,8 @@ const Dashboard = () => {
       {/* Activities & Appointments */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-gray-100">
-            <Card.Header className="flex items-center justify-between border-gray-100">
+          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-slate-200">
+            <Card.Header className="flex items-center justify-between border-slate-100">
               <span className="flex items-center gap-2 text-gray-800"><FaExclamationTriangle className="text-amber-500" /> Alertes stock récentes</span>
               {data.alertes.length > 0 && (
                 <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
@@ -288,7 +294,7 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-3">
                   {data.alertes.map(a => (
-                    <div key={a.idAlerte} className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-50">
+                    <div key={a.idAlerte} className="flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:bg-slate-50">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-500 text-white shadow-md shadow-rose-200">
                         <FaExclamationTriangle className="text-sm" />
                       </div>
@@ -306,8 +312,8 @@ const Dashboard = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-gray-100">
-            <Card.Header className="flex items-center justify-between border-gray-100">
+          <Card className="h-full rounded-2xl shadow-sm ring-1 ring-slate-200">
+            <Card.Header className="flex items-center justify-between border-slate-100">
               <span className="flex items-center gap-2 text-gray-800"><FaCalendarCheck className="text-emerald-500" /> Rendez-vous du jour</span>
               <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">{data.rdvAujourdhui} au total</span>
             </Card.Header>
@@ -322,7 +328,7 @@ const Dashboard = () => {
                   {data.rdvDuJour.map(rdv => {
                     const time = rdv.dateRdv ? new Date(rdv.dateRdv).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
                     return (
-                      <div key={rdv.idRdv} className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-50">
+                      <div key={rdv.idRdv} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:bg-slate-50">
                         <div className="flex min-w-0 items-center gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-200">
                             <FaUserPlus className="text-sm" />

@@ -1,11 +1,13 @@
 package adc.gestion_hospitaliere.service;
-import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
 
 import adc.gestion_hospitaliere.Entity.*;
 import adc.gestion_hospitaliere.Enums.StatutRendezVous;
 import adc.gestion_hospitaliere.Repository.*;
 import adc.gestion_hospitaliere.dto.rendezvous.RendezVousRequestDto;
 import adc.gestion_hospitaliere.dto.rendezvous.RendezVousResponseDto;
+import adc.gestion_hospitaliere.exception.BusinessException;
+import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
+import adc.gestion_hospitaliere.util.TransitionsStatut;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,11 +25,25 @@ public class RendezVousService {
     private final RendezVousRepository rendezVousRepository;
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
+    private final UserRepository userRepository;
     private final NotificationService notificationService;
 
+    private static final long DUREE_ESTIMEE_DEFAUT_MINUTES = 30;
+
+    /** Utilisateur (compte) associé à un médecin, ou null. */
+    private Long userIdPourMedecin(Integer idMedecin) {
+        if (idMedecin == null) return null;
+        return medecinRepository.findById(idMedecin)
+                .map(Medecin::getEmail)
+                .flatMap(userRepository::findByEmail)
+                .map(User::getId)
+                .orElse(null);
+    }
+
     public List<RendezVousResponseDto> getPlanningJournalier(LocalDateTime date, Integer idMedecin) {
-        LocalDateTime start = date.withHour(0).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime end = date.withHour(23).withMinute(59).withSecond(59).withNano(999999999);
+        LocalDateTime jour = date != null ? date : LocalDateTime.now();
+        LocalDateTime start = jour.withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = jour.withHour(23).withMinute(59).withSecond(59).withNano(999999999);
         List<RendezVous> rdvs;
         if (idMedecin != null) {
             rdvs = rendezVousRepository.findByIdMedecinAndDateRdvBetween(idMedecin, start, end);
@@ -50,8 +66,23 @@ public class RendezVousService {
     public void changerStatut(Integer id, StatutRendezVous statut) {
         RendezVous rdv = rendezVousRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rendez‑vous non trouvé"));
+        TransitionsStatut.verifierRendezVous(rdv.getStatut(), statut);
         rdv.setStatut(statut);
         rendezVousRepository.save(rdv);
+    }
+
+    /**
+     * Termine le rendez-vous rattaché à une consultation (appelé à la création d'une consultation).
+     */
+    @Transactional
+    public void terminerSiPresent(Integer idRdv) {
+        if (idRdv == null) return;
+        rendezVousRepository.findById(idRdv).ifPresent(rdv -> {
+            if (rdv.getStatut() == StatutRendezVous.Programmé || rdv.getStatut() == StatutRendezVous.Confirmé) {
+                rdv.setStatut(StatutRendezVous.Terminé);
+                rendezVousRepository.save(rdv);
+            }
+        });
     }
 
     public Page<RendezVousResponseDto> search(StatutRendezVous statut, LocalDateTime start, LocalDateTime end,
@@ -84,8 +115,7 @@ public class RendezVousService {
 
     @Transactional
     public RendezVousResponseDto create(RendezVousRequestDto dto) {
-        // Vérifier conflit de planning (optionnel)
-        // ...
+        verifierConflitPlanning(dto.getIdMedecin(), dto.getDateRdv(), dto.getDureeEstimee(), null);
         RendezVous rdv = new RendezVous();
         rdv.setIdPatient(dto.getIdPatient());
         rdv.setIdMedecin(dto.getIdMedecin());
@@ -101,13 +131,17 @@ public class RendezVousService {
         String patientNom = patientRepository.findById(rdv.getIdPatient())
                 .map(p -> p.getNom() + " " + p.getPrenom())
                 .orElse("Patient");
+        // Notification ciblée sur LE médecin du rendez-vous (pas tous les médecins).
+        Long destinataire = userIdPourMedecin(rdv.getIdMedecin());
         notificationService.notifier(
                 adc.gestion_hospitaliere.Enums.TypeNotification.NOUVEAU_RDV,
                 "Nouveau rendez-vous",
                 "Rendez-vous " + (rdv.getStatut() != null ? rdv.getStatut() : "") +
                         " pour " + patientNom + " le " +
                         (rdv.getDateRdv() != null ? rdv.getDateRdv().toLocalDate() : LocalDate.now()) + ".",
-                "RDV", rdv.getIdRdv());
+                "RDV", rdv.getIdRdv(),
+                destinataire != null ? null : adc.gestion_hospitaliere.Enums.Role.MEDECIN,
+                destinataire);
         return toResponseDto(rdv);
     }
 
@@ -115,6 +149,7 @@ public class RendezVousService {
     public RendezVousResponseDto update(Integer id, RendezVousRequestDto dto) {
         RendezVous rdv = rendezVousRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous non trouvé"));
+        verifierConflitPlanning(dto.getIdMedecin(), dto.getDateRdv(), dto.getDureeEstimee(), id);
         rdv.setIdPatient(dto.getIdPatient());
         rdv.setIdMedecin(dto.getIdMedecin());
         rdv.setDateRdv(dto.getDateRdv());
@@ -132,6 +167,10 @@ public class RendezVousService {
     public void annuler(Integer id, String motifAnnulation) {
         RendezVous rdv = rendezVousRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous non trouvé"));
+        if (rdv.getStatut() == StatutRendezVous.Annulé) {
+            throw new BusinessException("Ce rendez-vous est déjà annulé");
+        }
+        TransitionsStatut.verifierRendezVous(rdv.getStatut(), StatutRendezVous.Annulé);
         rdv.setStatut(StatutRendezVous.Annulé);
         rdv.setMotifAnnulation(motifAnnulation);
         rdv.setDateAnnulation(LocalDateTime.now());
@@ -141,6 +180,32 @@ public class RendezVousService {
     @Transactional
     public void delete(Integer id) {
         rendezVousRepository.deleteById(id);
+    }
+
+    /**
+     * Refuse un rendez-vous qui chevauche un rendez-vous actif du même médecin.
+     */
+    private void verifierConflitPlanning(Integer idMedecin, LocalDateTime dateRdv, Integer dureeEstimee, Integer idExclu) {
+        if (idMedecin == null || dateRdv == null) return;
+        long duree = (dureeEstimee != null && dureeEstimee > 0)
+                ? dureeEstimee : DUREE_ESTIMEE_DEFAUT_MINUTES;
+        LocalDateTime debut = dateRdv.minusMinutes(DUREE_ESTIMEE_DEFAUT_MINUTES);
+        LocalDateTime fin = dateRdv.plusMinutes(duree);
+
+        List<RendezVous> candidats = rendezVousRepository
+                .findByIdMedecinAndDateRdvBetween(idMedecin, debut, fin);
+        for (RendezVous existant : candidats) {
+            if (idExclu != null && idExclu.equals(existant.getIdRdv())) continue;
+            if (existant.getStatut() == StatutRendezVous.Annulé) continue;
+            long dureeExistante = (existant.getDureeEstimee() != null && existant.getDureeEstimee() > 0)
+                    ? existant.getDureeEstimee() : DUREE_ESTIMEE_DEFAUT_MINUTES;
+            LocalDateTime debutExistant = existant.getDateRdv();
+            LocalDateTime finExistante = debutExistant.plusMinutes(dureeExistante);
+            if (debut.isBefore(finExistante) && debutExistant.isBefore(fin)) {
+                throw new BusinessException("Conflit de planning : le médecin a déjà un rendez-vous"
+                        + " à " + debutExistant.toLocalTime() + " ce jour");
+            }
+        }
     }
 
     private RendezVousResponseDto toResponseDto(RendezVous rdv) {

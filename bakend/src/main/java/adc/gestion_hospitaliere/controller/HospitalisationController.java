@@ -3,6 +3,7 @@ import adc.gestion_hospitaliere.Enums.StatutHospitalisation;
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.hospitalisation.HospitalisationRequestDto;
 import adc.gestion_hospitaliere.dto.hospitalisation.HospitalisationResponseDto;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import adc.gestion_hospitaliere.service.HospitalisationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +21,17 @@ import java.time.LocalDateTime;
 public class HospitalisationController {
 
     private final HospitalisationService service;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<PagedResponse<HospitalisationResponseDto>> getAll(
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        return ResponseEntity.ok(PagedResponse.of(service.getAll(pageable)));
+        // Un médecin ne voit que les hospitalisations dont il est responsable.
+        Integer filtre = currentUserService.filtreMedecinId();
+        return ResponseEntity.ok(PagedResponse.of(
+                filtre != null ? service.getAllForMedecin(filtre, pageable) : service.getAll(pageable)));
     }
 
     @GetMapping("/search")

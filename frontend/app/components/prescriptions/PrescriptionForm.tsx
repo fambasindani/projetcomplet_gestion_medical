@@ -10,7 +10,9 @@ import { FormTextarea } from '../common/FormTextarea';
 import { PatientSearchSelect } from '../common/PatientSearchSelect';
 import { MedecinSearchSelect } from '../common/MedecinSearchSelect';
 import { MedicamentSearchSelect } from '../common/MedicamentSearchSelect';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import Button from '@/app/ui/Button';
 import { prescriptionService } from '@/app/services/prescriptionService';
 import { examenService } from '@/app/services/examenService';
@@ -338,17 +340,9 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={getTitle()}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.back()}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-6 space-y-6 max-w-5xl mx-auto">
+    <PageShell title={getTitle()} maxWidth="max-w-6xl" onBack={() => router.back()}>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <FormSection>
           {/* Patient et Médecin */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <PatientSearchSelect value={formData.idPatient} onChange={handlePatientChange} error={errors.idPatient} required />
@@ -372,8 +366,7 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
 
           {/* Section Médicaments */}
           {formData.typePrescription === TypePrescription.Medicament && (
-            <div className="rounded-2xl bg-gray-50 ring-1 ring-gray-100 p-5">
-              <h3 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-3">Médicaments prescrits</h3>
+            <FormSection title="Médicaments prescrits" className="bg-slate-50">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Ajouter un médicament</span>
@@ -383,23 +376,23 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 items-end">
                   {customMode ? (
-                    <input type="text" placeholder="Nom du médicament" value={newMedicament.nomLibre || ''} onChange={e => setNewMedicament(prev => ({ ...prev, nomLibre: e.target.value, isCustom: true }))} className="col-span-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                    <input type="text" placeholder="Nom du médicament" value={newMedicament.nomLibre || ''} onChange={e => setNewMedicament(prev => ({ ...prev, nomLibre: e.target.value, isCustom: true }))} className="col-span-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
                   ) : (
                     <div className="col-span-2">
                       <MedicamentSearchSelect value={newMedicament.id || null} onChange={(id, nom) => id && handleMedicamentSelect(id, nom || '')} placeholder="Rechercher..." />
                     </div>
                   )}
-                  <input type="text" placeholder="Posologie *" value={newMedicament.posologie} onChange={e => setNewMedicament(prev => ({ ...prev, posologie: e.target.value }))} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <input type="text" placeholder="Durée" value={newMedicament.dureeTraitement} onChange={e => setNewMedicament(prev => ({ ...prev, dureeTraitement: e.target.value }))} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <input type="number" placeholder="Qté" value={newMedicament.quantitePrescrite} onChange={e => setNewMedicament(prev => ({ ...prev, quantitePrescrite: parseInt(e.target.value) || 1 }))} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="text" placeholder="Posologie *" value={newMedicament.posologie} onChange={e => setNewMedicament(prev => ({ ...prev, posologie: e.target.value }))} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="text" placeholder="Durée" value={newMedicament.dureeTraitement} onChange={e => setNewMedicament(prev => ({ ...prev, dureeTraitement: e.target.value }))} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="number" placeholder="Qté" value={newMedicament.quantitePrescrite} onChange={e => setNewMedicament(prev => ({ ...prev, quantitePrescrite: parseInt(e.target.value) || 1 }))} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
                   <Button type="button" onClick={handleAddMedicament} icon={<FaPlus />}>Ajouter</Button>
                 </div>
-                <input type="text" placeholder="Instructions spécifiques" value={newMedicament.instructions} onChange={e => setNewMedicament(prev => ({ ...prev, instructions: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                <input type="text" placeholder="Instructions spécifiques" value={newMedicament.instructions} onChange={e => setNewMedicament(prev => ({ ...prev, instructions: e.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
               </div>
               {medicaments.length > 0 && (
                 <div className="overflow-x-auto mt-2">
                   <table className="min-w-full divide-y text-sm">
-                    <thead className="bg-gray-50"><tr><th>Médicament</th><th>Posologie</th><th>Durée</th><th>Qté</th><th>Instructions</th><th></th></tr></thead>
+                    <thead className="bg-slate-50"><tr><th>Médicament</th><th>Posologie</th><th>Durée</th><th>Qté</th><th>Instructions</th><th></th></tr></thead>
                     <tbody>
                       {medicaments.map((med, idx) => (
                         <tr key={idx} className="border-t"><td className="px-4 py-2">{med.isCustom ? med.nomLibre : `[${med.id}] ${med.nomLibre}`}</td><td>{med.posologie}</td><td>{med.dureeTraitement || '-'}</td><td>{med.quantitePrescrite}</td><td>{med.instructions || '-'}</td><td><button type="button" onClick={() => handleRemoveMedicament(idx)} className="text-red-500"><FaTrash /></button></td></tr>
@@ -409,30 +402,29 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
                 </div>
               )}
               {errors.medicaments && <p className="text-sm text-red-600">{errors.medicaments}</p>}
-            </div>
+            </FormSection>
           )}
 
           {/* Section Examens */}
           {formData.typePrescription === TypePrescription.Examen && (
-            <div className="rounded-2xl bg-gray-50 ring-1 ring-gray-100 p-5">
-              <h3 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-3">Examens prescrits</h3>
+            <FormSection title="Examens prescrits" className="bg-slate-50">
               <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <input type="text" placeholder="Type d'examen *" value={newExamen.typeExamen} onChange={e => setNewExamen({...newExamen, typeExamen: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <select value={newExamen.idCategorieExamen} onChange={e => setNewExamen({...newExamen, idCategorieExamen: parseInt(e.target.value)})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                  <input type="text" placeholder="Type d'examen *" value={newExamen.typeExamen} onChange={e => setNewExamen({...newExamen, typeExamen: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <select value={newExamen.idCategorieExamen} onChange={e => setNewExamen({...newExamen, idCategorieExamen: parseInt(e.target.value)})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                     <option value={0}>Catégorie *</option>
                     {categories.map((c: CategorieExamen) => <option key={c.idCategorieExamen} value={c.idCategorieExamen}>{c.libelle}</option>)}
                   </select>
-                  <input type="datetime-local" value={newExamen.datePlanification || ''} onChange={e => setNewExamen({...newExamen, datePlanification: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <input type="datetime-local" value={newExamen.dateRealisation || ''} onChange={e => setNewExamen({...newExamen, dateRealisation: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="datetime-local" value={newExamen.datePlanification || ''} onChange={e => setNewExamen({...newExamen, datePlanification: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="datetime-local" value={newExamen.dateRealisation || ''} onChange={e => setNewExamen({...newExamen, dateRealisation: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <input type="text" placeholder="Laboratoire" value={newExamen.laboratoire || ''} onChange={e => setNewExamen({...newExamen, laboratoire: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <input type="text" placeholder="Technicien" value={newExamen.technicien || ''} onChange={e => setNewExamen({...newExamen, technicien: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <select value={newExamen.statut} onChange={e => setNewExamen({...newExamen, statut: e.target.value as StatutExamen})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                  <input type="text" placeholder="Laboratoire" value={newExamen.laboratoire || ''} onChange={e => setNewExamen({...newExamen, laboratoire: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="text" placeholder="Technicien" value={newExamen.technicien || ''} onChange={e => setNewExamen({...newExamen, technicien: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <select value={newExamen.statut} onChange={e => setNewExamen({...newExamen, statut: e.target.value as StatutExamen})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                     {STATUT_EXAMEN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
-                  <select value={newExamen.confidentialite} onChange={e => setNewExamen({...newExamen, confidentialite: e.target.value as ConfidentialiteExamen})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                  <select value={newExamen.confidentialite} onChange={e => setNewExamen({...newExamen, confidentialite: e.target.value as ConfidentialiteExamen})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                     {CONFIDENTIALITE_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
@@ -451,22 +443,21 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
                 </div>
               )}
               {errors.examens && <p className="text-sm text-red-600">{errors.examens}</p>}
-            </div>
+            </FormSection>
           )}
 
           {/* Section Soins */}
           {formData.typePrescription === TypePrescription.Soin && (
-            <div className="rounded-2xl bg-gray-50 ring-1 ring-gray-100 p-5">
-              <h3 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-3">Soins prescrits</h3>
+            <FormSection title="Soins prescrits" className="bg-slate-50">
               <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input type="text" placeholder="Description *" value={newSoin.description} onChange={e => setNewSoin({...newSoin, description: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <input type="text" placeholder="Instructions" value={newSoin.instructions || ''} onChange={e => setNewSoin({...newSoin, instructions: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="text" placeholder="Description *" value={newSoin.description} onChange={e => setNewSoin({...newSoin, description: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="text" placeholder="Instructions" value={newSoin.instructions || ''} onChange={e => setNewSoin({...newSoin, instructions: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <input type="text" placeholder="Fréquence" value={newSoin.frequence || ''} onChange={e => setNewSoin({...newSoin, frequence: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <input type="text" placeholder="Durée" value={newSoin.duree || ''} onChange={e => setNewSoin({...newSoin, duree: e.target.value})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-                  <select value={newSoin.statut} onChange={e => setNewSoin({...newSoin, statut: e.target.value as StatutSoin})} className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                  <input type="text" placeholder="Fréquence" value={newSoin.frequence || ''} onChange={e => setNewSoin({...newSoin, frequence: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <input type="text" placeholder="Durée" value={newSoin.duree || ''} onChange={e => setNewSoin({...newSoin, duree: e.target.value})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
+                  <select value={newSoin.statut} onChange={e => setNewSoin({...newSoin, statut: e.target.value as StatutSoin})} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                     {STATUT_SOIN_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                   </select>
                 </div>
@@ -485,7 +476,7 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
                 </div>
               )}
               {errors.soins && <p className="text-sm text-red-600">{errors.soins}</p>}
-            </div>
+            </FormSection>
           )}
 
           {/* Dates début/fin et notes */}
@@ -494,16 +485,15 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
             <FormInput label="Date de fin" name="dateFin" type="datetime-local" value={formData.dateFin || ''} onChange={handleChange} />
           </div>
           <FormTextarea label="Notes complémentaires" name="notesComplementaires" value={formData.notesComplementaires || ''} onChange={handleChange} rows={2} />
+        </FormSection>
 
-          <div className="flex justify-end gap-4 pt-4">
-            <Button type="button" variant="secondary" onClick={() => router.back()}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading} icon={<FaSave />}>
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
-          </div>
-        </form>
-    </div>
+        <FormActions
+          onCancel={() => router.back()}
+          submitLabel="Enregistrer"
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
+      </form>
+    </PageShell>
   );
 }

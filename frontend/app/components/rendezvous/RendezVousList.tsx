@@ -31,6 +31,7 @@ import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls'
 import { rendezvousService } from '@/app/services/rendezvousService';
 import { RendezVous, StatutRendezVous } from '@/app/types/rendezvous';
 import { PagedResult } from '@/app/types/pagination';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 import { AnnulationModal } from './AnnulationModal'; // <-- import
 
@@ -45,6 +46,8 @@ const statutColors: Record<StatutRendezVous, string> = {
 export default function RendezVousList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { user } = useAuth();
+  const estMedecin = user?.role === 'MEDECIN';
 
   const [pagedData, setPagedData] = useState<PagedResult<RendezVous> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -162,7 +165,7 @@ export default function RendezVousList() {
     <div className="space-y-6">
       {/* HEADER */}
       <PageHeader
-        title="Gestion des rendez-vous"
+        title={estMedecin ? 'Mes rendez-vous' : 'Tous les rendez-vous'}
         subtitle={`${pagedData?.totalCount || 0} rendez-vous`}
         actions={
           <>
@@ -183,7 +186,7 @@ export default function RendezVousList() {
 
       {/* FILTRES */}
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterSelect
               value={filterStatut}

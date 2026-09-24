@@ -78,8 +78,8 @@ export default function CategorieForm({ initialData, isEdit = false }: Categorie
         }
       />
 
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-4">
+      <form onSubmit={handleSubmit} noValidate className="mx-auto w-full max-w-6xl">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-4">
           <FormInput
             label="Nom de la catégorie"
             name="nomCategorie"

@@ -1,12 +1,6 @@
 // types/auth.ts
-export interface RegisterDto {
-  nom: string;
-  prenom: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  role: 'ADMIN' | 'MEDECIN' | 'PATIENT' | 'SECRETAIRE';
-}
+import type { UserRole } from './user';
+export type { UserRole };
 
 export interface LoginDto {
   email: string;
@@ -18,9 +12,12 @@ export interface AuthResponseDto {
   nom: string;
   prenom: string;
   email: string;
-  role: string;
+  role: UserRole;
+  medecinId?: number | null;
   token: string;
-  tokenExpiration: string;
+  refreshToken: string;
+  expiresIn: number;
+  permissions?: string[];
 }
 
 export interface User {
@@ -28,5 +25,7 @@ export interface User {
   nom: string;
   prenom: string;
   email: string;
-  role: string;
+  role: UserRole;
+  medecinId?: number | null;
+  permissions?: string[];
 }

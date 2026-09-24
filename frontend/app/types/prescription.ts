@@ -11,9 +11,9 @@ export enum TypePrescription {
 
 export enum StatutPrescription {
   Active = 'Active',
-  Terminee = 'Terminée',
-  Annulee = 'Annulée',
-  EnAttente = 'En attente'
+  Terminee = 'Terminee',
+  Annulee = 'Annulee',
+  EnAttente = 'EnAttente'
 }
 
 export interface PrescriptionExamen {

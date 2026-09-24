@@ -68,7 +68,7 @@ const SpecialitesFilters: React.FC<FiltersProps> = ({
           </form>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-slate-50"
           >
             <FaFilter /> Filtres
             {activeFilter !== 'all' && (
@@ -82,7 +82,7 @@ const SpecialitesFilters: React.FC<FiltersProps> = ({
               setSortDescending(!sortDescending);
               onSortChange('nomSpecialite', !sortDescending);
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-slate-50"
           >
             {sortDescending ? <FaSortAmountDown /> : <FaSortAmountUp />}
             Trier
@@ -91,7 +91,7 @@ const SpecialitesFilters: React.FC<FiltersProps> = ({
       </div>
 
       {showFilters && (
-        <div className="mt-4 border-t border-gray-100 pt-4">
+        <div className="mt-4 border-t border-slate-100 pt-4">
           <div className="flex flex-wrap gap-2">
             {filters.map((filter) => (
               <button

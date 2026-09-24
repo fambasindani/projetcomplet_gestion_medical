@@ -13,6 +13,7 @@ public class ExamenRequestDto {
     @NotNull private Integer idMedecinPrescripteur;
     private String typeExamen;
     @NotNull private Integer idCategorieExamen;   // ← clé étrangère vers CategorieExamen
+    private Integer idActeCatalogue;              // ← acte précis du référentiel (actes_catalogue)
     private LocalDateTime datePrescription;
     private LocalDateTime datePlanification;
     private LocalDateTime dateRealisation;

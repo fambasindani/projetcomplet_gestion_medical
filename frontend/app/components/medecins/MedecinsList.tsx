@@ -205,7 +205,7 @@ const MedecinsList: React.FC = () => {
 
       {/* Filtres */}
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <form onSubmit={handleSearch} className="flex gap-2">
               <FilterInput
@@ -273,7 +273,7 @@ const MedecinsList: React.FC = () => {
                   </Td>
                   <Td className="whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-indigo-100 to-purple-100">
+                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-indigo-100">
                         {imageUrl && !hasImageError ? (
                           <img
                             src={imageUrl}

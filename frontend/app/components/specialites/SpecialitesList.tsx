@@ -98,7 +98,7 @@ const SpecialitesList: React.FC = () => {
   if (showStats) {
     return (
       <div className="space-y-6">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 flex items-center gap-3">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 flex items-center gap-3">
           <Button
             variant="secondary"
             onClick={() => setShowStats(false)}

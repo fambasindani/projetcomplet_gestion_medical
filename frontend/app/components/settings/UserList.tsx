@@ -23,6 +23,9 @@ const roleColors: Record<string, string> = {
   PHARMACIEN: 'bg-blue-100 text-blue-800',
   MEDECIN: 'bg-green-100 text-green-800',
   SECRETAIRE: 'bg-yellow-100 text-yellow-800',
+  PATIENT: 'bg-gray-100 text-gray-800',
+  INFIRMIER: 'bg-pink-100 text-pink-800',
+  RH: 'bg-indigo-100 text-indigo-800',
 };
 
 export default function UserList() {
@@ -152,7 +155,7 @@ export default function UserList() {
 
       {/* Filtres */}
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <form onSubmit={handleSearch} className="flex gap-2">
               <FilterInput
@@ -172,6 +175,9 @@ export default function UserList() {
               <option value="PHARMACIEN">Pharmacien</option>
               <option value="MEDECIN">Médecin</option>
               <option value="SECRETAIRE">Secrétaire</option>
+              <option value="PATIENT">Patient</option>
+              <option value="INFIRMIER">Infirmier</option>
+              <option value="RH">RH</option>
             </FilterSelect>
             <FilterSelect
               value={selectedActive || ''}
@@ -222,7 +228,7 @@ export default function UserList() {
                   <Td className="whitespace-nowrap text-sm text-gray-500">{user.id}</Td>
                   <Td className="whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center">
                         <span className="text-sm font-medium text-indigo-700">
                           {getInitials(user.nom, user.prenom)}
                         </span>
@@ -262,7 +268,7 @@ export default function UserList() {
                     <div className="flex justify-center gap-2">
                       <IconButton
                         color="gray"
-                        onClick={() => router.push(`/admin/users/${user.id}/details`)}
+                        onClick={() => router.push(`/settings/utilisateurs/${user.id}/details`)}
                         title="Voir détails"
                       >
                         <FaEye size={14} />

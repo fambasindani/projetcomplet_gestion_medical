@@ -114,8 +114,8 @@ export default function AdmissionForm({ initialData, isEdit = false }: Admission
         }
       />
 
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+      <form onSubmit={handleSubmit} noValidate className="mx-auto w-full max-w-6xl">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <PatientSearchSelect value={idPatient} onChange={setIdPatient} error={errors.idPatient} required label="Patient" />

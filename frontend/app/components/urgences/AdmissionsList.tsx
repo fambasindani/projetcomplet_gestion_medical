@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaPlus, FaFilter, FaEdit, FaTrash, FaUserInjured } from 'react-icons/fa';
+import { FaPlus, FaFilter, FaEdit, FaTrash, FaUserInjured, FaEye } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Pagination from '@/app/ui/Pagination';
@@ -110,7 +110,7 @@ export default function AdmissionsList() {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
-    <div className="min-h-screen space-y-6 bg-gray-50 p-6">
+    <div className="min-h-screen space-y-6 bg-slate-50 p-6">
       <PageHeader
         title="Admissions aux urgences"
         subtitle={`${pagedData?.totalCount ?? 0} admission(s)`}
@@ -128,7 +128,7 @@ export default function AdmissionsList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterSelect
               value={filtreStatut}
@@ -204,6 +204,9 @@ export default function AdmissionsList() {
                   <Td className="text-gray-600">{format(new Date(adm.dateArrivee), 'dd/MM/yyyy HH:mm', { locale: fr })}</Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-2">
+                      <IconButton color="gray" title="Voir la fiche" onClick={() => router.push(`/urgences/admissions/${adm.idAdmissionUrgence}`)}>
+                        <FaEye size={14} />
+                      </IconButton>
                       <IconButton color="indigo" title="Modifier" onClick={() => router.push(`/urgences/admissions/${adm.idAdmissionUrgence}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>

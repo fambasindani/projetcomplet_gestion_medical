@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class ElementFacturableDto {
 
     private String source;
+    private Integer idSource;
     private Integer idActe;
     private Integer idMedicament;
     private Integer idHospitalisation;

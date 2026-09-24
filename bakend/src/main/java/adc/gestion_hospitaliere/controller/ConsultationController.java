@@ -4,6 +4,7 @@ import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.consultation.ConsultationRequestDto;
 import adc.gestion_hospitaliere.dto.consultation.ConsultationResponseDto;
 import adc.gestion_hospitaliere.service.ConsultationService;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,13 +22,18 @@ import java.util.Map;
 public class ConsultationController {
 
     private final ConsultationService consultationService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<PagedResponse<ConsultationResponseDto>> getAllConsultations(
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<ConsultationResponseDto> page = consultationService.getAllConsultations(pageable);
+        // Un médecin ne voit que ses consultations (rien s'il n'est pas rattaché) ; les autres rôles voient tout.
+        Integer filtre = currentUserService.filtreMedecinId();
+        Page<ConsultationResponseDto> page = (filtre != null)
+                ? consultationService.getConsultationsByMedecin(filtre, pageable)
+                : consultationService.getAllConsultations(pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

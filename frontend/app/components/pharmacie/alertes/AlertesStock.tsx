@@ -22,6 +22,7 @@ const typeLabels: Record<string, string> = {
   STOCK_CRITIQUE: 'Stock critique',
   PEREMPTION_PROCHAINE: 'Péremption proche',
   PEREMPTION_DEPASSEE: 'Péremption dépassée',
+  STOCK_BAS: 'Stock bas',
 };
 
 const statusStyles: Record<string, string> = {
@@ -101,7 +102,7 @@ export default function AlertesStock() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterSelect onChange={e => setFilters({ ...filters, type: e.target.value })}>
               <option value="">Tous les types</option>

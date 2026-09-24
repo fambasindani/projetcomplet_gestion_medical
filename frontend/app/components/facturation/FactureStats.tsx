@@ -122,7 +122,7 @@ export default function FactureStats() {
         {cards.map((card, idx) => (
           <div
             key={idx}
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 flex items-center gap-4"
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 flex items-center gap-4"
           >
             <div className={`p-4 rounded-xl ${card.bg} ${card.color}`}>
               <card.icon size={22} />
@@ -136,7 +136,7 @@ export default function FactureStats() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="rounded-2xl shadow-sm ring-1 ring-gray-100">
+        <Card className="rounded-2xl shadow-sm ring-1 ring-slate-200">
           <Card.Header>Montants émis par mois</Card.Header>
           <Card.Body>
             {moisData.length === 0 ? (
@@ -158,7 +158,7 @@ export default function FactureStats() {
           </Card.Body>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm ring-1 ring-gray-100">
+        <Card className="rounded-2xl shadow-sm ring-1 ring-slate-200">
           <Card.Header>Répartition par statut</Card.Header>
           <Card.Body>
             {statutData.length === 0 ? (

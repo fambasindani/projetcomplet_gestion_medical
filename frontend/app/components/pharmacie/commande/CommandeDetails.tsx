@@ -6,15 +6,16 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import {
-  FaArrowLeft, FaBuilding, FaCalendarAlt, FaDollarSign, FaClipboardList,
+  FaBuilding, FaDollarSign, FaClipboardList,
   FaCheckCircle, FaTimesCircle, FaTruck, FaEdit
 } from 'react-icons/fa';
-import type { IconType } from 'react-icons';
 import { useConfirm } from 'react-use-confirming-dialog';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import EmptyState from '@/app/ui/EmptyState';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
 import Button from '@/app/ui/Button';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoCard, InfoGrid } from '@/app/ui/InfoCard';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { commandeService } from '@/app/services/commandeService';
 import { CommandeFournisseur, StatutCommandeFournisseur } from '@/app/types/commande';
@@ -74,55 +75,39 @@ export default function CommandeDetails() {
   );
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Détails de la commande"
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/pharmacie/commandes')}>
-              Retour
-            </Button>
-            <Button icon={<FaEdit />} onClick={() => router.push(`/pharmacie/commandes/${id}/modifier`)}>
-              Modifier
-            </Button>
-            <Button variant="danger" onClick={handleDelete}>
-              Supprimer
-            </Button>
-          </>
+    <PageShell
+      title="Détails de la commande"
+      onBack={() => router.back()}
+      actions={
+        <>
+          <Button icon={<FaEdit />} onClick={() => router.push(`/pharmacie/commandes/${id}/modifier`)}>
+            Modifier
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Supprimer
+          </Button>
+        </>
+      }
+    >
+      <DetailBanner
+        meta="Commande"
+        title={`Commande #${commande.numeroCommande}`}
+        subtitle={`Créée le ${format(new Date(commande.dateCommande), "d MMMM yyyy 'à' HH:mm", { locale: fr })}`}
+        badges={
+          <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${statutStyles[commande.statut]}`}>
+            {statutLabels[commande.statut]}
+          </span>
         }
-      />
+      >
+        <InfoGrid>
+          <InfoCard icon={FaBuilding} label="Fournisseur" value={commande.fournisseurNom} />
+          <InfoCard icon={FaDollarSign} label="Montant Total" value={`$${commande.montantTotal?.toFixed(2)}`} />
+          <InfoCard icon={commande.paiementEffectue ? FaCheckCircle : FaTimesCircle} label="Paiement" value={commande.paiementEffectue ? 'Réglé' : 'En attente'} />
+          <InfoCard icon={FaTruck} label="Livraison Prévue" value={commande.dateLivraisonPrevue ? format(new Date(commande.dateLivraisonPrevue), 'dd/MM/yyyy') : '-'} />
+          <InfoCard icon={FaTruck} label="Livraison Réelle" value={commande.dateLivraisonReelle ? format(new Date(commande.dateLivraisonReelle), 'dd/MM/yyyy') : '-'} />
+        </InfoGrid>
 
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-        {/* Header Moderne */}
-        <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold mb-1">Commande #{commande.numeroCommande}</h1>
-              <p className="opacity-80 text-sm flex items-center gap-2">
-                <FaCalendarAlt /> Créée le {format(new Date(commande.dateCommande), "d MMMM yyyy 'à' HH:mm", { locale: fr })}
-              </p>
-            </div>
-            <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${statutStyles[commande.statut]}`}>
-              {statutLabels[commande.statut]}
-            </span>
-          </div>
-        </div>
-
-        <div className="p-8 space-y-8">
-          {/* Grille d'Infos */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <StatCard title="Fournisseur" value={commande.fournisseurNom} icon={FaBuilding} />
-            <StatCard title="Montant Total" value={`$${commande.montantTotal?.toFixed(2)}`} icon={FaDollarSign} />
-            <StatCard title="Paiement" value={commande.paiementEffectue ? 'Réglé' : 'En attente'} icon={commande.paiementEffectue ? FaCheckCircle : FaTimesCircle} />
-          </div>
-
-          {/* Dates de livraison */}
-          <div className="grid rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 md:grid-cols-2 gap-6">
-            <InfoItem label="Livraison Prévue" value={commande.dateLivraisonPrevue ? format(new Date(commande.dateLivraisonPrevue), 'dd/MM/yyyy') : '-'} icon={FaTruck} />
-            <InfoItem label="Livraison Réelle" value={commande.dateLivraisonReelle ? format(new Date(commande.dateLivraisonReelle), 'dd/MM/yyyy') : '-'} icon={FaTruck} />
-          </div>
-
-          {/* Table Détails */}
+        <div className="px-6 pb-6">
           <section>
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
               <FaClipboardList /> Articles commandés
@@ -153,32 +138,7 @@ export default function CommandeDetails() {
             </TableContainer>
           </section>
         </div>
-
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ title, value, icon: Icon }: { title: string; value: string | undefined; icon: IconType }) {
-  return (
-    <div className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-      <div className="bg-indigo-50 p-3 rounded-lg text-indigo-500"><Icon /></div>
-      <div>
-        <p className="text-[10px] uppercase font-bold text-gray-400">{title}</p>
-        <p className="font-bold text-gray-800">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function InfoItem({ label, value, icon: Icon }: { label: string; value: string; icon: IconType }) {
-  return (
-    <div className="flex items-center gap-3">
-      <Icon className="text-gray-400" />
-      <div>
-        <p className="text-[10px] uppercase font-bold text-gray-400">{label}</p>
-        <p className="font-medium text-gray-700">{value}</p>
-      </div>
-    </div>
+      </DetailBanner>
+    </PageShell>
   );
 }

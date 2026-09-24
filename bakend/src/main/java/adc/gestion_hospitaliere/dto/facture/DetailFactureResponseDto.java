@@ -16,6 +16,7 @@ public class DetailFactureResponseDto {
     private String acteLibelle;
     private Integer idMedicament;
     private String medicamentNom;
+    private String source;
     private String description;
     private Integer quantite;
     private Double prixUnitaire;

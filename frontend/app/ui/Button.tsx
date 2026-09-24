@@ -9,10 +9,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
-  primary: 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md hover:from-indigo-600 hover:to-purple-700',
-  secondary: 'border border-gray-300 bg-white text-gray-600 hover:bg-gray-50',
-  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700',
-  ghost: 'text-gray-600 hover:bg-gray-50',
+  primary: 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 focus-visible:ring-indigo-500',
+  secondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400',
+  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:ring-red-500',
+  ghost: 'text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-300',
 };
 
 const sizes: Record<NonNullable<ButtonProps['size']>, string> = {
@@ -30,7 +30,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   return (
     <button
-      className={`inline-flex items-center gap-2 rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {icon}
@@ -47,8 +47,8 @@ const iconColors: Record<NonNullable<IconButtonProps['color']>, string> = {
   indigo: 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100',
   blue: 'bg-blue-50 text-blue-600 hover:bg-blue-100',
   red: 'bg-red-50 text-red-600 hover:bg-red-100',
-  green: 'bg-green-50 text-green-600 hover:bg-green-100',
-  gray: 'bg-gray-50 text-gray-600 hover:bg-gray-100',
+  green: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100',
+  gray: 'bg-slate-100 text-slate-600 hover:bg-slate-200',
 };
 
 export const IconButton: React.FC<IconButtonProps> = ({
@@ -59,7 +59,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
 }) => {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-lg p-2 transition ${iconColors[color]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg p-2 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-50 ${iconColors[color]} ${className}`}
       {...props}
     >
       {children}

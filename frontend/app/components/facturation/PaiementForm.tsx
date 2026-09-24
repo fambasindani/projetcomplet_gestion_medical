@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaSave, FaArrowLeft } from 'react-icons/fa';
+import { FaSave } from 'react-icons/fa';
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
@@ -12,8 +12,9 @@ import { factureService } from '@/app/services/factureService';
 import type { Facture, ModePaiement } from '@/app/types/facture';
 import { ModePaiementLabels, ModePaiementValues } from '@/app/types/facture';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 interface PaiementFormProps {
   facture?: Facture | null;
@@ -71,18 +72,13 @@ export default function PaiementForm({ facture }: PaiementFormProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Encaisser un paiement"
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push(`/factures/${facture.idFacture}`)}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl space-y-6">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
+    <PageShell
+      title="Encaisser un paiement"
+      maxWidth="max-w-6xl"
+      onBack={() => router.push(`/factures/${facture.idFacture}`)}
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <FormSection>
           <div className="rounded-lg bg-indigo-50 p-4 text-sm text-indigo-700 flex justify-between">
             <span>Facture {facture.numeroFacture}</span>
             <span className="font-semibold">Restant : {montantRestant.toFixed(2)} $</span>
@@ -121,15 +117,16 @@ export default function PaiementForm({ facture }: PaiementFormProps) {
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
           />
-        </div>
+        </FormSection>
 
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={() => router.push(`/factures/${facture.idFacture}`)}>Annuler</Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Encaissement...' : 'Encaisser'}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.push(`/factures/${facture.idFacture}`)}
+          submitLabel="Encaisser"
+          loading={loading}
+          loadingLabel="Encaissement..."
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

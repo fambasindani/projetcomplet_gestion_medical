@@ -8,6 +8,9 @@ import adc.gestion_hospitaliere.Enums.EvolutionConsultation;
 import adc.gestion_hospitaliere.Repository.ConsultationRepository;
 import adc.gestion_hospitaliere.Repository.MedecinRepository;
 import adc.gestion_hospitaliere.Repository.PatientRepository;
+import adc.gestion_hospitaliere.Repository.ActeCatalogueRepository;
+import adc.gestion_hospitaliere.Repository.RendezVousRepository;
+import adc.gestion_hospitaliere.Enums.StatutRendezVous;
 import adc.gestion_hospitaliere.dto.consultation.ConsultationRequestDto;
 import adc.gestion_hospitaliere.dto.consultation.ConsultationResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,8 @@ public class ConsultationService {
     private final ConsultationRepository consultationRepository;
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
+    private final ActeCatalogueRepository acteCatalogueRepository;
+    private final RendezVousRepository rendezVousRepository;
 
     public Page<ConsultationResponseDto> getConsultationsByPatient(Integer patientId, Pageable pageable) {
         Page<Consultation> page = consultationRepository.findByIdPatient(patientId, pageable);
@@ -63,11 +68,16 @@ public class ConsultationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Patient non trouvé"));
         Medecin medecin = medecinRepository.findById(dto.getIdMedecin())
                 .orElseThrow(() -> new ResourceNotFoundException("Médecin non trouvé"));
+        if (dto.getIdActeCatalogue() != null) {
+            acteCatalogueRepository.findById(dto.getIdActeCatalogue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Acte du référentiel non trouvé"));
+        }
 
         Consultation consultation = Consultation.builder()
                 .idRdv(dto.getIdRdv())
                 .idPatient(dto.getIdPatient())
                 .idMedecin(dto.getIdMedecin())
+                .idActeCatalogue(dto.getIdActeCatalogue())
                 .dateConsultation(dto.getDateConsultation())
                 .motifConsultation(dto.getMotifConsultation())
                 .histoireMaladie(dto.getHistoireMaladie())
@@ -99,7 +109,14 @@ public class ConsultationService {
         }
 
         Consultation saved = consultationRepository.save(consultation);
-        // Mettre à jour le statut du rendez-vous si idRdv existe (optionnel)
+        if (saved.getIdRdv() != null) {
+            rendezVousRepository.findById(saved.getIdRdv()).ifPresent(rdv -> {
+                if (rdv.getStatut() == StatutRendezVous.Programmé || rdv.getStatut() == StatutRendezVous.Confirmé) {
+                    rdv.setStatut(StatutRendezVous.Terminé);
+                    rendezVousRepository.save(rdv);
+                }
+            });
+        }
         return convertToDto(saved);
     }
 
@@ -110,6 +127,11 @@ public class ConsultationService {
 
         consultation.setDateConsultation(dto.getDateConsultation());
         consultation.setMotifConsultation(dto.getMotifConsultation());
+        if (dto.getIdActeCatalogue() != null) {
+            acteCatalogueRepository.findById(dto.getIdActeCatalogue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Acte du référentiel non trouvé"));
+            consultation.setIdActeCatalogue(dto.getIdActeCatalogue());
+        }
         consultation.setHistoireMaladie(dto.getHistoireMaladie());
         consultation.setDiagnostic(dto.getDiagnostic());
         consultation.setTraitementPrescris(dto.getTraitementPrescris());
@@ -218,6 +240,9 @@ public class ConsultationService {
                 .idMedecin(c.getIdMedecin())
                 .medecinNom(c.getMedecin() != null ? c.getMedecin().getNom() : null)
                 .medecinPrenom(c.getMedecin() != null ? c.getMedecin().getPrenom() : null)
+                .idActeCatalogue(c.getIdActeCatalogue())
+                .libelleActeCatalogue(c.getActeCatalogue() != null ? c.getActeCatalogue().getLibelle() : null)
+                .prixActeCatalogue(c.getActeCatalogue() != null ? c.getActeCatalogue().getPrixDefaut().doubleValue() : null)
                 .dateConsultation(c.getDateConsultation())
                 .motifConsultation(c.getMotifConsultation())
                 .histoireMaladie(c.getHistoireMaladie())

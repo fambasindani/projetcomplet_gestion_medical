@@ -29,6 +29,7 @@ public class ExamenService {
     private final CategorieExamenRepository categorieExamenRepository;
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
+    private final ActeCatalogueRepository acteCatalogueRepository;
 
     // --- CRUD ---
 
@@ -40,6 +41,10 @@ public class ExamenService {
 
     public Page<ExamenResponseDto> getAll(Pageable pageable) {
         return examenRepository.findAll(pageable).map(this::toDto);
+    }
+
+    public Page<ExamenResponseDto> getAllForMedecin(Integer medecinId, Pageable pageable) {
+        return examenRepository.findByIdMedecinPrescripteur(medecinId, pageable).map(this::toDto);
     }
 
     public ExamenResponseDto getById(Integer id) {
@@ -62,6 +67,10 @@ public class ExamenService {
     public ExamenResponseDto create(ExamenRequestDto dto) {
         CategorieExamen categorie = categorieExamenRepository.findById(dto.getIdCategorieExamen())
                 .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée"));
+        if (dto.getIdActeCatalogue() != null) {
+            acteCatalogueRepository.findById(dto.getIdActeCatalogue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Acte du référentiel non trouvé"));
+        }
 
         String numeroExamen;
         do {
@@ -74,6 +83,7 @@ public class ExamenService {
                 .idPatient(dto.getIdPatient())
                 .idMedecinPrescripteur(dto.getIdMedecinPrescripteur())
                 .idPrescription(dto.getIdPrescription())
+                .idActeCatalogue(dto.getIdActeCatalogue())
                 .typeExamen(dto.getTypeExamen())
                 .categorie(categorie)
                 .datePrescription(dto.getDatePrescription() != null ? dto.getDatePrescription() : LocalDateTime.now())
@@ -99,25 +109,46 @@ public class ExamenService {
         Examen examen = examenRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Examen non trouvé"));
 
+        // Mise à jour PARTIELLE : seuls les champs fournis (non null) sont modifiés.
+        // Permet d'avoir des formulaires séparés (demande vs résultat) sans écraser le reste.
+        if (dto.getIdPatient() != null) examen.setIdPatient(dto.getIdPatient());
+        if (dto.getIdMedecinPrescripteur() != null) examen.setIdMedecinPrescripteur(dto.getIdMedecinPrescripteur());
+        if (dto.getIdPrescription() != null) examen.setIdPrescription(dto.getIdPrescription());
         if (dto.getIdCategorieExamen() != null) {
             CategorieExamen categorie = categorieExamenRepository.findById(dto.getIdCategorieExamen())
                     .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée"));
             examen.setCategorie(categorie);
         }
-        // Mise à jour des autres champs...
-        examen.setTypeExamen(dto.getTypeExamen());
-        examen.setDatePlanification(dto.getDatePlanification());
-        examen.setDateRealisation(dto.getDateRealisation());
-        examen.setLaboratoire(dto.getLaboratoire());
-        examen.setTechnicien(dto.getTechnicien());
-        examen.setResultat(dto.getResultat());
-        examen.setInterpretation(dto.getInterpretation());
-        examen.setFichierJoint(dto.getFichierJoint());
-        examen.setCompteRendu(dto.getCompteRendu());
-        examen.setAnomalies(dto.getAnomalies());
-        examen.setConclusion(dto.getConclusion());
-        if (dto.getStatut() != null) examen.setStatut(dto.getStatut());
+        if (dto.getIdActeCatalogue() != null) {
+            acteCatalogueRepository.findById(dto.getIdActeCatalogue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Acte du référentiel non trouvé"));
+            examen.setIdActeCatalogue(dto.getIdActeCatalogue());
+        }
+        if (dto.getTypeExamen() != null) examen.setTypeExamen(dto.getTypeExamen());
+        if (dto.getDatePrescription() != null) examen.setDatePrescription(dto.getDatePrescription());
+        if (dto.getDatePlanification() != null) examen.setDatePlanification(dto.getDatePlanification());
+        if (dto.getDateRealisation() != null) examen.setDateRealisation(dto.getDateRealisation());
+        if (dto.getLaboratoire() != null) examen.setLaboratoire(dto.getLaboratoire());
+        if (dto.getTechnicien() != null) examen.setTechnicien(dto.getTechnicien());
+        if (dto.getResultat() != null) examen.setResultat(dto.getResultat());
+        if (dto.getInterpretation() != null) examen.setInterpretation(dto.getInterpretation());
+        if (dto.getFichierJoint() != null) examen.setFichierJoint(dto.getFichierJoint());
+        if (dto.getCompteRendu() != null) examen.setCompteRendu(dto.getCompteRendu());
+        if (dto.getAnomalies() != null) examen.setAnomalies(dto.getAnomalies());
+        if (dto.getConclusion() != null) examen.setConclusion(dto.getConclusion());
         if (dto.getConfidentialite() != null) examen.setConfidentialite(dto.getConfidentialite());
+
+        if (dto.getStatut() != null) {
+            StatutExamen nouveau = dto.getStatut();
+            examen.setStatut(nouveau);
+            if (nouveau == StatutExamen.Réalisé && examen.getDateRealisation() == null) {
+                examen.setDateRealisation(LocalDateTime.now());
+            }
+            if (nouveau == StatutExamen.Validé) {
+                if (examen.getDateRealisation() == null) examen.setDateRealisation(LocalDateTime.now());
+                if (examen.getDateValidation() == null) examen.setDateValidation(LocalDateTime.now());
+            }
+        }
 
         return toDto(examenRepository.save(examen));
     }
@@ -162,6 +193,9 @@ public class ExamenService {
                 .typeExamen(examen.getTypeExamen())
                 .idCategorieExamen(examen.getCategorie() != null ? examen.getCategorie().getIdCategorieExamen() : null)
                 .libelleCategorie(examen.getCategorie() != null ? examen.getCategorie().getLibelle() : null)
+                .idActeCatalogue(examen.getIdActeCatalogue())
+                .libelleActeCatalogue(examen.getActeCatalogue() != null ? examen.getActeCatalogue().getLibelle() : null)
+                .prixActeCatalogue(examen.getActeCatalogue() != null ? examen.getActeCatalogue().getPrixDefaut().doubleValue() : null)
                 .datePrescription(examen.getDatePrescription())
                 .datePlanification(examen.getDatePlanification())
                 .dateRealisation(examen.getDateRealisation())

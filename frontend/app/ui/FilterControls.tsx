@@ -12,7 +12,7 @@ interface FilterPanelProps {
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({ children, className = '' }) => {
   return (
-    <div className={`mt-5 border-t border-gray-100 pt-5 ${className}`}>
+    <div className={`mt-5 border-t border-slate-100 pt-5 ${className}`}>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">{children}</div>
     </div>
   );

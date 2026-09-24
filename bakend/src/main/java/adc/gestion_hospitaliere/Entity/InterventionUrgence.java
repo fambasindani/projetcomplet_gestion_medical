@@ -46,6 +46,14 @@ public class InterventionUrgence {
     @JoinColumn(name = "id_medecin_principal", insertable = false, updatable = false)
     private Medecin medecinPrincipal;
 
+    // --- Relation vers le référentiel d'actes (catalogue) ---
+    @Column(name = "id_acte_catalogue")
+    private Integer idActeCatalogue;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_acte_catalogue", insertable = false, updatable = false)
+    private ActeCatalogue acteCatalogue;
+
     @Column(name = "type_intervention", nullable = false, length = 200)
     private String typeIntervention;
 

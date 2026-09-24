@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -18,32 +19,45 @@ import {
   FaInfoCircle,
   FaExclamationTriangle,
   FaCheckCircle,
+  FaMicroscope,
+  FaUserCog,
+  FaClipboardList,
+  FaPlusCircle,
 } from 'react-icons/fa';
+import type { IconType } from 'react-icons';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { examenService } from '@/app/services/examenService';
 import type { Examen } from '@/app/types/examen';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { peutModifier } from '@/app/utils/permissions';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoGrid, InfoCard } from '@/app/ui/InfoCard';
 import Button from '@/app/ui/Button';
 
 const statutColors: Record<string, string> = {
-  Prescrit: 'bg-yellow-100 text-yellow-800',
+  Prescrit: 'bg-amber-100 text-amber-800',
   Planifié: 'bg-blue-100 text-blue-800',
-  Réalisé: 'bg-green-100 text-green-800',
+  En_cours: 'bg-cyan-100 text-cyan-800',
+  Réalisé: 'bg-emerald-100 text-emerald-800',
   Validé: 'bg-indigo-100 text-indigo-800',
   Annulé: 'bg-red-100 text-red-800',
 };
 
 const confidentialiteColors: Record<string, string> = {
-  Normal: 'bg-gray-100 text-gray-800',
+  Normal: 'bg-gray-100 text-gray-700',
   Confidentiel: 'bg-orange-100 text-orange-800',
-  'Très confidentiel': 'bg-red-100 text-red-800',
+  Très_confidentiel: 'bg-red-100 text-red-700',
 };
+
+const fmt = (d?: string | null) => (d ? format(new Date(d), 'dd/MM/yyyy à HH:mm', { locale: fr }) : null);
 
 export default function ExamenDetails() {
   const { id } = useParams();
   const router = useRouter();
   const confirm = useConfirm();
+  const { user } = useAuth();
   const [examen, setExamen] = useState<Examen | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -70,236 +84,165 @@ export default function ExamenDetails() {
     }
   };
 
-  const hasResultat = (ex: Examen): boolean =>
-    !!(ex.resultat || ex.interpretation || ex.compteRendu || ex.conclusion || ex.anomalies);
-
-  const handlePrintSingle = () => {
-    if (!examen) return;
-    if (!hasResultat(examen)) {
-      toast.error('Résultat pas disponible');
-      return;
-    }
-    router.push(`/examens/${examen.idExamen}/impression`);
-  };
-
-  const handlePrintAll = () => {
-    if (!examen || !examen.idPrescription) return;
-    if (!hasResultat(examen)) {
-      toast.error('Résultat pas disponible');
-      return;
-    }
-    router.push(`/examens/prescriptions/${examen.idPrescription}/impression`);
-  };
-
   if (loading) return <SkeletonDetails />;
   if (!examen) return <div className="p-6 text-center">Examen non trouvé</div>;
 
+  // Un médecin ne peut modifier/saisir/supprimer que ses propres examens.
+  const editable = peutModifier(user?.role, user?.medecinId, examen.idMedecinPrescripteur);
+  const aResultat = !!(examen.resultat || examen.interpretation || examen.compteRendu || examen.conclusion || examen.anomalies);
+
+  const infos: { icon: IconType; label: string; value: string }[] = [
+    { icon: FaUser, label: 'Patient', value: examen.patientNom || '—' },
+    { icon: FaUserMd, label: 'Médecin prescripteur', value: examen.medecinNom || '—' },
+    { icon: FaFileAlt, label: "Type d'examen", value: examen.typeExamen || '—' },
+    { icon: FaFlask, label: 'Catégorie', value: examen.libelleCategorie || '—' },
+    { icon: FaCalendarAlt, label: 'Prescrit le', value: fmt(examen.datePrescription) || '—' },
+    { icon: FaCalendarAlt, label: 'Planifié le', value: fmt(examen.datePlanification) || '—' },
+    { icon: FaCalendarAlt, label: 'Réalisé le', value: fmt(examen.dateRealisation) || '—' },
+    { icon: FaMicroscope, label: 'Laboratoire', value: examen.laboratoire || '—' },
+    { icon: FaUserCog, label: 'Technicien', value: examen.technicien || '—' },
+    { icon: FaClipboardList, label: 'Prescription associée', value: examen.idPrescription ? `#${examen.idPrescription}` : '—' },
+  ];
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`Examen ${examen.numeroExamen}`}
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/examens/liste')}>
-              Retour
-            </Button>
-            <Button icon={<FaEdit />} onClick={() => router.push(`/examens/modifier/${examen.idExamen}`)}>
-              Modifier
-            </Button>
-            <Button
-              icon={<FaPrint />}
-              onClick={handlePrintSingle}
-            >
+    <PageShell
+      title={`Examen ${examen.numeroExamen}`}
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/examens/liste')}
+      actions={
+        <>
+            {editable && ['Prescrit', 'Planifié', 'En_cours'].includes(examen.statut) && (
+              <Button variant="secondary" icon={<FaEdit />} onClick={() => router.push(`/examens/modifier/${examen.idExamen}`)}>
+                Modifier la demande
+              </Button>
+            )}
+            {editable && examen.statut !== 'Validé' && (
+              <Button icon={<FaFlask />} onClick={() => router.push(`/examens/resultat/${examen.idExamen}`)}>
+                {examen.statut === 'Réalisé' ? 'Modifier le résultat' : 'Saisir le résultat'}
+              </Button>
+            )}
+            <Button variant="secondary" icon={<FaPrint />} onClick={() => router.push(`/examens/${examen.idExamen}/impression`)}>
               Imprimer
             </Button>
             {examen.idPrescription && (
-              <Button
-                variant="secondary"
-                icon={<FaPrint />}
-                onClick={handlePrintAll}
-              >
+              <Button variant="secondary" icon={<FaPrint />} onClick={() => router.push(`/examens/prescriptions/${examen.idPrescription}/impression`)}>
                 Imprimer tous les examens
               </Button>
             )}
-            <Button variant="danger" icon={<FaTrash />} onClick={handleDelete}>
-              Supprimer
-            </Button>
+            {editable && (
+              <Button variant="danger" icon={<FaTrash />} onClick={handleDelete}>
+                Supprimer
+              </Button>
+            )}
           </>
         }
-      />
+      >
 
-      {/* Carte principale */}
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-        {/* Bannière */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex justify-between items-start">
-          <div>
-            <h2 className="text-white text-xl font-semibold">{examen.typeExamen}</h2>
-            <p className="text-indigo-100 text-sm">{examen.libelleCategorie}</p>
-          </div>
-          <div className="flex gap-2">
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${statutColors[examen.statut] || 'bg-gray-200'}`}
-            >
+      {/* Bannière */}
+      <DetailBanner
+        meta="Examen médical"
+        title={examen.typeExamen}
+        subtitle={examen.libelleCategorie}
+        badges={
+          <>
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statutColors[examen.statut] || 'bg-gray-200'}`}>
               {examen.statut}
             </span>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${confidentialiteColors[examen.confidentialite] || 'bg-gray-200'}`}
-            >
-              {examen.confidentialite}
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${confidentialiteColors[examen.confidentialite] || 'bg-gray-200'}`}>
+              {examen.confidentialite.replace('_', ' ')}
             </span>
-          </div>
-        </div>
+          </>
+        }
+      >
+        {/* Infos en cartes */}
+        <InfoGrid>
+          {infos.map((info) => (
+            <InfoCard key={info.label} icon={info.icon} label={info.label} value={info.value} />
+          ))}
+        </InfoGrid>
+      </DetailBanner>
 
-        {/* Contenu */}
-        <div className="p-6 space-y-6">
-          {/* Informations générales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <FaUser className="text-gray-500" />
-              <span>
-                <strong>Patient :</strong> {examen.patientNom}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FaUserMd className="text-gray-500" />
-              <span>
-                <strong>Médecin prescripteur :</strong> {examen.medecinNom}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FaFileAlt className="text-gray-500" />
-              <span>
-                <strong>Type :</strong> {examen.typeExamen}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FaFlask className="text-gray-500" />
-              <span>
-                <strong>Catégorie :</strong> {examen.libelleCategorie}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FaCalendarAlt className="text-gray-500" />
-              <span>
-                <strong>Prescription :</strong>{' '}
-                {format(new Date(examen.datePrescription), 'dd/MM/yyyy à HH:mm', { locale: fr })}
-              </span>
-            </div>
-            {examen.datePlanification && (
-              <div className="flex items-center gap-2">
-                <FaCalendarAlt className="text-gray-500" />
-                <span>
-                  <strong>Planifié le :</strong>{' '}
-                  {format(new Date(examen.datePlanification), 'dd/MM/yyyy à HH:mm', { locale: fr })}
-                </span>
-              </div>
+      {/* Résultat */}
+      {aResultat ? (
+        <div className="space-y-4">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <FaFlask className="text-indigo-500" /> Résultat de l&apos;examen
+          </h3>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {examen.resultat && (
+              <ResultCard icon={FaInfoCircle} color="indigo" title="Résultat" text={examen.resultat} />
             )}
-            {examen.dateRealisation && (
-              <div className="flex items-center gap-2">
-                <FaCalendarAlt className="text-gray-500" />
-                <span>
-                  <strong>Réalisé le :</strong>{' '}
-                  {format(new Date(examen.dateRealisation), 'dd/MM/yyyy à HH:mm', { locale: fr })}
-                </span>
-              </div>
+            {examen.interpretation && (
+              <ResultCard icon={FaInfoCircle} color="blue" title="Interprétation" text={examen.interpretation} />
             )}
-            <div className="flex items-center gap-2">
-              <FaUserMd className="text-gray-500" />
-              <span>
-                <strong>Laboratoire :</strong> {examen.laboratoire || '-'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FaUserMd className="text-gray-500" />
-              <span>
-                <strong>Technicien :</strong> {examen.technicien || '-'}
-              </span>
-            </div>
-            {examen.idPrescription && (
-              <div className="flex items-center gap-2">
-                <FaFileAlt className="text-gray-500" />
-                <span>
-                  <strong>Prescription associée :</strong> #{examen.idPrescription}
-                </span>
-              </div>
+            {examen.compteRendu && (
+              <ResultCard icon={FaFileAlt} color="violet" title="Compte rendu" text={examen.compteRendu} />
+            )}
+            {examen.anomalies && (
+              <ResultCard icon={FaExclamationTriangle} color="amber" title="Anomalies" text={examen.anomalies} />
+            )}
+            {examen.conclusion && (
+              <ResultCard icon={FaCheckCircle} color="emerald" title="Conclusion" text={examen.conclusion} />
             )}
           </div>
 
-          {/* Résultat */}
-          {examen.resultat && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FaInfoCircle className="text-indigo-600" /> Résultat
-              </h3>
-              <p className="mt-2 whitespace-pre-wrap">{examen.resultat}</p>
-            </div>
-          )}
-
-          {/* Interprétation */}
-          {examen.interpretation && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FaInfoCircle className="text-indigo-600" /> Interprétation
-              </h3>
-              <p className="mt-2 whitespace-pre-wrap">{examen.interpretation}</p>
-            </div>
-          )}
-
-          {/* Compte rendu */}
-          {examen.compteRendu && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FaFileAlt className="text-indigo-600" /> Compte rendu
-              </h3>
-              <p className="mt-2 whitespace-pre-wrap">{examen.compteRendu}</p>
-            </div>
-          )}
-
-          {/* Anomalies */}
-          {examen.anomalies && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FaExclamationTriangle className="text-amber-600" /> Anomalies
-              </h3>
-              <p className="mt-2 whitespace-pre-wrap">{examen.anomalies}</p>
-            </div>
-          )}
-
-          {/* Conclusion */}
-          {examen.conclusion && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FaCheckCircle className="text-green-600" /> Conclusion
-              </h3>
-              <p className="mt-2 whitespace-pre-wrap">{examen.conclusion}</p>
-            </div>
-          )}
-
-          {/* Fichier joint */}
           {examen.fichierJoint && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold">Fichier joint</h3>
-              <a
-                href={examen.fichierJoint}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600 hover:underline"
-              >
+            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Fichier joint</p>
+              <a href={examen.fichierJoint} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline">
                 {examen.fichierJoint}
               </a>
             </div>
           )}
 
-          {/* Date de validation */}
           {examen.dateValidation && (
-            <div className="border-t pt-4 text-sm text-gray-500">
-              <FaCalendarAlt className="inline mr-1" />
-              Validé le {format(new Date(examen.dateValidation), 'dd/MM/yyyy à HH:mm', { locale: fr })}
-              {examen.validateurNom && ` par ${examen.validateurNom}`}
-            </div>
+            <p className="flex items-center gap-2 text-sm text-gray-500">
+              <FaCheckCircle className="text-emerald-500" />
+              Validé le {fmt(examen.dateValidation)}
+              {examen.validateurNom ? ` par ${examen.validateurNom}` : ''}
+            </p>
           )}
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center shadow-sm">
+          <FaFlask className="text-4xl text-gray-200" />
+          <p className="text-sm text-gray-500">Aucun résultat pour cet examen.</p>
+          {examen.statut !== 'Validé' && (
+            <Button icon={<FaPlusCircle />} onClick={() => router.push(`/examens/resultat/${examen.idExamen}`)}>
+              Saisir le résultat
+            </Button>
+          )}
+        </div>
+      )}
+    </PageShell>
+  );
+}
+
+const colorClasses: Record<string, string> = {
+  indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+  blue: 'bg-blue-50 text-blue-600 border-blue-100',
+  violet: 'bg-violet-50 text-violet-600 border-violet-100',
+  amber: 'bg-amber-50 text-amber-600 border-amber-100',
+  emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+};
+
+function ResultCard({
+  icon: Icon,
+  color,
+  title,
+  text,
+}: {
+  icon: IconType;
+  color: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className={`rounded-2xl border bg-white p-5 shadow-sm ${colorClasses[color] ?? 'border-slate-100'}`}>
+      <h4 className="mb-2 flex items-center gap-2 font-semibold text-gray-800">
+        <Icon className="text-current opacity-80" /> {title}
+      </h4>
+      <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{text}</p>
     </div>
   );
 }

@@ -26,6 +26,8 @@ public interface HospitalisationRepository extends JpaRepository<Hospitalisation
     Page<Hospitalisation> findByIdMedecinResponsable(Integer idMedecin, Pageable pageable);
     Page<Hospitalisation> findByStatut(StatutHospitalisation statut, Pageable pageable);
 
+    boolean existsByIdChambreAndStatut(Integer idChambre, StatutHospitalisation statut);
+
     @Query("SELECT h FROM Hospitalisation h WHERE " +
             "(:statut IS NULL OR h.statut = :statut) AND " +
             "(:idPatient IS NULL OR h.idPatient = :idPatient) AND " +

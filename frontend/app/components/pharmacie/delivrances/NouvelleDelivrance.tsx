@@ -5,13 +5,11 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
   FaSave,
-  FaArrowLeft,
   FaPlus,
   FaTrash,
   FaPrint,
   FaPills,
   FaUser,
-  FaUserMd,
   FaClipboardList,
   FaCheckCircle,
 } from 'react-icons/fa';
@@ -26,7 +24,9 @@ import OrdonnanceModal from '../../prescriptions/OrdonnanceModal';
 import { FormInput } from '../../common/FormInput';
 import { FormSelect } from '../../common/FormSelect';
 import { FormTextarea } from '../../common/FormTextarea';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import Button from '@/app/ui/Button';
 
 type MotifDelivrance = 'SUR_ORDONNANCE' | 'URGENCE' | 'GRATUITE';
@@ -200,7 +200,7 @@ const NouvelleDelivrance = () => {
       // On ne garde que les champs utiles pour l'API
       const payload = {
         ...form,
-        idPrescriptionMed: null,
+        idPrescriptionMed: form.idPrescriptionMed,
         details: form.details.map(({ idMedicament, idLot, quantiteDelivree, prixUnitaire, priseEnChargeMutuelle }) => ({
           idMedicament,
           idLot,
@@ -226,303 +226,283 @@ const NouvelleDelivrance = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Nouvelle délivrance"
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.back()}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate>
+    <PageShell
+      title="Nouvelle délivrance"
+      onBack={() => router.back()}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Colonne principale */}
           <div className="lg:col-span-2 space-y-6">
             {/* Section Patient & Prescription */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                <FaUser /> Patient et prescription
-              </h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <PatientSearchSelect
-                      value={form.idPatient}
-                      onChange={handlePatientChange}
-                      required
-                      label="Patient"
-                      error={patientError}
-                    />
-                  </div>
-                  <div>
-                    <MedecinSearchSelect
-                      value={form.idMedecinPrescripteur}
-                      onChange={handleMedecinChange}
-                      label="Médecin prescripteur"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <PrescriptionSearchSelect
-                      value={form.idPrescriptionMed}
-                      onChange={handlePrescriptionChange}
-                      label="Ordonnance associée"
-                      placeholder="Sélectionner une ordonnance (facultatif)"
-                      patientId={form.idPatient || undefined}
-                    />
-                    {selectedPrescription && (
-                      <div className="mt-2">
-                        <button
-                          type="button"
-                          onClick={handlePrintOrdonnance}
-                          className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-md flex items-center gap-1 hover:bg-green-200 transition"
-                        >
-                          <FaPrint size={14} /> Imprimer l&apos;ordonnance
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <FormInput
-                    label="Numéro d'ordonnance (manuel)"
-                    name="numeroOrdonnance"
-                    value={form.numeroOrdonnance}
-                    onChange={(e) => setForm((prev) => ({ ...prev, numeroOrdonnance: e.target.value }))}
-                    placeholder="Facultatif"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormSelect
-                    label="Motif de délivrance"
-                    name="motifDelivrance"
-                    value={form.motifDelivrance}
-                    onChange={handleMotifChange}
-                    options={motifOptions}
+            <FormSection title="Patient et prescription" icon={<FaUser />}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <PatientSearchSelect
+                    value={form.idPatient}
+                    onChange={handlePatientChange}
                     required
+                    label="Patient"
+                    error={patientError}
                   />
-                  <div className="flex items-center mt-2">
-                    <input
-                      type="checkbox"
-                      id="signature"
-                      checked={form.signatureElectronique}
-                      onChange={(e) =>
-                        setForm((prev) => ({ ...prev, signatureElectronique: e.target.checked }))
-                      }
-                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <label htmlFor="signature" className="ml-2 text-sm text-gray-700">
-                      Signature électronique
-                    </label>
-                  </div>
                 </div>
-                <FormTextarea
-                  label="Observations"
-                  name="observations"
-                  value={form.observations}
-                  onChange={(e) => setForm((prev) => ({ ...prev, observations: e.target.value }))}
-                  rows={2}
-                  placeholder="Informations complémentaires…"
-                />
+                <div>
+                  <MedecinSearchSelect
+                    value={form.idMedecinPrescripteur}
+                    onChange={handleMedecinChange}
+                    label="Médecin prescripteur"
+                  />
+                </div>
               </div>
-
-              {/* Section Médicaments délivrés */}
-              <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-                <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                  <FaPills /> Médicaments délivrés
-                </h5>
-
-                {/* Ligne d'ajout */}
-                <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3 items-end">
-                    <div className="col-span-2">
-                      <MedicamentSearchSelect
-                        value={currentDetail.idMedicament || null}
-                        onChange={handleMedicamentSelect}
-                        placeholder="Sélectionner un médicament"
-                        label="Médicament"
-                        error={errors.medicament}
-                        required
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <LotSearchSelect
-                        value={currentDetail.idLot || null}
-                        onChange={handleLotSelect}
-                        medicamentId={currentDetail.idMedicament || undefined}
-                        label="Lot"
-                        placeholder="Sélectionner un lot"
-                        error={errors.lot}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500">
-                        Quantité <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="Qté"
-                        value={currentDetail.quantiteDelivree}
-                        onChange={handleQuantityChange}
-                        className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 ${
-                          errors.quantite ? 'border-red-500' : ''
-                        }`}
-                      />
-                      {errors.quantite && (
-                        <p className="mt-1 text-xs text-red-600">{errors.quantite}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500">
-                        Prix unitaire <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="0.001"
-                        placeholder="Prix unit."
-                        value={currentDetail.prixUnitaire}
-                        onChange={handlePriceChange}
-                        disabled
-                        className="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 text-sm text-gray-500"
-                      />
-                      {errors.prix && <p className="mt-1 text-xs text-red-600">{errors.prix}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500">Mutuelle</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="Mutuelle"
-                        value={currentDetail.priseEnChargeMutuelle}
-                        onChange={handleMutuelleChange}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                      />
-                    </div>
-                    <div>
-                      <Button
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <PrescriptionSearchSelect
+                    value={form.idPrescriptionMed}
+                    onChange={handlePrescriptionChange}
+                    label="Ordonnance associée"
+                    placeholder="Sélectionner une ordonnance (facultatif)"
+                    patientId={form.idPatient || undefined}
+                  />
+                  {selectedPrescription && (
+                    <div className="mt-2">
+                      <button
                         type="button"
-                        onClick={addDetail}
-                        icon={<FaPlus size={12} />}
-                        className="w-full h-[42px]"
+                        onClick={handlePrintOrdonnance}
+                        className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-md flex items-center gap-1 hover:bg-green-200 transition"
                       >
-                        Ajouter
-                      </Button>
+                        <FaPrint size={14} /> Imprimer l&apos;ordonnance
+                      </button>
                     </div>
-                  </div>
-                  {form.details.length === 0 && (
-                    <p className="text-sm text-red-600 mt-2">Au moins un médicament est requis</p>
                   )}
                 </div>
+                <FormInput
+                  label="Numéro d'ordonnance (manuel)"
+                  name="numeroOrdonnance"
+                  value={form.numeroOrdonnance}
+                  onChange={(e) => setForm((prev) => ({ ...prev, numeroOrdonnance: e.target.value }))}
+                  placeholder="Facultatif"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormSelect
+                  label="Motif de délivrance"
+                  name="motifDelivrance"
+                  value={form.motifDelivrance}
+                  onChange={handleMotifChange}
+                  options={motifOptions}
+                  required
+                />
+                <div className="flex items-center mt-2">
+                  <input
+                    type="checkbox"
+                    id="signature"
+                    checked={form.signatureElectronique}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, signatureElectronique: e.target.checked }))
+                    }
+                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <label htmlFor="signature" className="ml-2 text-sm text-gray-700">
+                    Signature électronique
+                  </label>
+                </div>
+              </div>
+              <FormTextarea
+                label="Observations"
+                name="observations"
+                value={form.observations}
+                onChange={(e) => setForm((prev) => ({ ...prev, observations: e.target.value }))}
+                rows={2}
+                placeholder="Informations complémentaires…"
+              />
+            </FormSection>
 
-                {/* Tableau des médicaments ajoutés */}
-                {form.details.length > 0 && (
-                  <div className="mt-4 overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left font-medium text-gray-500">Médicament</th>
-                          <th className="px-4 py-2 text-left font-medium text-gray-500">Lot</th>
-                          <th className="px-4 py-2 text-left font-medium text-gray-500">Qté</th>
-                          <th className="px-4 py-2 text-left font-medium text-gray-500">Prix unit.</th>
-                          <th className="px-4 py-2 text-left font-medium text-gray-500">Mutuelle</th>
-                          <th className="px-4 py-2 text-left font-medium text-gray-500">Montant</th>
-                          <th className="px-4 py-2 text-center font-medium text-gray-500">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {form.details.map((det, idx) => {
-                          const montant = det.quantiteDelivree * det.prixUnitaire;
-                          return (
-                            <tr key={idx}>
-                              <td className="px-4 py-2">{det.nomMedicament || det.idMedicament}</td>
-                              <td className="px-4 py-2">{det.numeroLot || det.idLot}</td>
-                              <td className="px-4 py-2">{det.quantiteDelivree}</td>
-                              <td className="px-4 py-2">{det.prixUnitaire.toFixed(2)} $</td>
-                              <td className="px-4 py-2">{det.priseEnChargeMutuelle.toFixed(2)} $</td>
-                              <td className="px-4 py-2">{montant.toFixed(2)} $</td>
-                              <td className="px-4 py-2 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => removeDetail(idx)}
-                                  className="text-red-500 hover:text-red-700 transition"
-                                >
-                                  <FaTrash />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+            {/* Section Médicaments délivrés */}
+            <FormSection title="Médicaments délivrés" icon={<FaPills />}>
+              {/* Ligne d'ajout */}
+              <div className="bg-slate-50 p-4 rounded-lg space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3 items-end">
+                  <div className="col-span-2">
+                    <MedicamentSearchSelect
+                      value={currentDetail.idMedicament || null}
+                      onChange={handleMedicamentSelect}
+                      placeholder="Sélectionner un médicament"
+                      label="Médicament"
+                      error={errors.medicament}
+                      required
+                    />
                   </div>
+                  <div className="col-span-2">
+                    <LotSearchSelect
+                      value={currentDetail.idLot || null}
+                      onChange={handleLotSelect}
+                      medicamentId={currentDetail.idMedicament || undefined}
+                      label="Lot"
+                      placeholder={currentDetail.idMedicament ? 'Sélectionner un lot' : "Choisissez d'abord un médicament"}
+                      disabled={!currentDetail.idMedicament}
+                      error={errors.lot}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500">
+                      Quantité <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Qté"
+                      value={currentDetail.quantiteDelivree}
+                      onChange={handleQuantityChange}
+                      className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 ${
+                        errors.quantite ? 'border-red-500' : ''
+                      }`}
+                    />
+                    {errors.quantite && (
+                      <p className="mt-1 text-xs text-red-600">{errors.quantite}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500">
+                      Prix unitaire <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.001"
+                      placeholder="Prix unit."
+                      value={currentDetail.prixUnitaire}
+                      onChange={handlePriceChange}
+                      disabled
+                      className="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 text-sm text-gray-500"
+                    />
+                    {errors.prix && <p className="mt-1 text-xs text-red-600">{errors.prix}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500">Mutuelle</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="Mutuelle"
+                      value={currentDetail.priseEnChargeMutuelle}
+                      onChange={handleMutuelleChange}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <Button
+                      type="button"
+                      onClick={addDetail}
+                      icon={<FaPlus size={12} />}
+                      className="w-full h-[42px]"
+                    >
+                      Ajouter
+                    </Button>
+                  </div>
+                </div>
+                {form.details.length === 0 && (
+                  <p className="text-sm text-red-600 mt-2">Au moins un médicament est requis</p>
                 )}
               </div>
-            </div>
 
-            {/* Colonne latérale : résumé / info */}
-            <div className="lg:col-span-1">
-              <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
-                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
-                  <h5 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <FaClipboardList /> Récapitulatif
-                  </h5>
+              {/* Tableau des médicaments ajoutés */}
+              {form.details.length > 0 && (
+                <div className="mt-4 overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200 text-sm">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-medium text-gray-500">Médicament</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-500">Lot</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-500">Qté</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-500">Prix unit.</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-500">Mutuelle</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-500">Montant</th>
+                        <th className="px-4 py-2 text-center font-medium text-gray-500">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {form.details.map((det, idx) => {
+                        const montant = det.quantiteDelivree * det.prixUnitaire;
+                        return (
+                          <tr key={idx}>
+                            <td className="px-4 py-2">{det.nomMedicament || det.idMedicament}</td>
+                            <td className="px-4 py-2">{det.numeroLot || det.idLot}</td>
+                            <td className="px-4 py-2">{det.quantiteDelivree}</td>
+                            <td className="px-4 py-2">{det.prixUnitaire.toFixed(2)} $</td>
+                            <td className="px-4 py-2">{det.priseEnChargeMutuelle.toFixed(2)} $</td>
+                            <td className="px-4 py-2">{montant.toFixed(2)} $</td>
+                            <td className="px-4 py-2 text-center">
+                              <button
+                                type="button"
+                                onClick={() => removeDetail(idx)}
+                                className="text-red-500 hover:text-red-700 transition"
+                              >
+                                <FaTrash />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="p-6 space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Médicaments</span>
-                    <span className="font-medium">{form.details.length}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total (hors mutuelle)</span>
-                    <span className="font-medium">
-                      {form.details
-                        .reduce((acc, d) => acc + d.quantiteDelivree * d.prixUnitaire, 0)
-                        .toFixed(2)}{' '}
-                      $
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Prise en charge mutuelle</span>
-                    <span className="font-medium">
-                      {form.details
-                        .reduce((acc, d) => acc + d.priseEnChargeMutuelle, 0)
-                        .toFixed(2)}{' '}
-                      $
-                    </span>
-                  </div>
-                  <hr className="my-2" />
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>Net à payer</span>
-                    <span>
-                      {form.details
-                        .reduce(
-                          (acc, d) => acc + d.quantiteDelivree * d.prixUnitaire - d.priseEnChargeMutuelle,
-                          0
-                        )
-                        .toFixed(2)}{' '}
-                      $
-                    </span>
-                  </div>
-                  <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
-                    <FaCheckCircle className="inline mr-1" /> Les champs marqués d&apos;une étoile (*) sont
-                    obligatoires.
-                  </div>
-                </div>
+              )}
+            </FormSection>
+          </div>
+
+          {/* Colonne latérale : résumé / info */}
+          <div className="lg:col-span-1">
+            <FormSection title="Récapitulatif" icon={<FaClipboardList />} className="sticky top-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Médicaments</span>
+                <span className="font-medium">{form.details.length}</span>
               </div>
-            </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Total (hors mutuelle)</span>
+                <span className="font-medium">
+                  {form.details
+                    .reduce((acc, d) => acc + d.quantiteDelivree * d.prixUnitaire, 0)
+                    .toFixed(2)}{' '}
+                  $
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Prise en charge mutuelle</span>
+                <span className="font-medium">
+                  {form.details
+                    .reduce((acc, d) => acc + d.priseEnChargeMutuelle, 0)
+                    .toFixed(2)}{' '}
+                  $
+                </span>
+              </div>
+              <hr className="my-2" />
+              <div className="flex justify-between text-sm font-semibold">
+                <span>Net à payer</span>
+                <span>
+                  {form.details
+                    .reduce(
+                      (acc, d) => acc + d.quantiteDelivree * d.prixUnitaire - d.priseEnChargeMutuelle,
+                      0
+                    )
+                    .toFixed(2)}{' '}
+                  $
+                </span>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
+                <FaCheckCircle className="inline mr-1" /> Les champs marqués d&apos;une étoile (*) sont
+                obligatoires.
+              </div>
+            </FormSection>
           </div>
+        </div>
 
-          {/* Boutons d'action */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="secondary" onClick={() => router.back()}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading} icon={<FaSave />}>
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
-          </div>
-        </form>
+        {/* Boutons d'action */}
+        <FormActions
+          onCancel={() => router.back()}
+          loading={loading}
+          submitLabel="Enregistrer"
+          submitIcon={<FaSave />}
+        />
+      </form>
 
       {showOrdonnanceModal && (
         <OrdonnanceModal
@@ -531,7 +511,7 @@ const NouvelleDelivrance = () => {
           onClose={() => setShowOrdonnanceModal(false)}
         />
       )}
-    </div>
+    </PageShell>
   );
 };
 

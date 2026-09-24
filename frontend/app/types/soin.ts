@@ -36,6 +36,9 @@ export interface SoinInfirmier {
   infirmierNom: string;
   dateSoin: string;
   typeSoin: string;
+  idActeCatalogue?: number | null;
+  libelleActeCatalogue?: string | null;
+  prixActeCatalogue?: number | null;
   description: string;
   observations: string;
   signatureInfirmier: boolean;
@@ -46,6 +49,7 @@ export interface SoinInfirmierRequest {
   idInfirmier: number;
   dateSoin: string;
   typeSoin: string;
+  idActeCatalogue?: number | null;
   description?: string;
   observations?: string;
   signatureInfirmier?: boolean;

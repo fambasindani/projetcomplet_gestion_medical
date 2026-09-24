@@ -5,15 +5,18 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { FaSave, FaArrowLeft, FaUser, FaCalendarAlt, FaHeartbeat, FaPills, FaCalendarCheck } from 'react-icons/fa';
-import { ConsultationCreate } from '@/app/types/consultation';
+import { ConsultationCreate, Consultation } from '@/app/types/consultation';
 import { consultationService } from '@/app/services/consultationService';
 import { patientService } from '@/app/services/patientService';
 import { medecinService } from '@/app/services/medecinService';
 import { FormInput } from '../common/FormInput';
 import { FormTextarea } from '../common/FormTextarea';
 import { FormSelect } from '../common/FormSelect';
+import ActeAutocomplete from '../facturation/ActeAutocomplete';
 import SelectionModal from '@/app/ui/SelectionModal';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import Button from '@/app/ui/Button';
 
 interface SelectableItem {
@@ -23,7 +26,7 @@ interface SelectableItem {
 }
 
 interface Props {
-  initialData?: ConsultationCreate;
+  initialData?: ConsultationCreate | Consultation;
   isEdit?: boolean;
   id?: number;
 }
@@ -61,7 +64,33 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
     evolution: '',
     prochainRdv: '',
     notesConfidentielles: '',
-    ...(initialData || {})
+    idActeCatalogue: null,
+    ...(initialData ? {
+      idRdv: initialData.idRdv,
+      idPatient: initialData.idPatient,
+      idMedecin: initialData.idMedecin,
+      dateConsultation: initialData.dateConsultation,
+      motifConsultation: initialData.motifConsultation,
+      histoireMaladie: initialData.histoireMaladie,
+      diagnostic: initialData.diagnostic,
+      traitementPrescris: initialData.traitementPrescris,
+      observations: initialData.observations,
+      temperature: initialData.temperature,
+      pouls: initialData.pouls,
+      pressionSystolique: initialData.pressionSystolique,
+      pressionDiastolique: initialData.pressionDiastolique,
+      saturation: initialData.saturation,
+      glycemie: initialData.glycemie,
+      poids: initialData.poids,
+      taille: initialData.taille,
+      certificatMedical: initialData.certificatMedical,
+      arretTravailDebut: initialData.arretTravailDebut,
+      arretTravailFin: initialData.arretTravailFin,
+      evolution: initialData.evolution,
+      prochainRdv: initialData.prochainRdv,
+      notesConfidentielles: initialData.notesConfidentielles,
+      idActeCatalogue: initialData.idActeCatalogue,
+    } : {})
   });
 
   const [loading, setLoading] = useState(false);
@@ -70,6 +99,9 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
   const [doctorModalOpen, setDoctorModalOpen] = useState(false);
   const [selectedPatientName, setSelectedPatientName] = useState('');
   const [selectedDoctorName, setSelectedDoctorName] = useState('');
+  const [acteCatalogueLibelle, setActeCatalogueLibelle] = useState(
+    (initialData as Consultation | undefined)?.libelleActeCatalogue || ''
+  );
 
   useEffect(() => {
     if (formData.idPatient && formData.idPatient !== 0 && !selectedPatientName) {
@@ -145,22 +177,14 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier consultation' : 'Nouvelle consultation'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.back()}>
-            Retour
-          </Button>
-        }
-      />
-
+    <PageShell
+      title={isEdit ? 'Modifier consultation' : 'Nouvelle consultation'}
+      maxWidth="max-w-6xl"
+      onBack={() => router.back()}
+    >
       <form onSubmit={handleSubmit} className="space-y-6">
       {/* Section 1 : Patient & Médecin */}
-      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-indigo-600">
-          <FaUser /> Patient & Médecin
-        </h3>
+      <FormSection title="Patient & Médecin" icon={<FaUser />}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-gray-800">
@@ -172,7 +196,7 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
                 value={selectedPatientName}
                 readOnly
                 placeholder="Sélectionner un patient"
-                className={`flex-1 rounded-xl border px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 ${errors.idPatient ? 'border-red-300 bg-red-50/30' : 'border-gray-200 bg-gray-50'}`}
+                className={`flex-1 rounded-xl border px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 ${errors.idPatient ? 'border-red-300 bg-red-50/30' : 'border-slate-200 bg-slate-50'}`}
               />
               <Button type="button" onClick={() => setPatientModalOpen(true)}>
                 Choisir
@@ -190,7 +214,7 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
                 value={selectedDoctorName}
                 readOnly
                 placeholder="Sélectionner un médecin"
-                className={`flex-1 rounded-xl border px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 ${errors.idMedecin ? 'border-red-300 bg-red-50/30' : 'border-gray-200 bg-gray-50'}`}
+                className={`flex-1 rounded-xl border px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 ${errors.idMedecin ? 'border-red-300 bg-red-50/30' : 'border-slate-200 bg-slate-50'}`}
               />
               <Button type="button" onClick={() => setDoctorModalOpen(true)}>
                 Choisir
@@ -199,13 +223,10 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
             {errors.idMedecin && <p className="mt-1.5 text-xs font-medium text-red-600">{errors.idMedecin}</p>}
           </div>
         </div>
-      </div>
+      </FormSection>
 
       {/* Section 2 : Consultation */}
-      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-indigo-600">
-          <FaCalendarAlt /> Consultation
-        </h3>
+      <FormSection title="Consultation" icon={<FaCalendarAlt />}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput
             label="Date consultation"
@@ -224,18 +245,39 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
             required
             error={errors.motifConsultation}
           />
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-800">
+              Type de consultation
+            </label>
+            <ActeAutocomplete
+              categorie="Consultation"
+              value={acteCatalogueLibelle}
+              onChange={(text) => {
+                setActeCatalogueLibelle(text);
+                if (!text) setFormData((prev) => ({ ...prev, idActeCatalogue: null }));
+              }}
+              onSelect={(acte) => {
+                setActeCatalogueLibelle(acte.libelle);
+                setFormData((prev) => ({ ...prev, idActeCatalogue: acte.idActeCatalogue }));
+              }}
+              onClear={() => setFormData((prev) => ({ ...prev, idActeCatalogue: null }))}
+              placeholder="Tapez pour rechercher (ex. : consultation générale, spécialisée...)"
+            />
+            {formData.idActeCatalogue && acteCatalogueLibelle && (
+              <p className="mt-1.5 text-xs font-medium text-indigo-600">
+                {acteCatalogueLibelle}
+              </p>
+            )}
+          </div>
           <FormTextarea label="Histoire de la maladie" name="histoireMaladie" value={formData.histoireMaladie || ''} onChange={handleChange} rows={3} />
           <FormTextarea label="Diagnostic" name="diagnostic" value={formData.diagnostic || ''} onChange={handleChange} rows={3} />
           <FormTextarea label="Traitement prescrit" name="traitementPrescris" value={formData.traitementPrescris || ''} onChange={handleChange} rows={3} />
           <FormTextarea label="Observations" name="observations" value={formData.observations || ''} onChange={handleChange} rows={3} />
         </div>
-      </div>
+      </FormSection>
 
       {/* Section 3 : Constantes */}
-      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-indigo-600">
-          <FaHeartbeat /> Constantes
-        </h3>
+      <FormSection title="Constantes" icon={<FaHeartbeat />}>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           <FormInput label="Température (°C)" name="temperature" type="number" step="0.1" value={formData.temperature ?? ''} onChange={handleChange} />
           <FormInput label="Pouls (bpm)" name="pouls" type="number" value={formData.pouls ?? ''} onChange={handleChange} />
@@ -246,13 +288,10 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
           <FormInput label="Poids (kg)" name="poids" type="number" step="0.1" value={formData.poids ?? ''} onChange={handleChange} />
           <FormInput label="Taille (m)" name="taille" type="number" step="0.01" value={formData.taille ?? ''} onChange={handleChange} />
         </div>
-      </div>
+      </FormSection>
 
       {/* Section 4 : Certificat & Arrêt */}
-      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-indigo-600">
-          <FaPills /> Certificat médical & Arrêt de travail
-        </h3>
+      <FormSection title="Certificat médical & Arrêt de travail" icon={<FaPills />}>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormInput label="Certificat médical" name="certificatMedical" value={formData.certificatMedical || ''} onChange={handleChange} />
           <FormInput label="Arrêt début" name="arretTravailDebut" type="date" value={formData.arretTravailDebut || ''} onChange={handleChange} />
@@ -272,28 +311,23 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
             error={errors.evolution}
           />
         </div>
-      </div>
+      </FormSection>
 
       {/* Section 5 : Suivi */}
-      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-6">
-        <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-indigo-600">
-          <FaCalendarCheck /> Suivi
-        </h3>
+      <FormSection title="Suivi" icon={<FaCalendarCheck />}>
         <div className="grid grid-cols-1 gap-4">
           <FormInput label="Prochain rendez-vous" name="prochainRdv" type="datetime-local" value={formatDateTimeLocal(formData.prochainRdv)} onChange={handleChange} />
           <FormTextarea label="Notes confidentielles" name="notesConfidentielles" value={formData.notesConfidentielles || ''} onChange={handleChange} rows={3} />
         </div>
-      </div>
+      </FormSection>
 
       {/* Actions */}
-      <div className="flex justify-end gap-4 pt-2">
-        <Button type="button" variant="secondary" onClick={() => router.back()}>
-          Annuler
-        </Button>
-        <Button type="submit" disabled={loading} icon={<FaSave />}>
-          {loading ? 'Enregistrement...' : 'Enregistrer'}
-        </Button>
-      </div>
+      <FormActions
+        onCancel={() => router.back()}
+        submitLabel="Enregistrer"
+        loading={loading}
+        submitIcon={<FaSave />}
+      />
 
       {/* Modals de sélection */}
       <SelectionModal
@@ -323,7 +357,7 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
         }}
       />
       </form>
-    </div>
+    </PageShell>
   );
 };
 

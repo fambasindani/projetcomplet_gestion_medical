@@ -24,10 +24,6 @@ export default function ImpressionExamen() {
       .getById(Number(id))
       .then((data) => {
         setExamen(data);
-        const hasResultat = !!(data.resultat || data.interpretation || data.compteRendu || data.conclusion || data.anomalies);
-        if (!hasResultat) {
-          toast.error('Résultat pas disponible');
-        }
       })
       .catch(() => {
         toast.error('Erreur de chargement');
@@ -40,7 +36,7 @@ export default function ImpressionExamen() {
   if (!examen) return <div className="p-6 text-center">Examen introuvable.</div>;
 
   return (
-    <div className="h-screen w-full p-4 bg-gray-50">
+    <div className="h-screen w-full p-4 bg-slate-50">
       <PDFViewer width="100%" height="100%" showToolbar={true}>
         <ExamensPDF
           examens={[examen]}

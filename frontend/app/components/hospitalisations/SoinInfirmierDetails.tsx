@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { FaArrowLeft, FaEdit, FaUserMd, FaCalendarAlt } from 'react-icons/fa';
+import { FaEdit, FaUserMd, FaCalendarAlt, FaHospital, FaCheckCircle } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { soinInfirmierService } from '@/app/services/soinInfirmierService';
 import type { SoinInfirmier } from '@/app/types/soin';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoGrid, InfoCard } from '@/app/ui/InfoCard';
 import Button from '@/app/ui/Button';
 
 export default function SoinInfirmierDetails() {
@@ -36,61 +38,42 @@ export default function SoinInfirmierDetails() {
   if (!soin) return <div className="p-6 text-center">Soin non trouvé</div>;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Détails du soin infirmier"
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/hospitalisations/soins')}>
-              Retour
-            </Button>
+    <PageShell
+      title="Détails du soin infirmier"
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/hospitalisations/soins')}
+      actions={
+        <>
             <Button icon={<FaEdit />} onClick={() => router.push(`/hospitalisations/soins/${soin.idSoin}/modifier`)}>
               Modifier
             </Button>
-          </>
-        }
-      />
+        </>
+      }
+    >
 
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
-        {/* En-tête */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-          <h1 className="text-white text-2xl font-bold">{soin.typeSoin}</h1>
-          <p className="text-indigo-100">
-            Soin infirmier #{soin.idSoin}
-          </p>
-        </div>
+      <DetailBanner
+        meta="Soin infirmier"
+        title={soin.typeSoin}
+        subtitle={`Soin infirmier #${soin.idSoin}`}
+      >
+        <InfoGrid>
+          <InfoCard icon={FaCalendarAlt} label="Date" value={format(new Date(soin.dateSoin), 'dd/MM/yyyy à HH:mm', { locale: fr })} />
+          <InfoCard icon={FaUserMd} label="Infirmier" value={soin.infirmierNom || `ID ${soin.idInfirmier}`} />
+          <InfoCard icon={FaHospital} label="Hospitalisation" value={`#${soin.idHospitalisation} — ${soin.patientNom || 'Patient inconnu'}`} />
+          <InfoCard icon={FaCheckCircle} label="Signature infirmier" value={soin.signatureInfirmier ? 'Signé' : 'Non signé'} />
+        </InfoGrid>
 
-        {/* Corps */}
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <strong><FaCalendarAlt className="inline mr-1" /> Date :</strong>
-              <span className="ml-1">{format(new Date(soin.dateSoin), 'dd/MM/yyyy à HH:mm', { locale: fr })}</span>
-            </div>
-            <div>
-              <strong><FaUserMd className="inline mr-1" /> Infirmier :</strong>
-              <span className="ml-1">{soin.infirmierNom || `ID ${soin.idInfirmier}`}</span>
-            </div>
-            <div className="md:col-span-2">
-              <strong>Hospitalisation :</strong>
-              <span className="ml-1">#{soin.idHospitalisation}</span>
-              <span className="ml-2 text-gray-500">— {soin.patientNom || 'Patient inconnu'}</span>
-            </div>
-            <div className="md:col-span-2">
-              <strong>Description :</strong>
-              <p className="mt-1 text-gray-700 whitespace-pre-wrap">{soin.description || 'Aucune description'}</p>
-            </div>
-            <div className="md:col-span-2">
-              <strong>Observations :</strong>
-              <p className="mt-1 text-gray-700 whitespace-pre-wrap">{soin.observations || 'Aucune observation'}</p>
-            </div>
-            <div>
-              <strong>Signature infirmier :</strong>
-              <span className="ml-1">{soin.signatureInfirmier ? '✓ Signé' : '✗ Non signé'}</span>
-            </div>
+        <div className="space-y-4 px-6 pb-6">
+          <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Description</p>
+            <p className="mt-1 whitespace-pre-wrap text-gray-700">{soin.description || 'Aucune description'}</p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Observations</p>
+            <p className="mt-1 whitespace-pre-wrap text-gray-700">{soin.observations || 'Aucune observation'}</p>
           </div>
         </div>
-      </div>
-    </div>
+      </DetailBanner>
+    </PageShell>
   );
 }

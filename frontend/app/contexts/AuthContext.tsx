@@ -3,16 +3,16 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService } from '../services/authService';
-import { LoginDto, RegisterDto, User } from '../types/auth';
+import { LoginDto, User } from '../types/auth';
 
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (data: LoginDto) => Promise<void>;
-  register: (data: RegisterDto) => Promise<void>;
   logout: () => void;
-  checkEmail: (email: string) => Promise<boolean>;
+  permissions: string[];
+  hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,6 +27,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = authService.getStoredToken();
       const storedUser = authService.getStoredUser();
       if (!token || !storedUser) {
+        // Le cookie auth_ok est partagé entre ports, le token localStorage ne l'est pas.
+        // On le supprime pour éviter une boucle /dashboard <-> /login (page blanche).
+        if (typeof document !== 'undefined') {
+          document.cookie = 'auth_ok=; Max-Age=0; path=/';
+        }
         if (isMounted) setIsLoading(false);
         return;
       }
@@ -53,18 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       prenom: response.prenom,
       email: response.email,
       role: response.role,
-    });
-  };
-
-  const register = async (data: RegisterDto) => {
-    const response = await authService.register(data);
-    authService.setAuthData(response);
-    setUser({
-      id: response.id,
-      nom: response.nom,
-      prenom: response.prenom,
-      email: response.email,
-      role: response.role,
+      medecinId: response.medecinId ?? null,
+      permissions: response.permissions ?? [],
     });
   };
 
@@ -73,12 +68,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  const checkEmail = async (email: string): Promise<boolean> => {
-    const result = await authService.checkEmail(email);
-    return result.exists;
-  };
+  const permissions = user?.permissions ?? [];
+  const hasPermission = (permission: string) => permissions.includes(permission);
 
-  const value = { user, isLoading, login, register, logout, checkEmail };
+  const value = { user, isLoading, login, logout, permissions, hasPermission };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

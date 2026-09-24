@@ -9,12 +9,14 @@ import { PersonnelSearchSelect } from '@/app/components/common/PersonnelSearchSe
 import { FormInput } from '../common/FormInput';
 import { FormTextarea } from '../common/FormTextarea';
 import { FormSelect } from '../common/FormSelect';
+import ActeAutocomplete from '../facturation/ActeAutocomplete';
 import { toast } from 'react-hot-toast';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { SoinInfirmier, SoinInfirmierRequest } from '@/app/types/soin';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 const LIST_ROUTE = '/hospitalisations/soins';
 
@@ -32,6 +34,7 @@ export default function SoinInfirmierForm({ initialData, isEdit = false }: SoinI
     idInfirmier: initialData.idInfirmier,
     dateSoin: initialData.dateSoin.slice(0, 16),
     typeSoin: initialData.typeSoin,
+    idActeCatalogue: initialData.idActeCatalogue ?? null,
     description: initialData.description || '',
     observations: initialData.observations || '',
     signatureInfirmier: initialData.signatureInfirmier,
@@ -40,10 +43,13 @@ export default function SoinInfirmierForm({ initialData, isEdit = false }: SoinI
     idInfirmier: 0,
     dateSoin: new Date().toISOString().slice(0, 16),
     typeSoin: '',
+    idActeCatalogue: null,
     description: '',
     observations: '',
     signatureInfirmier: false,
   });
+
+  const [acteCatalogueLibelle, setActeCatalogueLibelle] = useState(initialData?.libelleActeCatalogue || '');
 
   // Charger la liste des hospitalisations pour le sélecteur
   useEffect(() => {
@@ -96,18 +102,13 @@ export default function SoinInfirmierForm({ initialData, isEdit = false }: SoinI
   ];
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier le soin' : 'Ajouter un soin'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push(LIST_ROUTE)}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-4">
+    <PageShell
+      title={isEdit ? 'Modifier le soin' : 'Ajouter un soin'}
+      maxWidth="max-w-6xl"
+      onBack={() => router.push(LIST_ROUTE)}
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <FormSection>
           <FormSelect
             label="Hospitalisation "
             value={form.idHospitalisation}
@@ -116,12 +117,27 @@ export default function SoinInfirmierForm({ initialData, isEdit = false }: SoinI
             required
           />
 
-          <FormInput
-            label="Type de soin "
-            value={form.typeSoin}
-            onChange={(e) => setForm({ ...form, typeSoin: e.target.value })}
-            required
-          />
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-gray-800">
+              Type de soin <span className="text-red-500">*</span>
+            </label>
+            <ActeAutocomplete
+              categorie="Soin"
+              value={acteCatalogueLibelle}
+              onChange={(text) => {
+                setActeCatalogueLibelle(text);
+                setForm((prev) => ({ ...prev, typeSoin: text }));
+                if (!text) setForm((prev) => ({ ...prev, idActeCatalogue: null }));
+              }}
+              onSelect={(acte) => {
+                setActeCatalogueLibelle(acte.libelle);
+                setForm((prev) => ({ ...prev, typeSoin: acte.libelle, idActeCatalogue: acte.idActeCatalogue }));
+              }}
+              onClear={() => setForm((prev) => ({ ...prev, idActeCatalogue: null }))}
+              placeholder="Tapez pour rechercher (ex. : injection, pansement, perfusion...)"
+            />
+            {form.idActeCatalogue && <p className="mt-1.5 text-sm font-medium text-indigo-600">Soin du référentiel sélectionné</p>}
+          </div>
           <FormInput
             label="Date et heure du soin "
             type="datetime-local"
@@ -135,6 +151,7 @@ export default function SoinInfirmierForm({ initialData, isEdit = false }: SoinI
             onChange={(id) => setForm({ ...form, idInfirmier: id || 0 })}
             label="Infirmier "
             required
+            fonction="Infirmier"
             placeholder="Rechercher un infirmier..."
           />
 
@@ -160,15 +177,15 @@ export default function SoinInfirmierForm({ initialData, isEdit = false }: SoinI
             />
             <label htmlFor="signature" className="text-sm text-gray-700">Signature infirmier</label>
           </div>
-        </div>
+        </FormSection>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.push(LIST_ROUTE)}>Annuler</Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Ajouter')}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.push(LIST_ROUTE)}
+          submitLabel={isEdit ? 'Modifier' : 'Ajouter'}
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

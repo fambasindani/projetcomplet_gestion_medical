@@ -27,6 +27,8 @@ public interface DelivranceMedicamentRepository extends JpaRepository<Delivrance
     // Recherche par période
     Page<DelivranceMedicament> findByDateDelivranceBetween(LocalDateTime debut, LocalDateTime fin, Pageable pageable);
 
+    List<DelivranceMedicament> findByDateDelivranceBetween(LocalDateTime debut, LocalDateTime fin);
+
     // Par patient
     Page<DelivranceMedicament> findByIdPatient(Integer patientId, Pageable pageable);
 

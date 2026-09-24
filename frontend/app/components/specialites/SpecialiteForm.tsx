@@ -4,14 +4,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaTag, FaUserTie, FaPhone, FaEnvelope, FaCheckCircle, FaSave, FaArrowLeft } from 'react-icons/fa';
+import { FaTag, FaUserTie, FaPhone, FaEnvelope, FaCheckCircle, FaSave } from 'react-icons/fa';
 import { FormInput } from '../common/FormInput';
 import { FormTextarea } from '../common/FormTextarea';
 import { specialiteService } from '@/app/services/specialiteService';
 import type { Specialite, SpecialiteCreate } from '@/app/types/specialite';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 interface SpecialiteFormProps {
   initialData?: Specialite | null;
@@ -69,18 +70,13 @@ const SpecialiteForm: React.FC<SpecialiteFormProps> = ({ initialData, isEdit = f
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier la spécialité' : 'Ajouter une spécialité'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/specialites')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl space-y-6">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-5">
+    <PageShell
+      title={isEdit ? 'Modifier la spécialité' : 'Ajouter une spécialité'}
+      onBack={() => router.push('/specialites')}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <FormSection>
           <FormInput
             label="Nom de la spécialité"
             name="nomSpecialite"
@@ -147,16 +143,16 @@ const SpecialiteForm: React.FC<SpecialiteFormProps> = ({ initialData, isEdit = f
               <FaCheckCircle className="mr-1 text-green-500" /> Actif
             </label>
           </div>
-        </div>
+        </FormSection>
 
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="secondary" onClick={() => router.push('/specialites')}>Annuler</Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Enregistrement...' : isEdit ? 'Modifier' : 'Ajouter'}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.push('/specialites')}
+          submitLabel={isEdit ? 'Modifier' : 'Ajouter'}
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 };
 

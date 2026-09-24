@@ -12,7 +12,7 @@ const SkeletonCards: React.FC<SkeletonCardsProps> = ({ cards = 4 }) => {
   return (
     <div className="space-y-4">
       {Array.from({ length: cards }).map((_, i) => (
-        <div key={i} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+        <div key={i} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
           <Skeleton height={6} className="!rounded-none" />
           <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center">
             <div className="flex items-center gap-4">

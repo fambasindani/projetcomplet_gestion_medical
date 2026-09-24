@@ -7,7 +7,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 const SkeletonDetails: React.FC = () => {
   return (
     <div className="space-y-6 p-6">
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <div className="flex items-center gap-4">
           <Skeleton circle height={48} width={48} />
           <div className="flex-1 space-y-2">
@@ -20,7 +20,7 @@ const SkeletonDetails: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="space-y-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+          <div key={i} className="space-y-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <Skeleton height={18} width="35%" />
             {Array.from({ length: 4 }).map((__, j) => (
               <div key={j} className="flex items-center justify-between">

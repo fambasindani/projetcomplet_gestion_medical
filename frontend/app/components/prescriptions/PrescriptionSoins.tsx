@@ -10,7 +10,7 @@ import { useConfirm } from 'react-use-confirming-dialog';
 import { soinPrescritService } from '@/app/services/soinPrescritService';
 import { prescriptionService } from '@/app/services/prescriptionService';
 import SkeletonTable from '@/app/ui/SkeletonTable';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
@@ -90,25 +90,27 @@ export default function PrescriptionSoins() {
   if (!prescription) return <div className="p-6 text-center">Prescription non trouvée</div>;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader
-        title="Soins de la prescription"
-        subtitle={
-          <span>
-            Prescription n° {prescription.numeroPrescription} – {prescription.patientNom} {prescription.patientPrenom}
-          </span>
-        }
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/prescriptions')}>
-              Retour aux prescriptions
-            </Button>
-            <Button icon={<FaPlus />} onClick={handleAdd}>
-              Ajouter un soin
-            </Button>
-          </>
-        }
-      />
+    <PageShell
+      title="Soins de la prescription"
+      subtitle={
+        <span>
+          Prescription n° {prescription.numeroPrescription} – {prescription.patientNom} {prescription.patientPrenom}
+        </span>
+      }
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/prescriptions')}
+      backLabel="Retour aux prescriptions"
+      actions={
+        <>
+          <Button variant="secondary" onClick={() => router.push(`/prescriptions/examens/${prescriptionId}`)}>
+            Voir les examens
+          </Button>
+          <Button icon={<FaPlus />} onClick={handleAdd}>
+            Ajouter un soin
+          </Button>
+        </>
+      }
+    >
 
       {soins.length === 0 ? (
         <EmptyState
@@ -164,6 +166,6 @@ export default function PrescriptionSoins() {
       <Button variant="ghost" icon={<FaArrowLeft />} onClick={() => router.push('/prescriptions')}>
         Retour aux prescriptions
       </Button>
-    </div>
+    </PageShell>
   );
 }

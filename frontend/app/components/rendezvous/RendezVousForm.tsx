@@ -15,8 +15,9 @@ import { MedecinSearchSelect } from '../common/MedecinSearchSelect';
 import { rendezvousService } from '@/app/services/rendezvousService';
 import { RendezVousCreate, StatutRendezVous } from '@/app/types/rendezvous';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 interface RendezVousFormProps {
   initialData?: (RendezVousCreate & { idRdv?: number }) | null;
@@ -128,18 +129,13 @@ export default function RendezVousForm({ initialData, isEdit = false }: RendezVo
   if (isEdit && !initialData) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier le rendez-vous' : 'Nouveau rendez-vous'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/rendezvous')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
+    <PageShell
+      title={isEdit ? 'Modifier le rendez-vous' : 'Nouveau rendez-vous'}
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/rendezvous')}
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <FormSection>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PatientSearchSelect
               value={formData.idPatient ?? null}
@@ -222,15 +218,15 @@ export default function RendezVousForm({ initialData, isEdit = false }: RendezVo
               <FaBell className="mr-1 text-indigo-500" /> Envoyer un rappel
             </label>
           </div>
-        </div>
+        </FormSection>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.push('/rendezvous')}>Annuler</Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Ajouter')}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.push('/rendezvous')}
+          submitLabel={isEdit ? 'Modifier' : 'Ajouter'}
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

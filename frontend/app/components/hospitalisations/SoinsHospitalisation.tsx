@@ -16,10 +16,13 @@ import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import { FilterPanel, FilterInput } from '@/app/ui/FilterControls';
 import type { SoinInfirmier } from '@/app/types/soin';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function SoinsInfirmiersList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { user } = useAuth();
+  const estInfirmier = user?.role === 'INFIRMIER';
   const [soins, setSoins] = useState<SoinInfirmier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,7 +105,7 @@ export default function SoinsInfirmiersList() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Soins infirmiers"
+        title={estInfirmier ? 'Mes soins infirmiers' : 'Soins infirmiers'}
         subtitle={`${pagination.totalCount || 0} soin(s)`}
         actions={
           <>
@@ -118,7 +121,7 @@ export default function SoinsInfirmiersList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <form onSubmit={handleSearch} className="flex gap-2 col-span-2">
               <FilterInput

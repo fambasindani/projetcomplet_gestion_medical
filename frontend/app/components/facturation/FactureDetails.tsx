@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -23,7 +23,9 @@ import type { IconType } from 'react-icons';
 import { useConfirm } from 'react-use-confirming-dialog';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoGrid, InfoCard } from '@/app/ui/InfoCard';
 import Button from '@/app/ui/Button';
 import { Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import Card from '@/app/components/common/Card';
@@ -32,6 +34,7 @@ import { factureService } from '@/app/services/factureService';
 import type { Facture, StatutFacture } from '@/app/types/facture';
 import { StatutFactureLabels, ModePaiementLabels } from '@/app/types/facture';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import { grouperDetails } from '@/app/utils/factureGrouping';
 
 const statutColors: Record<StatutFacture, string> = {
   En_attente: 'bg-yellow-100 text-yellow-800',
@@ -94,14 +97,12 @@ export default function FactureDetails() {
   const annulable = facture.statut !== 'Payé' && facture.statut !== 'Annulé';
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Détails de la facture"
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/factures')}>
-              Retour
-            </Button>
+    <PageShell
+      title="Détails de la facture"
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/factures')}
+      actions={
+        <>
             <Button
               variant="secondary"
               icon={<FaPrint />}
@@ -130,42 +131,35 @@ export default function FactureDetails() {
             )}
           </>
         }
-      />
+      >
 
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-        <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 text-white">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Facture {facture.numeroFacture}</h1>
-              <p className="flex items-center gap-2 opacity-90">
-                <FaCalendarAlt /> Émise le {format(new Date(facture.dateEmission), 'dd/MM/yyyy', { locale: fr })}
-              </p>
-              {facture.dateEcheance && (
-                <p className="flex items-center gap-2 opacity-90">
-                  <FaCalendarAlt /> Échéance le {format(new Date(facture.dateEcheance), 'dd/MM/yyyy', { locale: fr })}
-                </p>
-              )}
-            </div>
-            <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${statutColors[facture.statut]}`}>
-              {StatutFactureLabels[facture.statut]}
-            </span>
-          </div>
-        </div>
-
+      <DetailBanner
+        meta="Facture"
+        title={`Facture ${facture.numeroFacture}`}
+        subtitle={
+          `Émise le ${format(new Date(facture.dateEmission), 'dd/MM/yyyy', { locale: fr })}` +
+          (facture.dateEcheance ? ` · Échéance le ${format(new Date(facture.dateEcheance), 'dd/MM/yyyy', { locale: fr })}` : '')
+        }
+        badges={
+          <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${statutColors[facture.statut]}`}>
+            {StatutFactureLabels[facture.statut]}
+          </span>
+        }
+      >
         <div className="p-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InfoBlock icon={FaUserInjured} label="Patient" value={`${facture.patientNom} ${facture.patientPrenom}`} />
-            <InfoBlock
+          <InfoGrid className="p-0">
+            <InfoCard icon={FaUserInjured} label="Patient" value={`${facture.patientNom} ${facture.patientPrenom}`} />
+            <InfoCard
               icon={FaDollarSign}
               label="Mode de paiement"
               value={facture.modePaiement ? ModePaiementLabels[facture.modePaiement] : 'Non renseigné'}
             />
-            <InfoBlock
+            <InfoCard
               icon={FaFileInvoice}
               label="Assurance"
               value={facture.assurancePriseEnCharge ? 'Prise en charge active' : 'Sans prise en charge'}
             />
-            <InfoBlock
+            <InfoCard
               icon={FaFileInvoice}
               label="Mutuelle"
               value={
@@ -174,7 +168,7 @@ export default function FactureDetails() {
                   : 'Non prise en charge'
               }
             />
-          </div>
+          </InfoGrid>
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <MontantCard label="Montant HT" value={facture.montantHt} />
@@ -185,7 +179,7 @@ export default function FactureDetails() {
           </div>
 
           {facture.notesComptables && (
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
               <p className="text-gray-700">
                 <strong className="block text-xs uppercase mb-1">Notes comptables</strong>
                 {facture.notesComptables}
@@ -213,24 +207,44 @@ export default function FactureDetails() {
                     </tr>
                   </THead>
                   <TBody>
-                    {facture.details.map((detail) => (
-                      <Tr key={detail.idDetail}>
-                        <Td>
-                          <span className="font-medium text-gray-800">
-                            {detail.acteLibelle ?? detail.medicamentNom ?? detail.description ?? '-'}
-                          </span>
-                          {detail.description && detail.acteLibelle && detail.description !== detail.acteLibelle && (
-                            <span className="block text-xs text-gray-500">{detail.description}</span>
-                          )}
-                        </Td>
-                        <Td className="text-center">{detail.quantite}</Td>
-                        <Td className="text-right">{detail.prixUnitaire.toFixed(2)} $</Td>
-                        <Td className="text-right">{detail.remise.toFixed(2)}%</Td>
-                        <Td className="text-right">{detail.montantHt.toFixed(2)} $</Td>
-                        <Td className="text-right font-semibold text-indigo-600">
-                          {detail.montantTtc.toFixed(2)} $
-                        </Td>
-                      </Tr>
+                    {grouperDetails(facture.details).map((groupe) => (
+                      <Fragment key={groupe.key}>
+                        <Tr className="bg-indigo-50/70">
+                          <Td colSpan={6} className="text-xs font-bold uppercase tracking-wide text-indigo-700">
+                            {groupe.label} ({groupe.items.length})
+                          </Td>
+                        </Tr>
+                        {groupe.items.map((detail) => (
+                          <Tr key={detail.idDetail}>
+                            <Td>
+                              <span className="font-medium text-gray-800">
+                                {detail.acteLibelle ?? detail.medicamentNom ?? detail.description ?? '-'}
+                              </span>
+                              {detail.description && detail.acteLibelle && detail.description !== detail.acteLibelle && (
+                                <span className="block text-xs text-gray-500">{detail.description}</span>
+                              )}
+                            </Td>
+                            <Td className="text-center">{detail.quantite}</Td>
+                            <Td className="text-right">{detail.prixUnitaire.toFixed(2)} $</Td>
+                            <Td className="text-right">{detail.remise.toFixed(2)}%</Td>
+                            <Td className="text-right">{detail.montantHt.toFixed(2)} $</Td>
+                            <Td className="text-right font-semibold text-indigo-600">
+                              {detail.montantTtc.toFixed(2)} $
+                            </Td>
+                          </Tr>
+                        ))}
+                        <Tr className="bg-slate-50">
+                          <Td className="text-right text-xs font-semibold text-gray-500" colSpan={4}>
+                            Sous-total {groupe.label}
+                          </Td>
+                          <Td className="text-right text-sm font-semibold text-gray-700">
+                            {groupe.sousTotalHt.toFixed(2)} $
+                          </Td>
+                          <Td className="text-right text-sm font-bold text-indigo-700">
+                            {groupe.sousTotalTtc.toFixed(2)} $
+                          </Td>
+                        </Tr>
+                      </Fragment>
                     ))}
                   </TBody>
                 </Table>
@@ -274,7 +288,7 @@ export default function FactureDetails() {
                         </Tr>
                       ))}
                     </TBody>
-                    <tfoot className="bg-gray-50">
+                    <tfoot className="bg-slate-50">
                       <tr>
                         <td className="px-5 py-3 font-semibold">Total encaissé</td>
                         <td className="px-5 py-3 text-right font-bold text-green-600">
@@ -290,7 +304,7 @@ export default function FactureDetails() {
           </Card>
         </div>
 
-      </div>
+      </DetailBanner>
 
       {pdfOuvert && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -314,27 +328,7 @@ export default function FactureDetails() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-interface InfoBlockProps {
-  icon: IconType;
-  label: string;
-  value: string;
-}
-
-function InfoBlock({ icon: Icon, label, value }: InfoBlockProps) {
-  return (
-    <div className="flex gap-4">
-      <div className="text-indigo-500 pt-1">
-        <Icon size={20} />
-      </div>
-      <div>
-        <p className="text-xs text-gray-400 font-bold uppercase">{label}</p>
-        <p className="font-semibold text-gray-800">{value}</p>
-      </div>
-    </div>
+    </PageShell>
   );
 }
 
@@ -348,7 +342,7 @@ interface MontantCardProps {
 function MontantCard({ label, value, color = 'text-gray-800', highlight = false }: MontantCardProps) {
   return (
     <div
-      className={`p-4 rounded-xl border ${highlight ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-100'}`}
+      className={`p-4 rounded-xl border ${highlight ? 'bg-indigo-50 border-indigo-200' : 'bg-slate-50 border-slate-100'}`}
     >
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
       <p className={`text-xl font-bold ${highlight ? 'text-indigo-600' : color}`}>{value.toFixed(2)} $</p>

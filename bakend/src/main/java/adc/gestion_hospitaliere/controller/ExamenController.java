@@ -5,6 +5,7 @@ import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.examen.ExamenRequestDto;
 import adc.gestion_hospitaliere.dto.examen.ExamenResponseDto;
 import adc.gestion_hospitaliere.dto.examen.ExamensBatchRequest;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import adc.gestion_hospitaliere.service.ExamenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.List;
 public class ExamenController {
 
     private final ExamenService service;
+    private final CurrentUserService currentUserService;
 
     // ---------- CRUD ----------
 
@@ -32,7 +34,10 @@ public class ExamenController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<ExamenResponseDto> page = service.getAll(pageable);
+        Integer filtre = currentUserService.filtreMedecinId();
+        Page<ExamenResponseDto> page = (filtre != null)
+                ? service.getAllForMedecin(filtre, pageable)
+                : service.getAll(pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

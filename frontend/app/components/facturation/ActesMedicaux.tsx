@@ -7,7 +7,7 @@ import { useConfirm } from 'react-use-confirming-dialog';
 
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
 import RefreshButton from '@/app/ui/RefreshButton';
@@ -17,6 +17,8 @@ import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
 import { acteMedicalService } from '@/app/services/acteMedicalService';
+import type { ActeCatalogue } from '@/app/services/acteCatalogueService';
+import ActeAutocomplete from '@/app/components/facturation/ActeAutocomplete';
 import type { ActeMedical, ActeMedicalCreate, CategorieActeMedical } from '@/app/types/facture';
 import { CategorieActeLabels, CategorieActeMedicalValues } from '@/app/types/facture';
 import type { PagedResult } from '@/app/types/pagination';
@@ -99,6 +101,21 @@ function ActeFormModal({
     }
   }
 
+  const handleCatalogueSelect = (acte: ActeCatalogue) => {
+    setFormData((prev) => ({
+      ...prev,
+      codeActe: acte.code,
+      libelle: acte.libelle,
+      prixBase: acte.prixDefaut.toFixed(2),
+      categorie: acte.categorie ?? prev.categorie,
+    }));
+  };
+
+  const handleCategorieChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -159,7 +176,7 @@ function ActeFormModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold">
             {initialData ? 'Modifier l&apos;acte médical' : 'Nouvel acte médical'}
@@ -182,19 +199,41 @@ function ActeFormModal({
               label="Catégorie"
               name="categorie"
               value={formData.categorie}
-              onChange={handleChange}
+              onChange={handleCategorieChange}
               options={categorieOptions}
               required
             />
           </div>
-          <FormInput
-            label="Libellé"
-            name="libelle"
-            value={formData.libelle}
-            onChange={handleChange}
-            required
-            error={errors.libelle}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-gray-800">
+                Acte du catalogue
+              </label>
+              <ActeAutocomplete
+                categorie={formData.categorie}
+                value={formData.libelle}
+                onChange={(text) => {
+                  setFormData((prev) => ({ ...prev, libelle: text }));
+                }}
+                onSelect={handleCatalogueSelect}
+                onClear={() => {
+                  setFormData((prev) => ({ ...prev, libelle: '', codeActe: '', prixBase: '0' }));
+                }}
+                placeholder={formData.categorie ? 'Tapez pour rechercher (ex. : radio, ECG...)' : 'Choisissez d\'abord une catégorie'}
+              />
+            </div>
+            <FormInput
+              label="Libellé"
+              name="libelle"
+              value={formData.libelle}
+              onChange={handleChange}
+              required
+              error={errors.libelle}
+            />
+          </div>
+          <p className="-mt-2 text-xs text-gray-500">
+            Sélectionnez un acte du catalogue pour pré-remplir le code, le libellé et le tarif.
+          </p>
           <FormTextarea
             label="Description"
             name="description"
@@ -339,25 +378,25 @@ export default function ActesMedicaux() {
   if (!pagedData) return null;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Actes médicaux"
-        subtitle={`${pagedData.totalCount} actes`}
-        actions={
-          <>
-            <RefreshButton onRefresh={loadData} loading={loading} />
-            <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
-              Filtres
-            </Button>
-            <Button icon={<FaPlus />} onClick={openCreate}>
-              Nouvel acte
-            </Button>
-          </>
-        }
-      />
+    <PageShell
+      title="Actes médicaux"
+      subtitle={`${pagedData.totalCount} actes`}
+      maxWidth="max-w-6xl"
+      actions={
+        <>
+          <RefreshButton onRefresh={loadData} loading={loading} />
+          <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
+            Filtres
+          </Button>
+          <Button icon={<FaPlus />} onClick={openCreate}>
+            Nouvel acte
+          </Button>
+        </>
+      }
+    >
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterInput
               type="text"
@@ -463,6 +502,6 @@ export default function ActesMedicaux() {
         onSuccess={loadData}
         initialData={editingActe}
       />
-    </div>
+    </PageShell>
   );
 }

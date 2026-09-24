@@ -12,9 +12,9 @@ interface SkeletonTableProps {
 
 const SkeletonTable: React.FC<SkeletonTableProps> = ({ columns = 6, rows = 8, withHeader = true }) => {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
       {withHeader && (
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <Skeleton height={20} width={220} />
           <div className="flex gap-2">
             <Skeleton height={36} width={110} borderRadius={8} />
@@ -24,7 +24,7 @@ const SkeletonTable: React.FC<SkeletonTableProps> = ({ columns = 6, rows = 8, wi
       )}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-gray-100 bg-gray-50/50">
+          <thead className="border-b border-slate-100 bg-slate-50/50">
             <tr>
               {Array.from({ length: columns }).map((_, i) => (
                 <th key={i} className="px-5 py-3">
@@ -33,7 +33,7 @@ const SkeletonTable: React.FC<SkeletonTableProps> = ({ columns = 6, rows = 8, wi
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-slate-100">
             {Array.from({ length: rows }).map((_, r) => (
               <tr key={r}>
                 {Array.from({ length: columns }).map((_, c) => (
@@ -46,7 +46,7 @@ const SkeletonTable: React.FC<SkeletonTableProps> = ({ columns = 6, rows = 8, wi
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between border-t border-gray-100 px-5 py-3">
+      <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3">
         <Skeleton height={14} width={180} />
         <div className="flex gap-1">
           {Array.from({ length: 4 }).map((_, i) => (

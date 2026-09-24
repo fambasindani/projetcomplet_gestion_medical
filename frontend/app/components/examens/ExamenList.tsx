@@ -23,6 +23,7 @@ const statutOptions = [
     { value: '', label: 'Tous les statuts' },
     { value: 'Prescrit', label: 'Prescrit' },
     { value: 'Planifié', label: 'Planifié' },
+    { value: 'En_cours', label: 'En cours' },
     { value: 'Réalisé', label: 'Réalisé' },
     { value: 'Validé', label: 'Validé' },
     { value: 'Annulé', label: 'Annulé' },
@@ -31,6 +32,7 @@ const statutOptions = [
 const statutColors: Record<string, string> = {
     Prescrit: 'bg-yellow-100 text-yellow-800',
     Planifié: 'bg-blue-100 text-blue-800',
+    En_cours: 'bg-cyan-100 text-cyan-800',
     Réalisé: 'bg-green-100 text-green-800',
     Validé: 'bg-indigo-100 text-indigo-800',
     Annulé: 'bg-red-100 text-red-800',
@@ -170,7 +172,7 @@ export default function ExamenList() {
             />
 
             {showFilters && (
-                <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+                <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                     <FilterPanel>
                         <form onSubmit={handleSearch} className="flex gap-2 md:col-span-2">
                             <FilterInput
@@ -286,13 +288,14 @@ export default function ExamenList() {
                                             </IconButton>
                                             <IconButton
                                                 color="green"
-                                                title="Imprimer tous les examens de la prescription"
+                                                title={examen.idPrescription
+                                                    ? 'Imprimer tous les examens de la prescription'
+                                                    : "Imprimer l'examen"}
                                                 onClick={() => {
-                                                    const sansResultat = !(examen.resultat || examen.interpretation || examen.compteRendu || examen.conclusion || examen.anomalies);
-                                                    if (sansResultat) {
-                                                        toast.error('Résultat pas disponible');
-                                                    } else {
+                                                    if (examen.idPrescription) {
                                                         router.push(`/examens/prescriptions/${examen.idPrescription}/impression`);
+                                                    } else {
+                                                        router.push(`/examens/${examen.idExamen}/impression`);
                                                     }
                                                 }}
                                             >

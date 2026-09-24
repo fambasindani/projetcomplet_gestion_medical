@@ -50,7 +50,7 @@ const MedecinStats: React.FC = () => {
 
       {/* Cartes stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl">
+        <div className="bg-indigo-600 rounded-2xl p-5 text-white shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl">
           <div className="flex items-center justify-between">
             <div className="bg-white/20 p-3 rounded-xl">
               <FaUserMd className="text-2xl" />
@@ -99,7 +99,7 @@ const MedecinStats: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tableau des spécialités */}
         <TableContainer>
-          <div className="border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4">
+          <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
             <h5 className="font-semibold text-gray-800 flex items-center gap-2">
               <FaHospital className="text-indigo-500" /> Répartition par spécialité
             </h5>
@@ -131,8 +131,8 @@ const MedecinStats: React.FC = () => {
         </TableContainer>
 
         {/* Répartition par disponibilité */}
-        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
-          <div className="border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4">
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
+          <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
             <h5 className="font-semibold text-gray-800 flex items-center gap-2">
               <FaUsers className="text-indigo-500" /> Répartition par disponibilité
             </h5>
@@ -178,7 +178,7 @@ const MedecinStats: React.FC = () => {
 
       {/* Top médecins */}
       <TableContainer>
-        <div className="border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4">
+        <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
           <h5 className="font-semibold text-gray-800 flex items-center gap-2">
             <FaStethoscope className="text-indigo-500" /> Top 5 médecins les plus actifs
           </h5>
@@ -209,7 +209,7 @@ const MedecinStats: React.FC = () => {
                 <Tr key={idx}>
                   <Td className="whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center">
                         {imageUrl ? (
                           <img src={imageUrl} alt={`${medecin.prenom} ${medecin.nom}`} className="w-full h-full object-cover" />
                         ) : (

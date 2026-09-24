@@ -62,7 +62,9 @@ public class SoinPrescritService {
         soin.setInstructions(dto.getInstructions());
         soin.setFrequence(dto.getFrequence());
         soin.setDuree(dto.getDuree());
-        soin.setStatut(dto.getStatut() != null ? dto.getStatut() : StatutSoin.Prescrit);
+        if (dto.getStatut() != null) {
+            soin.setStatut(dto.getStatut());
+        }
         return toDto(repository.save(soin));
     }
 

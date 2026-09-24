@@ -109,9 +109,9 @@ export const FournisseurSearchSelect: React.FC<FournisseurSearchSelectProps> = (
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       {isOpen && (
         <div className="absolute z-50 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
-          <div className="border-b border-gray-200 p-2">
+          <div className="border-b border-slate-200 p-2">
             <div className="relative">
-              <input type="text" value={searchTerm} onChange={handleSearchChange} placeholder="Rechercher..." className="w-full rounded-md border border-gray-200 py-1.5 pr-8 pl-2 text-sm focus:border-indigo-500 focus:outline-none" />
+              <input type="text" value={searchTerm} onChange={handleSearchChange} placeholder="Rechercher..." className="w-full rounded-md border border-slate-200 py-1.5 pr-8 pl-2 text-sm focus:border-indigo-500 focus:outline-none" />
               <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
             </div>
           </div>

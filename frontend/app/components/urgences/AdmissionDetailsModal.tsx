@@ -94,7 +94,7 @@ export default function AdmissionDetailsModal({ admission, onClose, onRefresh }:
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="rounded-xl bg-gray-50 p-4">
+          <div className="rounded-xl bg-slate-50 p-4">
             <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700"><FaStethoscope className="text-rose-500" /> Informations cliniques</h3>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between gap-4"><dt className="text-gray-500">Motif</dt><dd className="text-right font-medium">{current.motifUrgent}</dd></div>
@@ -106,7 +106,7 @@ export default function AdmissionDetailsModal({ admission, onClose, onRefresh }:
               {current.orientation && <div className="flex justify-between gap-4"><dt className="text-gray-500">Orientation</dt><dd className="text-right font-medium">{current.orientation}</dd></div>}
             </dl>
           </div>
-          <div className="rounded-xl bg-gray-50 p-4">
+          <div className="rounded-xl bg-slate-50 p-4">
             <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700"><FaHospital className="text-indigo-500" /> Prise en charge</h3>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between gap-4"><dt className="text-gray-500">Médecin</dt><dd className="text-right font-medium">{current.medecinPrenom && current.medecinNom ? `${current.medecinPrenom} ${current.medecinNom}` : '—'}</dd></div>
@@ -117,7 +117,7 @@ export default function AdmissionDetailsModal({ admission, onClose, onRefresh }:
         </div>
 
         {interventions.length > 0 && (
-          <div className="mt-4 rounded-xl bg-gray-50 p-4">
+          <div className="mt-4 rounded-xl bg-slate-50 p-4">
             <h3 className="mb-2 text-sm font-semibold text-gray-700">Interventions d&apos;urgence</h3>
             <ul className="space-y-2 text-sm">
               {interventions.map((i) => (
@@ -133,7 +133,7 @@ export default function AdmissionDetailsModal({ admission, onClose, onRefresh }:
           </div>
         )}
 
-        <div className="mt-5 border-t border-gray-100 pt-4">
+        <div className="mt-5 border-t border-slate-100 pt-4">
           <p className="mb-2 text-sm font-semibold text-gray-700">Changer le statut :</p>
           <div className="flex flex-wrap gap-2">
             {(Object.keys(StatutAdmissionUrgenceLabels) as StatutAdmissionUrgence[])

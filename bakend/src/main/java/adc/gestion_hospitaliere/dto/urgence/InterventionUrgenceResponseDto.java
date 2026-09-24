@@ -23,6 +23,9 @@ public class InterventionUrgenceResponseDto {
     private String medecinNom;
     private String medecinPrenom;
     private String typeIntervention;
+    private Integer idActeCatalogue;
+    private String libelleActeCatalogue;
+    private Double prixActeCatalogue;
     private LocalDateTime dateIntervention;
     private String lieu;
     private Integer dureePrevue;

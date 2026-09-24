@@ -1,5 +1,5 @@
 export type Genre = 'M' | 'F';
-export type TypeContrat = 'CDI' | 'CDD' | 'STAGE' | 'FREELANCE';
+export type TypeContrat = 'CDI' | 'CDD' | 'Stage' | 'Interim';
 
 export interface PersonnelResponse {
   idPersonnel: number;
@@ -48,6 +48,6 @@ export const GenreLabels: Record<Genre, string> = {
 export const TypeContratLabels: Record<TypeContrat, string> = {
   CDI: 'CDI',
   CDD: 'CDD',
-  STAGE: 'Stage',
-  FREELANCE: 'Freelance',
+  Stage: 'Stage',
+  Interim: 'Interim',
 };

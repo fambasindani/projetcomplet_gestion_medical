@@ -13,6 +13,9 @@ public class SoinInfirmierResponseDto {
     private String infirmierNom;
     private LocalDateTime dateSoin;
     private String typeSoin;
+    private Integer idActeCatalogue;
+    private String libelleActeCatalogue;
+    private Double prixActeCatalogue;
     private String description;
     private String observations;
     private Boolean signatureInfirmier;

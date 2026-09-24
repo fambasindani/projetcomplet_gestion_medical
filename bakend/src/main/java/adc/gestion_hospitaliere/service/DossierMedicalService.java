@@ -1,10 +1,13 @@
 package adc.gestion_hospitaliere.service;
 import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
 
+import adc.gestion_hospitaliere.Entity.InterventionUrgence;
+import adc.gestion_hospitaliere.Entity.Medecin;
 import adc.gestion_hospitaliere.Entity.Patient;
 import adc.gestion_hospitaliere.Repository.*;
 import adc.gestion_hospitaliere.dto.dosiier_medical.DossierMedicalDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +24,8 @@ public class DossierMedicalService {
     private final PrescriptionRepository prescriptionRepository;
     private final ExamenRepository examenRepository;
     private final HospitalisationRepository hospitalisationRepository;
-    private final InterventionRepository interventionRepository;
+    private final InterventionUrgenceRepository interventionUrgenceRepository;
+    private final MedecinRepository medecinRepository;
 
     public DossierMedicalDTO getDossierMedical(Integer patientId) {
         Patient patient = patientRepository.findById(patientId)
@@ -78,16 +82,23 @@ public class DossierMedicalService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Interventions
-        List<DossierMedicalDTO.InterventionResume> interventions = interventionRepository.findByPatientId(patientId).stream()
-                .map(i -> DossierMedicalDTO.InterventionResume.builder()
-                        .idIntervention(i.getIdIntervention())
-                        .typeIntervention(i.getTypeIntervention())
-                        .dateIntervention(i.getDateIntervention())
-                        .chirurgienPrincipal(i.getMedecinPrincipal().getNom() + " " + i.getMedecinPrincipal().getPrenom())
-                        .anesthesieType(i.getAnesthesieType())
-                        .resultat(i.getResultat())
-                        .build())
+        // Interventions (interventions d'urgence : c'est la table réellement alimentée)
+        List<DossierMedicalDTO.InterventionResume> interventions = interventionUrgenceRepository
+                .findByIdPatient(patientId, Pageable.unpaged())
+                .getContent().stream()
+                .map(i -> {
+                    String medecin = medecinRepository.findById(i.getIdMedecinPrincipal())
+                            .map(m -> m.getNom() + " " + m.getPrenom())
+                            .orElse("—");
+                    return DossierMedicalDTO.InterventionResume.builder()
+                            .idIntervention(i.getIdInterventionUrgence())
+                            .typeIntervention(i.getTypeIntervention())
+                            .dateIntervention(i.getDateIntervention())
+                            .chirurgienPrincipal(medecin)
+                            .anesthesieType(null)
+                            .resultat(i.getResultat())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return DossierMedicalDTO.builder()

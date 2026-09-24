@@ -38,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Header onMenuClick={toggleMobile} />
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -46,8 +46,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         isMobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
       />
-      <main className={`transition-all duration-300 pt-16 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        <div className="p-6">{children}</div>
+      <main className={`pt-16 transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
+        <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6">{children}</div>
       </main>
     </div>
   );

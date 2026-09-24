@@ -1,6 +1,6 @@
 // types/inventaire.ts
 export type TypeInventaire = 'Annuel' | 'Trimestriel' | 'Mensuel' | 'Tournant' | 'Exceptionnel';
-export type StatutInventaire = 'En_cours' | 'Valide' | 'Annule';
+export type StatutInventaire = 'En_cours' | 'Validé' | 'Clôturé';
 
 export interface LigneInventaire {
   idLigneInventaire?: number;
@@ -28,6 +28,17 @@ export interface Inventaire {
   observations?: string;
   statut: StatutInventaire;
   lignes: LigneInventaire[];
+}
+
+export interface LigneStockTheorique {
+  idMedicament: number;
+  medicamentNom: string | null;
+  idLot: number;
+  numeroLot: string | null;
+  quantiteTheorique: number;
+  prixUnitaire: number | null;
+  statutLot: string | null;
+  datePeremption: string | null;
 }
 
 export interface InventaireRequest {

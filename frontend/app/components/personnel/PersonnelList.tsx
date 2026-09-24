@@ -16,7 +16,13 @@ import { personnelService } from '@/app/services/personnelService';
 import type { PersonnelResponse } from '@/app/types/personnel';
 import { GenreLabels, TypeContratLabels } from '@/app/types/personnel';
 
-const PersonnelList = () => {
+interface PersonnelListProps {
+  fonctionFixe?: string;
+  titre?: string;
+  labelAjout?: string;
+}
+
+const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps = {}) => {
   const router = useRouter();
   const confirm = useConfirm();
   const [personnel, setPersonnel] = useState<PersonnelResponse[]>([]);
@@ -31,17 +37,19 @@ const PersonnelList = () => {
   const fetchData = useCallback(async (page: number, keyword = '') => {
     setLoading(true);
     try {
-      // Utiliser search avec les filtres si disponibles
-      const res = keyword || selectedGenre || selectedFonction
-        ? await personnelService.search(keyword, page, pagination.pageSize)
-        : await personnelService.getAll(page, pagination.pageSize);
+      // Si une fonction est imposée (ex. Infirmiers), on filtre côté serveur.
+      const res = fonctionFixe
+        ? await personnelService.search(keyword, page, pagination.pageSize, fonctionFixe)
+        : (keyword || selectedGenre || selectedFonction
+            ? await personnelService.search(keyword, page, pagination.pageSize)
+            : await personnelService.getAll(page, pagination.pageSize));
 
       // Filtrage supplémentaire côté front si nécessaire
       let items = res.items;
-      if (selectedGenre) {
+      if (!fonctionFixe && selectedGenre) {
         items = items.filter(p => p.genre === selectedGenre);
       }
-      if (selectedFonction) {
+      if (!fonctionFixe && selectedFonction) {
         items = items.filter(p => p.fonction?.toLowerCase().includes(selectedFonction.toLowerCase()));
       }
 
@@ -57,7 +65,7 @@ const PersonnelList = () => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.pageSize, selectedGenre, selectedFonction]);
+  }, [pagination.pageSize, selectedGenre, selectedFonction, fonctionFixe]);
 
   useEffect(() => {
     void (async () => {
@@ -115,8 +123,8 @@ const PersonnelList = () => {
     const colors: Record<string, string> = {
       CDI: 'bg-green-100 text-green-800',
       CDD: 'bg-yellow-100 text-yellow-800',
-      STAGE: 'bg-purple-100 text-purple-800',
-      FREELANCE: 'bg-orange-100 text-orange-800',
+      Stage: 'bg-purple-100 text-purple-800',
+      Interim: 'bg-orange-100 text-orange-800',
     };
     return (
       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[contrat] || 'bg-gray-100'}`}>
@@ -136,7 +144,7 @@ const PersonnelList = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Gestion du personnel"
+        title={titre || 'Gestion du personnel'}
         subtitle={<><FaUsers className="inline mr-1" /> {pagination.totalCount} agent(s) trouvé(s)</>}
         actions={
           <>
@@ -148,8 +156,11 @@ const PersonnelList = () => {
             >
               Filtres
             </Button>
-            <Button onClick={() => router.push('/personnel/nouveau')} icon={<FaPlus />}>
-              Nouveau
+            <Button
+              onClick={() => router.push(`/personnel/nouveau${fonctionFixe ? `?fonction=${encodeURIComponent(fonctionFixe)}` : ''}`)}
+              icon={<FaPlus />}
+            >
+              {labelAjout || 'Nouveau'}
             </Button>
           </>
         }
@@ -157,7 +168,7 @@ const PersonnelList = () => {
 
       {/* Filtres */}
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <form onSubmit={handleSearch} className="flex gap-2">
               <FilterInput
@@ -176,15 +187,17 @@ const PersonnelList = () => {
               <option value="M">Masculin</option>
               <option value="F">Féminin</option>
             </FilterSelect>
-            <FilterSelect
-              value={selectedFonction || ''}
-              onChange={(e) => setSelectedFonction(e.target.value || null)}
-            >
-              <option value="">Toutes fonctions</option>
-              {fonctions.map(f => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </FilterSelect>
+            {!fonctionFixe && (
+              <FilterSelect
+                value={selectedFonction || ''}
+                onChange={(e) => setSelectedFonction(e.target.value || null)}
+              >
+                <option value="">Toutes fonctions</option>
+                {fonctions.map(f => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </FilterSelect>
+            )}
           </FilterPanel>
           {hasFilters && (
             <div className="mt-4 text-right">
@@ -200,11 +213,20 @@ const PersonnelList = () => {
       {personnel.length === 0 ? (
         <EmptyState
           icon={<FaUsers />}
-          title="Aucun personnel trouvé"
+          title={fonctionFixe ? `Aucun ${fonctionFixe.toLowerCase()} trouvé` : 'Aucun personnel trouvé'}
           description={hasFilters ? 'Aucun résultat pour vos critères' : 'Commencez par ajouter un nouveau membre du personnel'}
-          action={hasFilters ? (
-            <Button variant="secondary" onClick={clearFilters}>Effacer les filtres</Button>
-          ) : undefined}
+          action={
+            hasFilters ? (
+              <Button variant="secondary" onClick={clearFilters}>Effacer les filtres</Button>
+            ) : (
+              <Button
+                icon={<FaPlus />}
+                onClick={() => router.push(`/personnel/nouveau${fonctionFixe ? `?fonction=${encodeURIComponent(fonctionFixe)}` : ''}`)}
+              >
+                {labelAjout || 'Ajouter'}
+              </Button>
+            )
+          }
         />
       ) : (
         <TableContainer>
@@ -229,7 +251,7 @@ const PersonnelList = () => {
                   </Td>
                   <Td className="whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center">
                         <span className="text-sm font-medium text-indigo-700">
                           {getInitials(p.nom, p.prenom)}
                         </span>

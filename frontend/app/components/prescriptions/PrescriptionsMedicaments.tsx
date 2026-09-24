@@ -19,9 +19,9 @@ import OrdonnanceModal from './OrdonnanceModal';
 
 const statutColors: Record<StatutPrescription, string> = {
   Active: 'bg-green-100 text-green-800',
-  Terminée: 'bg-gray-100 text-gray-800',
-  Annulée: 'bg-red-100 text-red-800',
-  'En attente': 'bg-yellow-100 text-yellow-800'
+  Terminee: 'bg-gray-100 text-gray-800',
+  Annulee: 'bg-red-100 text-red-800',
+  EnAttente: 'bg-yellow-100 text-yellow-800'
 };
 
 export default function PrescriptionsMedicaments() {
@@ -126,7 +126,7 @@ export default function PrescriptionsMedicaments() {
                       <IconButton color="green" title="Imprimer l'ordonnance" onClick={() => handlePrintOrdonnance(p.idPrescription)}>
                         <FaPrint size={14} />
                       </IconButton>
-                      {p.statut !== 'Annulée' && (
+                      {p.statut !== 'Annulee' && (
                         <IconButton color="gray" title="Annuler" onClick={() => handleAnnuler(p)}>
                           <FaBan size={14} />
                         </IconButton>

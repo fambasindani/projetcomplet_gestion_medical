@@ -11,6 +11,7 @@ public class ConsultationRequestDto {
     @NotNull private Integer idMedecin;
     @NotNull private LocalDateTime dateConsultation;
     @NotNull private String motifConsultation;
+    private Integer idActeCatalogue; // acte du référentiel (type de consultation facturée)
     private String histoireMaladie;
     private String diagnostic;
     private String traitementPrescris;

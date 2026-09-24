@@ -93,7 +93,7 @@ export default function SalleAttente() {
       </motion.div>
 
       {sorted.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
             <FaCheckCircle className="text-2xl" />
           </div>
@@ -117,7 +117,7 @@ export default function SalleAttente() {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100"
+                className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"
               >
                 <div className={`h-1.5 ${g.bar}`} />
                 <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center">

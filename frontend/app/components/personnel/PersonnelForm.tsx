@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaSave, FaArrowLeft, FaUser, FaIdCard, FaPhone, FaEnvelope, FaMapMarkerAlt, FaCalendarAlt, FaBriefcase, FaDollarSign, FaCamera } from 'react-icons/fa';
+import { FaSave, FaUser, FaIdCard, FaPhone, FaEnvelope, FaMapMarkerAlt, FaCalendarAlt, FaBriefcase, FaDollarSign, FaCamera } from 'react-icons/fa';
 import { personnelService } from '@/app/services/personnelService';
 import type { PersonnelRequest, PersonnelUpdate, Genre, TypeContrat } from '@/app/types/personnel';
 import { GenreLabels, TypeContratLabels } from '@/app/types/personnel';
@@ -11,8 +11,9 @@ import { FormSelect } from '@/app/components/common/FormSelect';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 interface PersonnelFormProps {
   initialData?: PersonnelUpdate | null;
@@ -28,6 +29,8 @@ const contratOptions = [
 
 const PersonnelForm: React.FC<PersonnelFormProps> = ({ initialData, isEditMode, id }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fonctionDefaut = searchParams.get('fonction') ?? '';
   const [form, setForm] = useState<PersonnelRequest>(() => initialData ? ({
     matricule: initialData.matricule,
     nom: initialData.nom,
@@ -49,7 +52,7 @@ const PersonnelForm: React.FC<PersonnelFormProps> = ({ initialData, isEditMode, 
     prenom: '',
     dateNaissance: null,
     genre: 'M',
-    fonction: '',
+    fonction: fonctionDefaut,
     service: null,
     telephone: null,
     email: null,
@@ -128,174 +131,155 @@ const PersonnelForm: React.FC<PersonnelFormProps> = ({ initialData, isEditMode, 
   if (fetching) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEditMode ? 'Modifier le personnel' : 'Nouveau personnel'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/personnel')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-8 max-w-5xl mx-auto">
-          {/* Section Identité */}
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-              <FaUser /> Identité
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormInput
-                label="Matricule "
-                name="matricule"
-                value={form.matricule}
-                onChange={handleChange}
-                required
-                icon={<FaIdCard />}
-              />
-              <FormInput
-                label="Nom "
-                name="nom"
-                value={form.nom}
-                onChange={handleChange}
-                required
-                icon={<FaUser />}
-              />
-              <FormInput
-                label="Prénom *"
-                name="prenom"
-                value={form.prenom}
-                onChange={handleChange}
-                required
-                icon={<FaUser />}
-              />
-              <FormInput
-                label="Date de naissance"
-                name="dateNaissance"
-                type="date"
-                value={form.dateNaissance || ''}
-                onChange={handleChange}
-                icon={<FaCalendarAlt />}
-              />
-              <FormSelect
-                label="Genre "
-                name="genre"
-                value={form.genre}
-                onChange={handleChange}
-                options={genreOptions}
-                required
-                icon={<FaUser />}
-              />
-            </div>
+    <PageShell
+      title={isEditMode ? 'Modifier le personnel' : 'Nouveau personnel'}
+      onBack={() => router.push('/personnel')}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Section Identité */}
+        <FormSection title="Identité" icon={<FaUser />}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormInput
+              label="Matricule "
+              name="matricule"
+              value={form.matricule}
+              onChange={handleChange}
+              required
+              icon={<FaIdCard />}
+            />
+            <FormInput
+              label="Nom "
+              name="nom"
+              value={form.nom}
+              onChange={handleChange}
+              required
+              icon={<FaUser />}
+            />
+            <FormInput
+              label="Prénom *"
+              name="prenom"
+              value={form.prenom}
+              onChange={handleChange}
+              required
+              icon={<FaUser />}
+            />
+            <FormInput
+              label="Date de naissance"
+              name="dateNaissance"
+              type="date"
+              value={form.dateNaissance || ''}
+              onChange={handleChange}
+              icon={<FaCalendarAlt />}
+            />
+            <FormSelect
+              label="Genre "
+              name="genre"
+              value={form.genre}
+              onChange={handleChange}
+              options={genreOptions}
+              required
+              icon={<FaUser />}
+            />
           </div>
+        </FormSection>
 
-          {/* Section Contact */}
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-              <FaPhone /> Contact
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormInput
-                label="Téléphone"
-                name="telephone"
-                value={form.telephone || ''}
-                onChange={handleChange}
-                icon={<FaPhone />}
-              />
-              <FormInput
-                label="Email"
-                name="email"
-                type="email"
-                value={form.email || ''}
-                onChange={handleChange}
-                icon={<FaEnvelope />}
-              />
-              <FormInput
-                label="Adresse"
-                name="adresse"
-                value={form.adresse || ''}
-                onChange={handleChange}
-                icon={<FaMapMarkerAlt />}
-              />
-            </div>
+        {/* Section Contact */}
+        <FormSection title="Contact" icon={<FaPhone />}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormInput
+              label="Téléphone"
+              name="telephone"
+              value={form.telephone || ''}
+              onChange={handleChange}
+              icon={<FaPhone />}
+            />
+            <FormInput
+              label="Email"
+              name="email"
+              type="email"
+              value={form.email || ''}
+              onChange={handleChange}
+              icon={<FaEnvelope />}
+            />
+            <FormInput
+              label="Adresse"
+              name="adresse"
+              value={form.adresse || ''}
+              onChange={handleChange}
+              icon={<FaMapMarkerAlt />}
+            />
           </div>
+        </FormSection>
 
-          {/* Section Professionnelle */}
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-              <FaBriefcase /> Informations professionnelles
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormInput
-                label="Fonction "
-                name="fonction"
-                value={form.fonction}
-                onChange={handleChange}
-                required
-                icon={<FaBriefcase />}
-              />
-              <FormInput
-                label="Service"
-                name="service"
-                value={form.service || ''}
-                onChange={handleChange}
-                icon={<FaBriefcase />}
-              />
-              <FormSelect
-                label="Type de contrat"
-                name="typeContrat"
-                value={form.typeContrat || ''}
-                onChange={handleChange}
-                options={contratOptions}
-              />
-              <FormInput
-                label="Date d'embauche"
-                name="dateEmbauche"
-                type="date"
-                value={form.dateEmbauche || ''}
-                onChange={handleChange}
-                icon={<FaCalendarAlt />}
-              />
-              <FormInput
-                label="Salaire"
-                name="salaire"
-                type="number"
-                step="0.01"
-                value={form.salaire ?? ''}
-                onChange={handleChange}
-                icon={<FaDollarSign />}
-              />
-            </div>
+        {/* Section Professionnelle */}
+        <FormSection title="Informations professionnelles" icon={<FaBriefcase />}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormInput
+              label="Fonction "
+              name="fonction"
+              value={form.fonction}
+              onChange={handleChange}
+              required
+              icon={<FaBriefcase />}
+            />
+            <FormInput
+              label="Service"
+              name="service"
+              value={form.service || ''}
+              onChange={handleChange}
+              icon={<FaBriefcase />}
+            />
+            <FormSelect
+              label="Type de contrat"
+              name="typeContrat"
+              value={form.typeContrat || ''}
+              onChange={handleChange}
+              options={contratOptions}
+            />
+            <FormInput
+              label="Date d'embauche"
+              name="dateEmbauche"
+              type="date"
+              value={form.dateEmbauche || ''}
+              onChange={handleChange}
+              icon={<FaCalendarAlt />}
+            />
+            <FormInput
+              label="Salaire"
+              name="salaire"
+              type="number"
+              step="0.01"
+              value={form.salaire ?? ''}
+              onChange={handleChange}
+              icon={<FaDollarSign />}
+            />
           </div>
+        </FormSection>
 
-          {/* Section Photo */}
-          <div>
-            <h3 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-              <FaCamera /> Photo
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-              <FormInput
-                label="URL de la photo"
-                name="photo"
-                value={form.photo || ''}
-                onChange={handleChange}
-                icon={<FaCamera />}
-                placeholder="https://exemple.com/photo.jpg"
-              />
-            </div>
+        {/* Section Photo */}
+        <FormSection title="Photo" icon={<FaCamera />}>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            <FormInput
+              label="URL de la photo"
+              name="photo"
+              value={form.photo || ''}
+              onChange={handleChange}
+              icon={<FaCamera />}
+              placeholder="https://exemple.com/photo.jpg"
+            />
           </div>
+        </FormSection>
 
-          {/* Boutons */}
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
-            <Button type="button" variant="secondary" onClick={() => router.push('/personnel')}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading} icon={<FaSave />}>
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
-          </div>
-        </form>
-    </div>
+        {/* Boutons */}
+        <FormActions
+          onCancel={() => router.push('/personnel')}
+          submitLabel="Enregistrer"
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
+      </form>
+    </PageShell>
   );
 };
 

@@ -1,5 +1,5 @@
-import UnderConstruction from '../../ui/UnderConstruction';
+import ProfileView from '@/app/components/settings/ProfileView';
 
 export default function SettingsProfilPage() {
-  return <UnderConstruction title="Paramètres - Mon profil" backHref="/settings/utilisateurs" />;
+  return <ProfileView />;
 }

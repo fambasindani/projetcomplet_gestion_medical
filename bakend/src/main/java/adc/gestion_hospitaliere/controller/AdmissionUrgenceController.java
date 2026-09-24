@@ -5,6 +5,7 @@ import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.urgence.AdmissionUrgenceRequestDto;
 import adc.gestion_hospitaliere.dto.urgence.AdmissionUrgenceResponseDto;
 import adc.gestion_hospitaliere.service.AdmissionUrgenceService;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import java.util.List;
 public class AdmissionUrgenceController {
 
     private final AdmissionUrgenceService service;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<PagedResponse<AdmissionUrgenceResponseDto>> getAll(
@@ -33,7 +35,9 @@ public class AdmissionUrgenceController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        return ResponseEntity.ok(PagedResponse.of(service.search(statut, gravite, idPatient, dateStart, dateEnd, pageable)));
+        // Un médecin ne voit que les admissions dont il est le médecin.
+        Integer force = currentUserService.filtreMedecinId();
+        return ResponseEntity.ok(PagedResponse.of(service.search(statut, gravite, idPatient, force, dateStart, dateEnd, pageable)));
     }
 
     @GetMapping("/salle-attente")

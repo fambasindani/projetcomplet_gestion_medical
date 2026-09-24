@@ -22,6 +22,7 @@ public interface ExamenRepository extends JpaRepository<Examen, Integer> {
 
     List<Examen> findByIdPatient(Integer patientId);
     List<Examen> findByIdMedecinPrescripteur(Integer medecinId);
+    Page<Examen> findByIdMedecinPrescripteur(Integer medecinId, Pageable pageable);
     Page<Examen> findByStatut(StatutExamen statut, Pageable pageable);
 
     List<Examen> findByIdPrescription(Integer prescriptionId);

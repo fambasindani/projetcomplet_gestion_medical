@@ -1,20 +1,20 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import type { ReactNode } from 'react';
-import type { IconType } from 'react-icons';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import {
-  FaArrowLeft, FaBox, FaCalendarCheck,
+  FaBox, FaCalendarCheck,
   FaDollarSign, FaTruck, FaClipboardList, FaEdit
 } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import EmptyState from '@/app/ui/EmptyState';
 import Button from '@/app/ui/Button';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import DetailBanner from '@/app/ui/DetailBanner';
+import { InfoCard, InfoGrid } from '@/app/ui/InfoCard';
 import { lotService } from '@/app/services/lotService';
 import { LotMedicament } from '@/app/types/lot';
 
@@ -64,82 +64,50 @@ export default function LotDetails() {
   );
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <PageShell
+      title={lot.medicamentNom || 'Médicament'}
+      subtitle={`Lot #${lot.numeroLot}`}
+      onBack={() => router.back()}
+      actions={
+        <>
+          <Button icon={<FaEdit />} onClick={() => router.push(`/pharmacie/lots/${id}/modifier`)}>
+            Modifier
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>Supprimer</Button>
+        </>
+      }
+    >
+      <DetailBanner
+        meta="Lot"
         title={lot.medicamentNom || 'Médicament'}
         subtitle={`Lot #${lot.numeroLot}`}
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/pharmacie/lots')}>
-              Retour
-            </Button>
-            <Button icon={<FaEdit />} onClick={() => router.push(`/pharmacie/lots/${id}/modifier`)}>
-              Modifier
-            </Button>
-            <Button variant="danger" onClick={handleDelete}>Supprimer</Button>
-          </>
+        badges={
+          <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${statutStyles[lot.statut] || 'bg-slate-50'}`}>
+            {lot.statut}
+          </span>
         }
-      />
+      >
+        <InfoGrid>
+          <InfoCard icon={FaTruck} label="Fournisseur" value={lot.fournisseurNom} />
+          <InfoCard icon={FaBox} label="Emplacement" value={lot.emplacementStockage} />
+          <InfoCard icon={FaClipboardList} label="Contrôle Qualité" value={lot.controleQualite ? 'Validé' : 'En attente'} />
+          <InfoCard icon={FaCalendarCheck} label="Réception" value={lot.dateReception && format(new Date(lot.dateReception), 'dd/MM/yyyy')} />
+          <InfoCard icon={FaCalendarCheck} label="Péremption" value={format(new Date(lot.datePeremption), 'dd/MM/yyyy')} />
+          <InfoCard icon={FaCalendarCheck} label="Fabrication" value={lot.dateFabrication && format(new Date(lot.dateFabrication), 'dd/MM/yyyy')} />
+          <InfoCard icon={FaBox} label="Quantité initiale" value={lot.quantiteInitial} />
+          <InfoCard icon={FaBox} label="Quantité restante" value={<span className="font-bold text-indigo-600">{lot.quantiteRestante}</span>} />
+          <InfoCard icon={FaDollarSign} label="Prix Achat / Vente" value={`$${lot.prixAchatUnitaire} / $${lot.prixVenteUnitaire}`} />
+        </InfoGrid>
 
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-        {/* Header */}
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold mb-1">{lot.medicamentNom || 'Médicament'}</h1>
-              <p className="opacity-90 flex items-center gap-2 font-mono">
-                <FaBox /> Lot #{lot.numeroLot}
-              </p>
-            </div>
-            <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${statutStyles[lot.statut] || 'bg-gray-50'}`}>
-              {lot.statut}
-            </span>
-          </div>
-        </div>
-
-        <div className="p-8 space-y-8">
-          {/* Section Informations */}
-          <div className="grid md:grid-cols-3 gap-8">
-            <InfoGroup title="Logistique" icon={FaTruck}>
-              <Detail label="Fournisseur" value={lot.fournisseurNom} />
-              <Detail label="Emplacement" value={lot.emplacementStockage} />
-              <Detail label="Contrôle Qualité" value={lot.controleQualite ? 'Validé' : 'En attente'} />
-            </InfoGroup>
-
-            <InfoGroup title="Traçabilité" icon={FaCalendarCheck}>
-              <Detail label="Réception" value={lot.dateReception && format(new Date(lot.dateReception), 'dd/MM/yyyy')} />
-              <Detail label="Péremption" value={format(new Date(lot.datePeremption), 'dd/MM/yyyy')} />
-              <Detail label="Fabrication" value={lot.dateFabrication && format(new Date(lot.dateFabrication), 'dd/MM/yyyy')} />
-            </InfoGroup>
-
-            <InfoGroup title="Gestion Stock" icon={FaDollarSign}>
-              <Detail label="Initial" value={lot.quantiteInitial} />
-              <Detail label="Restant" value={<span className="font-bold text-indigo-600">{lot.quantiteRestante}</span>} />
-              <Detail label="Prix Achat/Vente" value={`$${lot.prixAchatUnitaire} / $${lot.prixVenteUnitaire}`} />
-            </InfoGroup>
-          </div>
-
-          {lot.notes && (
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-              <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-2"><FaClipboardList /> Notes</h3>
+        {lot.notes && (
+          <div className="px-6 pb-6">
+            <section className="rounded-2xl border border-slate-100 bg-slate-50/40 p-6">
+              <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2"><FaClipboardList className="text-indigo-500" /> Notes</h3>
               <p className="text-gray-600 text-sm">{lot.notes}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+            </section>
+          </div>
+        )}
+      </DetailBanner>
+    </PageShell>
   );
-}
-
-function InfoGroup({ title, icon: Icon, children }: { title: string; icon: IconType; children: ReactNode }) {
-  return (
-    <div>
-      <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Icon className="text-indigo-500" /> {title}</h3>
-      <div className="space-y-3">{children}</div>
-    </div>
-  );
-}
-
-function Detail({ label, value }: { label: string; value?: ReactNode }) {
-  return <p className="text-sm"><span className="text-gray-500">{label}:</span> <span className="font-medium text-gray-900 ml-2">{value || '-'}</span></p>;
 }

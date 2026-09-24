@@ -45,16 +45,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
       <div className="flex min-h-full items-center justify-center p-4">
         <div
           ref={modalRef}
-          className={`relative w-full ${sizeClasses[size]} transform rounded-2xl bg-white shadow-2xl transition-all`}
+          className={`relative w-full ${sizeClasses[size]} transform overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 transition-all`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* En-tête avec dégradé et coins arrondis */}
-          <div className="rounded-t-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+          {/* En-tête sobre */}
+          <div className="border-b border-slate-200 px-6 py-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-white">{title}</h3>
+              <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
               <button
                 onClick={onClose}
-                className="rounded-full p-1 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                aria-label="Fermer"
+                className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
               >
                 <FaTimes size={18} />
               </button>

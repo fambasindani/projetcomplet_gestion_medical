@@ -30,7 +30,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
       </label>
       <div className="group relative">
         {icon && (
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-11 items-center justify-center rounded-l-xl bg-gray-50 text-gray-400 transition-colors group-focus-within:bg-indigo-50 group-focus-within:text-indigo-500">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-11 items-center justify-center rounded-l-xl bg-slate-50 text-gray-400 transition-colors group-focus-within:bg-indigo-50 group-focus-within:text-indigo-500">
             {icon}
           </div>
         )}
@@ -42,7 +42,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
             ${icon ? 'pl-11' : 'px-4'}
             ${error
               ? 'border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-              : 'border-gray-200 bg-white hover:border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
+              : 'border-slate-200 bg-white hover:border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
             }
           `}
           aria-invalid={!!error}

@@ -2,6 +2,7 @@ package adc.gestion_hospitaliere.controller;
 
 import adc.gestion_hospitaliere.dto.soin.SoinInfirmierRequestDto;
 import adc.gestion_hospitaliere.dto.soin.SoinInfirmierResponseDto;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import adc.gestion_hospitaliere.service.SoinInfirmierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SoinInfirmierController {
     private final SoinInfirmierService service;
+    private final CurrentUserService currentUserService;
 
     // ⚠️ /search DOIT être avant /{id}
     @GetMapping("/search")
@@ -32,8 +34,10 @@ public class SoinInfirmierController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(service.search(typeSoin, idHospitalisation, idInfirmier,
-                dateStart, dateEnd, pageable));
+        // Un infirmier ne voit que les soins qu'il a réalisés.
+        Integer force = currentUserService.filtreInfirmierId();
+        return ResponseEntity.ok(service.search(typeSoin, idHospitalisation,
+                force != null ? force : idInfirmier, dateStart, dateEnd, pageable));
     }
 
     @GetMapping("/hospitalisation/{hospitalisationId}")

@@ -54,6 +54,7 @@ export interface DetailFacture {
   acteLibelle: string | null;
   idMedicament: number | null;
   medicamentNom: string | null;
+  source: string | null;
   description: string | null;
   quantite: number;
   prixUnitaire: number;
@@ -104,6 +105,8 @@ export interface Facture {
 export interface FactureDetailLigne {
   idActe: number | null;
   idMedicament: number | null;
+  source: string | null;
+  idSource: number | null;
   description: string | null;
   quantite: number;
   prixUnitaire: number;

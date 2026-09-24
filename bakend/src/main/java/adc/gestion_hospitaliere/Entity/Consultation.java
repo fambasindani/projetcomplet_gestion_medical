@@ -31,6 +31,14 @@ public class Consultation {
     @JoinColumn(name = "id_rdv", insertable = false, updatable = false)
     private RendezVous rendezVous;
 
+    // --- Relation vers le référentiel d'actes (catalogue) ---
+    @Column(name = "id_acte_catalogue")
+    private Integer idActeCatalogue;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_acte_catalogue", insertable = false, updatable = false)
+    private ActeCatalogue acteCatalogue;
+
     @Column(name = "id_patient", nullable = false)
     private Integer idPatient;
 

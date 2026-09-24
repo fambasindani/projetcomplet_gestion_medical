@@ -31,7 +31,7 @@ async createBatch(data: { idPrescription?: number | null; examens: ExamenRequest
 
 
   
-  async update(id: number, data: ExamenRequest): Promise<Examen> {
+  async update(id: number, data: Partial<ExamenRequest>): Promise<Examen> {
     const res = await api.put(`/examens/${id}`, data);
     return res.data;
   },

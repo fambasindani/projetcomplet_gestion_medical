@@ -14,12 +14,14 @@ import {
   FaListAlt,
   FaBandAid
 } from 'react-icons/fa';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface MenuItem {
   path: string;
   name: string;
   icon: React.ElementType;
   roles?: string[];
+  permission?: string;
   badge?: string;
   badgeColor?: string;
   children?: MenuItem[];
@@ -27,13 +29,15 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   // DASHBOARD
-  { path: '/dashboard', name: 'Dashboard', icon: FaTachometerAlt, badge: 'Actif', badgeColor: '#10b981' },
+  { path: '/dashboard', name: 'Dashboard', icon: FaTachometerAlt, badge: 'Actif', badgeColor: '#10b981', permission: 'DASHBOARD_VOIR' },
 
   // MÉDECINS
   {
     path: '/medecins-module',
     name: 'Médecins',
     icon: FaUserMd,
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+    permission: 'MEDECINS_VOIR',
     children: [
       { path: '/medecins', name: 'Médecins', icon: FaUserMd },
       { path: '/medecins/planning', name: 'Planning', icon: FaCalendarCheck },
@@ -48,6 +52,8 @@ const menuItems: MenuItem[] = [
     icon: FaUserInjured,
     badge: '12',
     badgeColor: '#667eea',
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+    permission: 'PATIENTS_VOIR',
     children: [
       { path: '/patients', name: 'Patients', icon: FaUserInjured },
   /*     { path: '/patients/dossiers', name: 'Dossiers médicaux', icon: FaClipboardList }, */
@@ -63,6 +69,8 @@ const menuItems: MenuItem[] = [
     icon: FaCalendarCheck,
     badge: '8',
     badgeColor: '#f59e0b',
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+    permission: 'RENDEZ_VOUS_VOIR',
     children: [
       { path: '/rendezvous', name: 'Tous les rendez-vous', icon: FaCalendarCheck },
       { path: '/rendezvous/planning', name: 'Planning journalier', icon: FaClipboardCheck },
@@ -74,6 +82,8 @@ const menuItems: MenuItem[] = [
   path: '/prescriptions-module',
   name: 'Prescriptions',
   icon: FaPrescriptionBottle, // ou une icône appropriée
+  roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+  permission: 'PRESCRIPTIONS_VOIR',
   children: [
     { path: '/prescriptions', name: 'Toutes les prescriptions', icon: FaListAlt },
     { path: '/prescriptions/medicaments', name: 'Prescriptions médicaments', icon: FaPills },
@@ -88,6 +98,8 @@ const menuItems: MenuItem[] = [
     path: '/pharmacie-module',
     name: 'Pharmacie',
     icon: FaPills,
+    roles: ['ADMIN', 'PHARMACIEN'],
+    permission: 'PHARMACIE_VOIR',
     children: [
       { path: '/pharmacie/medicaments', name: 'Médicaments', icon: FaPills },
       { path: '/pharmacie/categories', name: 'Catégories', icon: FaFlask },
@@ -105,6 +117,8 @@ const menuItems: MenuItem[] = [
     path: '/examens-module',
     name: 'Examens',
     icon: FaMicroscope,
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+    permission: 'EXAMENS_VOIR',
     children: [
       // { path: '/examens/radiologie', name: 'Radiologie', icon: FaXRay },
       // { path: '/examens/biologie', name: 'Biologie', icon: FaVial },
@@ -122,6 +136,8 @@ const menuItems: MenuItem[] = [
     icon: FaAmbulance,
     badge: '3',
     badgeColor: '#ef4444',
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'INFIRMIER'],
+    permission: 'URGENCES_VOIR',
     children: [
       { path: '/urgences/admissions', name: 'Admissions', icon: FaHeartbeat },
       { path: '/urgences/interventions', name: 'Interventions', icon: FaFileMedical },
@@ -134,6 +150,8 @@ const menuItems: MenuItem[] = [
     path: '/hospitalisation-module',
     name: 'Hospitalisation',
     icon: FaHospital,
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+    permission: 'HOSPITALISATIONS_VOIR',
     children: [
       // { path: '/hospitalisations/admissions', name: 'Admissions', icon: FaProcedures },
       { path: '/hospitalisations/chambres', name: 'Chambres', icon: FaBed },
@@ -147,6 +165,8 @@ const menuItems: MenuItem[] = [
     path: '/personnel-module',
     name: 'Personnel',
     icon: FaUsers,
+    roles: ['ADMIN', 'RH'],
+    permission: 'PERSONNEL_VOIR',
     children: [
       { path: '/personnel', name: 'Liste du personnel', icon: FaUsers },
       { path: '/personnel/infirmiers', name: 'Infirmiers', icon: FaUserNurse },
@@ -158,9 +178,12 @@ const menuItems: MenuItem[] = [
     path: '/facturation-module',
     name: 'Facturation',
     icon: FaFileInvoiceDollar,
+    roles: ['ADMIN', 'SECRETAIRE', 'MEDECIN'],
+    permission: 'FACTURATION_VOIR',
     children: [
       { path: '/factures', name: 'Factures', icon: FaFileInvoiceDollar },
       { path: '/factures/actes', name: 'Actes médicaux', icon: FaNotesMedical },
+      { path: '/factures/catalogue', name: "Catalogue d'actes", icon: FaListAlt },
       { path: '/factures/paiements', name: 'Paiements', icon: FaMoneyBillWave },
       { path: '/factures/statistiques', name: 'Statistiques', icon: FaChartBar },
     ]
@@ -171,11 +194,12 @@ const menuItems: MenuItem[] = [
     path: '/parametres-module',
     name: 'Paramètres',
     icon: FaCog,
+    roles: ['ADMIN'],
+    permission: 'UTILISATEURS_GERER',
     children: [
       { path: '/settings/profil', name: 'Mon profil', icon: FaUserMd },
       { path: '/settings/utilisateurs', name: 'Utilisateurs', icon: FaUsers },
       { path: '/settings/roles', name: 'Rôles & permissions', icon: FaClipboardCheck },
-      { path: '/settings/logs', name: "Journal d'activité", icon: FaFileMedical },
     ]
   },
 ];
@@ -211,6 +235,20 @@ const submenuReducer = (state: SubmenuState, action: SubmenuAction): SubmenuStat
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileOpen, onMobileClose }) => {
   const pathname = usePathname();
+  const { user, permissions } = useAuth();
+
+  const visibleMenuItems = menuItems.filter((item) => {
+    // Priorité aux permissions explicites (RBAC) si elles sont fournies par le backend
+    if (item.permission && permissions.length > 0) {
+      return permissions.includes(item.permission);
+    }
+    // Repli sur le rôle (anciens jetons sans permissions)
+    if (item.roles) {
+      return !!user?.role && item.roles.includes(user.role);
+    }
+    return true;
+  });
+
   const getInitialState = (): SubmenuState => {
     const state: SubmenuState = {};
     menuItems.forEach(item => {
@@ -233,6 +271,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
 
   const toggleSubmenu = (path: string, e: React.MouseEvent) => {
     e.preventDefault();
+    // Si la barre est réduite, un clic sur une rubrique la déploie d'abord.
+    if (isCollapsed) {
+      toggleSidebar();
+    }
     dispatch({ type: 'TOGGLE', payload: path });
   };
 
@@ -250,7 +292,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
   };
 
   const sidebarWidth = isCollapsed ? 'w-20' : 'w-64';
-  const sidebarClasses = `fixed left-0 top-0 z-40 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 ${sidebarWidth} ${
+  const sidebarClasses = `fixed left-0 top-0 z-40 h-full bg-slate-900 text-white transition-all duration-300 ${sidebarWidth} ${
     isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
   }`;
 
@@ -260,32 +302,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={handleLinkClick} />
       )}
       <aside className={sidebarClasses}>
-        <div className={`flex h-16 items-center justify-between border-b border-gray-700 px-4 ${isCollapsed ? 'justify-center' : ''}`}>
+        <div className={`flex h-16 items-center border-b border-slate-800 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 shadow-md">
-              <FaHospital className="text-white text-xl" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
+              <FaHospital className="text-lg text-white" />
             </div>
             {!isCollapsed && (
               <div className="truncate">
-                <span className="block text-lg font-bold">Hôpital</span>
-                <span className="block text-xs text-gray-400">Saint-Luc</span>
+                <span className="block text-sm font-bold leading-tight">Hôpital</span>
+                <span className="block text-[11px] leading-tight text-slate-400">Saint-Luc</span>
               </div>
             )}
           </div>
-          <button onClick={toggleSidebar} className="rounded-md p-1 text-gray-400 hover:bg-gray-700">
+          <button onClick={toggleSidebar} className="hidden rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-white lg:block">
             {isCollapsed ? <FaChevronRight size={16} /> : <FaChevronLeft size={16} />}
           </button>
         </div>
 
-        <nav className="mt-5 flex-1 overflow-y-auto px-2">
-          {menuItems.map((item) => (
+        <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-3">
+          {visibleMenuItems.map((item) => (
             <div key={item.path} className="mb-1">
               {item.children ? (
                 <div>
                   <div
                     onClick={(e) => toggleSubmenu(item.path, e)}
-                    className={`flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                      isActive(item.path) || isChildActive(item.children) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                    className={`flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive(item.path) || isChildActive(item.children) ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3 truncate">
@@ -308,7 +350,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="ml-4 mt-1 space-y-1 overflow-hidden border-l border-gray-700 pl-2"
+                        className="ml-4 mt-1 space-y-1 overflow-hidden border-l border-slate-800 pl-2"
                       >
                         {item.children.map((child) => {
                           const isActiveChild = getActiveChild(item.children)?.path === child.path;
@@ -317,8 +359,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
                               key={child.path}
                               href={child.path}
                               onClick={handleLinkClick}
-                              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                                isActiveChild ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                isActiveChild ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                               }`}
                             >
                               <child.icon size={16} />
@@ -335,8 +377,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
                 <Link
                   href={item.path}
                   onClick={handleLinkClick}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive(item.path) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive(item.path) ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
                   <item.icon size={20} />
@@ -353,9 +395,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         </nav>
 
         {!isCollapsed && (
-          <div className="border-t border-gray-700 p-4 text-center">
-            <p className="text-xs text-gray-500">Version 1.0.0</p>
-            <div className="mt-2 flex items-center justify-center gap-2 text-xs text-gray-400">
+          <div className="border-t border-slate-800 p-4 text-center">
+            <p className="text-xs text-slate-500">Version 1.0.0</p>
+            <div className="mt-2 flex items-center justify-center gap-2 text-xs text-slate-400">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>

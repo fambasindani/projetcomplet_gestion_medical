@@ -1,11 +1,11 @@
 package adc.gestion_hospitaliere.service;
 import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
 
-
 import adc.gestion_hospitaliere.Entity.RendezVous;
 import adc.gestion_hospitaliere.Enums.StatutRendezVous;
 import adc.gestion_hospitaliere.Repository.RendezVousRepository;
 import adc.gestion_hospitaliere.dto.planning.RendezVousResponseDto;
+import adc.gestion_hospitaliere.util.TransitionsStatut;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +33,7 @@ public class PlanningService {
     public void updateStatut(Integer rendezVousId, StatutRendezVous nouveauStatut) {
         RendezVous rdv = rendezVousRepository.findById(rendezVousId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous non trouvé"));
+        TransitionsStatut.verifierRendezVous(rdv.getStatut(), nouveauStatut);
         rdv.setStatut(nouveauStatut);
         rendezVousRepository.save(rdv);
     }

@@ -1,5 +1,6 @@
 package adc.gestion_hospitaliere.Entity;
 
+import adc.gestion_hospitaliere.Enums.Role;
 import adc.gestion_hospitaliere.Enums.TypeNotification;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,14 @@ public class Notification {
 
     @Column(name = "reference_id")
     private Integer referenceId;
+
+    // Ciblage : soit un rôle entier, soit un utilisateur précis. null = diffusion générale.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role_destinataire", length = 20)
+    private Role roleDestinataire;
+
+    @Column(name = "id_destinataire")
+    private Long idDestinataire;
 
     @Column(name = "lue")
     private Boolean lue = false;

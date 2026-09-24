@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaSave, FaArrowLeft, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaSave, FaPlus, FaTrash, FaDownload, FaSpinner } from 'react-icons/fa';
 import { inventaireService } from '@/app/services/inventaireService';
 import { TypeInventaire, LigneInventaire } from '@/app/types/inventaire';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
@@ -14,7 +14,9 @@ import { MedicamentSearchSelect } from '@/app/components/common/MedicamentSearch
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import Button from '@/app/ui/Button';
 
 export default function InventaireForm() {
@@ -58,6 +60,42 @@ export default function InventaireForm() {
     setForm(prev => ({ ...prev, lignes: prev.lignes.filter((_, i) => i !== idx) }));
   };
 
+  const updateLigne = (idx: number, field: 'quantiteReelle' | 'raisonEcart', value: number | string) => {
+    setForm(prev => ({
+      ...prev,
+      lignes: prev.lignes.map((l, i) => (i === idx ? { ...l, [field]: value } : l)),
+    }));
+  };
+
+  const [loadingStock, setLoadingStock] = useState(false);
+
+  const chargerTousLesProduits = async () => {
+    setLoadingStock(true);
+    try {
+      const stock = await inventaireService.getStockTheorique();
+      const lignes: LigneInventaire[] = stock.map(s => ({
+        idMedicament: s.idMedicament,
+        medicamentNom: s.medicamentNom ?? undefined,
+        idLot: s.idLot,
+        lotNumero: s.numeroLot ?? undefined,
+        quantiteTheorique: s.quantiteTheorique,
+        quantiteReelle: s.quantiteTheorique,
+        raisonEcart: '',
+        prixUnitaire: s.prixUnitaire ?? 0,
+      }));
+      setForm(prev => ({ ...prev, lignes }));
+      if (lignes.length === 0) {
+        toast('Aucun lot en stock à inventorier');
+      } else {
+        toast.success(`${lignes.length} produit(s) chargé(s) — ajustez les quantités réelles`);
+      }
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    } finally {
+      setLoadingStock(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.realisePar || form.lignes.length === 0) {
@@ -66,7 +104,7 @@ export default function InventaireForm() {
     }
     setLoading(true);
     try {
-      await inventaireService.create({
+      const created = await inventaireService.create({
         ...form,
         typeInventaire: form.typeInventaire as TypeInventaire,
         dateInventaire: new Date(form.dateInventaire).toISOString(),
@@ -75,8 +113,8 @@ export default function InventaireForm() {
           prixUnitaire: l.prixUnitaire || 0,
         })),
       });
-      toast.success('Inventaire créé avec succès');
-      router.push('/pharmacie/inventaire');
+      toast.success('Inventaire créé — procès-verbal prêt à imprimer');
+      router.push(`/pharmacie/inventaire/${created.idInventaire}/impression`);
     } catch (err) {
       toast.error(extractErrorMessage(err));
     } finally {
@@ -85,18 +123,13 @@ export default function InventaireForm() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Nouvel inventaire"
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/pharmacie/inventaire')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
+    <PageShell
+      title="Nouvel inventaire"
+      onBack={() => router.back()}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <FormSection title="Informations générales">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormInput
               label="Date"
@@ -138,8 +171,33 @@ export default function InventaireForm() {
           />
 
           <div className="border-t pt-4">
-            <h4 className="font-semibold mb-3">Lignes d&apos;inventaire</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-lg">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <h4 className="font-semibold">Lignes d&apos;inventaire</h4>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon={loadingStock ? <FaSpinner className="animate-spin" /> : <FaDownload size={12} />}
+                  onClick={chargerTousLesProduits}
+                  disabled={loadingStock}
+                >
+                  {loadingStock ? 'Chargement...' : 'Récupérer tous les produits'}
+                </Button>
+                {form.lignes.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setForm(prev => ({ ...prev, lignes: [] }))}
+                  >
+                    Vider
+                  </Button>
+                )}
+              </div>
+            </div>
+            <p className="mb-3 text-xs text-gray-500">
+              Charge tous les lots avec leur stock théorique. Modifiez la quantité réelle comptée ; l&apos;écart est calculé automatiquement.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-lg">
               <MedicamentSearchSelect
                 label="Médicament"
                 value={currentLigne.idMedicament}
@@ -179,43 +237,67 @@ export default function InventaireForm() {
             </div>
 
             {form.lignes.length > 0 && (
-              <table className="w-full text-sm mt-4 border rounded-lg overflow-hidden">
+              <table className="mt-4 w-full overflow-hidden rounded-lg text-sm">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="p-3 text-left">Médicament</th>
                     <th className="p-3 text-left">Lot</th>
-                    <th className="p-3 text-center">Qté</th>
+                    <th className="p-3 text-center">Théorique</th>
+                    <th className="p-3 text-center">Réel</th>
+                    <th className="p-3 text-center">Écart</th>
+                    <th className="p-3 text-left">Raison</th>
                     <th className="p-3 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {form.lignes.map((l, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="p-3">{l.idMedicament}</td>
-                      <td className="p-3">{l.idLot}</td>
-                      <td className="p-3 text-center">{l.quantiteReelle}</td>
-                      <td className="p-3 text-center">
-                        <button type="button" onClick={() => removeLigne(idx)} className="text-red-500 hover:text-red-700">
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {form.lignes.map((l, idx) => {
+                    const ecart = (l.quantiteReelle ?? 0) - (l.quantiteTheorique ?? 0);
+                    return (
+                      <tr key={idx} className="border-t">
+                        <td className="p-3">{l.medicamentNom ?? l.idMedicament}</td>
+                        <td className="p-3 text-gray-600">{l.lotNumero ?? l.idLot}</td>
+                        <td className="p-3 text-center">{l.quantiteTheorique}</td>
+                        <td className="p-2 text-center">
+                          <input
+                            type="number"
+                            value={l.quantiteReelle}
+                            onChange={(e) => updateLigne(idx, 'quantiteReelle', Number(e.target.value))}
+                            className="w-24 rounded-lg border border-gray-300 p-2 text-center text-sm"
+                          />
+                        </td>
+                        <td className={`p-3 text-center font-semibold ${ecart !== 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {ecart > 0 ? '+' : ''}{ecart}
+                        </td>
+                        <td className="p-2">
+                          <input
+                            type="text"
+                            value={l.raisonEcart ?? ''}
+                            onChange={(e) => updateLigne(idx, 'raisonEcart', e.target.value)}
+                            placeholder="Raison de l'écart"
+                            className="w-40 rounded-lg border border-gray-300 p-2 text-sm"
+                          />
+                        </td>
+                        <td className="p-3 text-center">
+                          <button type="button" onClick={() => removeLigne(idx)} className="text-red-500 hover:text-red-700">
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
           </div>
+        </FormSection>
 
-          <div className="flex justify-end gap-4 pt-4">
-            <Button type="button" variant="secondary" onClick={() => router.push('/pharmacie/inventaire')}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading} icon={<FaSave />}>
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
-          </div>
-        </div>
+        <FormActions
+          onCancel={() => router.back()}
+          loading={loading}
+          submitLabel="Enregistrer"
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

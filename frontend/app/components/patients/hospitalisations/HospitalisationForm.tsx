@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaUserMd, FaCalendarAlt, FaClipboardList, FaHeartbeat, FaFileAlt, FaArrowLeft } from 'react-icons/fa';
+import { FaUserMd, FaCalendarAlt, FaClipboardList, FaHeartbeat, FaFileAlt } from 'react-icons/fa';
 
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
@@ -16,8 +16,9 @@ import { HospitalisationCreate, ModeEntreeHospitalisation, ModeSortieHospitalisa
 import { Chambre } from '@/app/types/chambre';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 const modeEntreeOptions = Object.values(ModeEntreeHospitalisation).map(m => ({ value: m, label: m }));
 const statutOptions = Object.values(StatutHospitalisation).map(s => ({ value: s, label: s }));
@@ -138,221 +139,183 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (loading) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEditing ? 'Modifier l\'hospitalisation' : 'Nouvelle hospitalisation'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/patients/hospitalisations')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-8">
-              {/* Admission */}
-              <div>
-                <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-                  <FaClipboardList /> Admission
-                </h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <PatientSearchSelect
-                    value={formData.idPatient ?? null}
-                    onChange={handlePatientChange}
-                    error={errors.idPatient}
-                    required
-                  />
-                  <MedecinSearchSelect
-                    value={formData.idMedecinResponsable ?? null}
-                    onChange={handleMedecinChange}
-                    error={errors.idMedecinResponsable}
-                    required
-                  />
-                  <FormInput
-                    label="Numéro admission"
-                    name="numeroAdmission"
-                    value={formData.numeroAdmission || ''}
-                    onChange={handleChange}
-                    placeholder="Auto-généré si vide"
-                  />
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Chambre</label>
-                    <select
-                      name="idChambre"
-                      value={formData.idChambre || ''}
-                      onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2"
-                    >
-                      <option value="">Aucune</option>
-                      {chambres.map(c => (
-                        <option key={c.idChambre} value={c.idChambre}>
-                          {c.numeroChambre} - {c.typeChambre}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <FormInput
-                    label="Date d'admission"
-                    name="dateAdmission"
-                    type="datetime-local"
-                    value={formData.dateAdmission || ''}
-                    onChange={handleChange}
-                    required
-                    error={errors.dateAdmission}
-                    icon={<FaCalendarAlt />}
-                  />
-                  <FormInput
-                    label="Date de sortie"
-                    name="dateSortie"
-                    type="datetime-local"
-                    value={formData.dateSortie || ''}
-                    onChange={handleChange}
-                  />
-                  <FormSelect
-                    label="Mode d'entrée"
-                    name="modeEntree"
-                    value={formData.modeEntree || ''}
-                    onChange={handleChange}
-                    options={modeEntreeOptions}
-                  />
-                  <FormInput
-                    label="Provenance"
-                    name="provenance"
-                    value={formData.provenance || ''}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              {/* Médical */}
-              <div>
-                <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-                  <FaHeartbeat /> Informations médicales
-                </h5>
-                <div className="grid grid-cols-1 gap-4">
-                  <FormTextarea
-                    label="Motif d'admission"
-                    name="motifAdmission"
-                    value={formData.motifAdmission || ''}
-                    onChange={handleChange}
-                    rows={2}
-                    required
-                    error={errors.motifAdmission}
-                  />
-                  <FormTextarea
-                    label="Diagnostic principal"
-                    name="diagnosticPrincipal"
-                    value={formData.diagnosticPrincipal || ''}
-                    onChange={handleChange}
-                    rows={2}
-                  />
-                  <FormTextarea
-                    label="Traitements en cours"
-                    name="traitementsEnCours"
-                    value={formData.traitementsEnCours || ''}
-                    onChange={handleChange}
-                    rows={2}
-                  />
-                  <FormTextarea
-                    label="Examens réalisés"
-                    name="examensRealises"
-                    value={formData.examensRealises || ''}
-                    onChange={handleChange}
-                    rows={2}
-                  />
-                  <FormInput
-                    label="Régime alimentaire"
-                    name="regimeAlimentaire"
-                    value={formData.regimeAlimentaire || ''}
-                    onChange={handleChange}
-                  />
-                  <FormTextarea
-                    label="Consignes particulières"
-                    name="consignesParticulieres"
-                    value={formData.consignesParticulieres || ''}
-                    onChange={handleChange}
-                    rows={2}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormSelect
-                      label="Statut"
-                      name="statut"
-                      value={formData.statut || ''}
-                      onChange={handleChange}
-                      options={statutOptions}
-                    />
-                    <FormSelect
-                      label="Mode de sortie"
-                      name="modeSortie"
-                      value={formData.modeSortie || ''}
-                      onChange={handleChange}
-                      options={modeSortieOptions}
-                    />
-                    <FormInput
-                      label="Destination sortie"
-                      name="destinationSortie"
-                      value={formData.destinationSortie || ''}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <FormTextarea
-                    label="Notes de sortie"
-                    name="notesSortie"
-                    value={formData.notesSortie || ''}
-                    onChange={handleChange}
-                    rows={2}
-                  />
-                </div>
-              </div>
+    <PageShell
+      title={isEditing ? 'Modifier l\'hospitalisation' : 'Nouvelle hospitalisation'}
+      onBack={() => router.push('/patients/hospitalisations')}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        {/* Admission */}
+        <FormSection title="Admission" icon={<FaClipboardList />}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PatientSearchSelect
+              value={formData.idPatient ?? null}
+              onChange={handlePatientChange}
+              error={errors.idPatient}
+              required
+            />
+            <MedecinSearchSelect
+              value={formData.idMedecinResponsable ?? null}
+              onChange={handleMedecinChange}
+              error={errors.idMedecinResponsable}
+              required
+            />
+            <FormInput
+              label="Numéro admission"
+              name="numeroAdmission"
+              value={formData.numeroAdmission || ''}
+              onChange={handleChange}
+              placeholder="Auto-généré si vide"
+            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Chambre</label>
+              <select
+                name="idChambre"
+                value={formData.idChambre || ''}
+                onChange={handleChange}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2"
+              >
+                <option value="">Aucune</option>
+                {chambres.map(c => (
+                  <option key={c.idChambre} value={c.idChambre}>
+                    {c.numeroChambre} - {c.typeChambre}
+                  </option>
+                ))}
+              </select>
             </div>
+            <FormInput
+              label="Date d'admission"
+              name="dateAdmission"
+              type="datetime-local"
+              value={formData.dateAdmission || ''}
+              onChange={handleChange}
+              required
+              error={errors.dateAdmission}
+              icon={<FaCalendarAlt />}
+            />
+            <FormInput
+              label="Date de sortie"
+              name="dateSortie"
+              type="datetime-local"
+              value={formData.dateSortie || ''}
+              onChange={handleChange}
+            />
+            <FormSelect
+              label="Mode d'entrée"
+              name="modeEntree"
+              value={formData.modeEntree || ''}
+              onChange={handleChange}
+              options={modeEntreeOptions}
+            />
+            <FormInput
+              label="Provenance"
+              name="provenance"
+              value={formData.provenance || ''}
+              onChange={handleChange}
+            />
           </div>
+        </FormSection>
 
-          {/* Colonne notes (optionnelle) */}
-          <div className="lg:col-span-1">
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
-                <h5 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <FaFileAlt /> Informations complémentaires
-                </h5>
-              </div>
-              <div className="p-6">
-                <FormTextarea
-                  name="notes"
-                  value=""
-                  onChange={() => { }}
-                  rows={4}
-                  placeholder="Informations complémentaires..."
-                />
-                <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
-                  Les champs marqués d&apos;une étoile (*) sont obligatoires.
-                </div>
-              </div>
+        {/* Médical */}
+        <FormSection title="Informations médicales" icon={<FaHeartbeat />}>
+          <div className="grid grid-cols-1 gap-4">
+            <FormTextarea
+              label="Motif d'admission"
+              name="motifAdmission"
+              value={formData.motifAdmission || ''}
+              onChange={handleChange}
+              rows={2}
+              required
+              error={errors.motifAdmission}
+            />
+            <FormTextarea
+              label="Diagnostic principal"
+              name="diagnosticPrincipal"
+              value={formData.diagnosticPrincipal || ''}
+              onChange={handleChange}
+              rows={2}
+            />
+            <FormTextarea
+              label="Traitements en cours"
+              name="traitementsEnCours"
+              value={formData.traitementsEnCours || ''}
+              onChange={handleChange}
+              rows={2}
+            />
+            <FormTextarea
+              label="Examens réalisés"
+              name="examensRealises"
+              value={formData.examensRealises || ''}
+              onChange={handleChange}
+              rows={2}
+            />
+            <FormInput
+              label="Régime alimentaire"
+              name="regimeAlimentaire"
+              value={formData.regimeAlimentaire || ''}
+              onChange={handleChange}
+            />
+            <FormTextarea
+              label="Consignes particulières"
+              name="consignesParticulieres"
+              value={formData.consignesParticulieres || ''}
+              onChange={handleChange}
+              rows={2}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormSelect
+                label="Statut"
+                name="statut"
+                value={formData.statut || ''}
+                onChange={handleChange}
+                options={statutOptions}
+              />
+              <FormSelect
+                label="Mode de sortie"
+                name="modeSortie"
+                value={formData.modeSortie || ''}
+                onChange={handleChange}
+                options={modeSortieOptions}
+              />
+              <FormInput
+                label="Destination sortie"
+                name="destinationSortie"
+                value={formData.destinationSortie || ''}
+                onChange={handleChange}
+              />
             </div>
+            <FormTextarea
+              label="Notes de sortie"
+              name="notesSortie"
+              value={formData.notesSortie || ''}
+              onChange={handleChange}
+              rows={2}
+            />
           </div>
-        </div>
+        </FormSection>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => router.push('/patients/hospitalisations')}
-          >
-            Annuler
-          </Button>
-          <Button
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> En cours...</>
-            ) : (
-              <><FaUserMd /> {isEditing ? 'Mettre à jour' : 'Créer'}</>
-            )}
-          </Button>
-        </div>
+        {/* Colonne notes (optionnelle) */}
+        <FormSection title="Informations complémentaires" icon={<FaFileAlt />}>
+          <FormTextarea
+            name="notes"
+            value=""
+            onChange={() => { }}
+            rows={4}
+            placeholder="Informations complémentaires..."
+          />
+          <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
+            Les champs marqués d&apos;une étoile (*) sont obligatoires.
+          </div>
+        </FormSection>
+
+        <FormActions
+          onCancel={() => router.push('/patients/hospitalisations')}
+          loading={loading}
+          loadingLabel="En cours..."
+          submitLabel={isEditing ? 'Mettre à jour' : 'Créer'}
+          submitIcon={<FaUserMd />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

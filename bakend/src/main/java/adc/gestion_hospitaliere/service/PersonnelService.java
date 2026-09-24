@@ -62,12 +62,21 @@ public class PersonnelService {
     }
 
     public PagedResponse<PersonnelResponseDto> searchPersonnels(String keyword, Pageable pageable) {
-        if (keyword == null || keyword.isBlank()) {
+        return searchPersonnels(keyword, null, pageable);
+    }
+
+    public PagedResponse<PersonnelResponseDto> searchPersonnels(String keyword, String fonction, Pageable pageable) {
+        String term = keyword == null ? "" : keyword;
+        if (fonction != null && !fonction.isBlank()) {
+            Page<PersonnelResponseDto> page = personnelRepository
+                    .searchByFonctionAndKeyword(fonction, term, pageable)
+                    .map(this::convertToResponseDto);
+            return PagedResponse.of(page);
+        }
+        if (term.isBlank()) {
             return getAllPersonnels(pageable);
         }
-        Page<PersonnelResponseDto> page = personnelRepository.searchByKeyword(keyword, pageable)
-                .map(this::convertToResponseDto);
-        return PagedResponse.of(page);
+        return PagedResponse.of(personnelRepository.searchByKeyword(term, pageable).map(this::convertToResponseDto));
     }
 
     public PersonnelResponseDto getPersonnelById(Integer id) {

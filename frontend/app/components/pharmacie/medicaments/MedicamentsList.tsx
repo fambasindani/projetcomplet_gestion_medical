@@ -100,7 +100,7 @@ export default function MedicamentsList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <form onSubmit={handleSearch} className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="flex-1">
               <label className="mb-1 block text-sm font-medium text-gray-700">Recherche par nom</label>
@@ -113,7 +113,7 @@ export default function MedicamentsList() {
             </div>
             <Button type="submit" icon={<FaSearch />} className="h-[42px] w-full sm:w-auto">Rechercher</Button>
           </form>
-          <div className="mt-5 grid grid-cols-1 gap-4 border-t border-gray-100 pt-5 md:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Catégorie</label>
               <CategorieSelect

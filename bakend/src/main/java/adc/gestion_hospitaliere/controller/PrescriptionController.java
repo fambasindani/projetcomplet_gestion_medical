@@ -6,6 +6,7 @@ import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.prescription.PrescriptionMedicamentResponseDto;
 import adc.gestion_hospitaliere.dto.prescription.PrescriptionRequestDto;
 import adc.gestion_hospitaliere.dto.prescription.PrescriptionResponseDto;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import adc.gestion_hospitaliere.service.PrescriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +26,17 @@ import java.util.List;
 public class PrescriptionController {
 
     private final PrescriptionService service;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<PagedResponse<PrescriptionResponseDto>> getAll(
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        return ResponseEntity.ok(PagedResponse.of(service.getAll(pageable)));
+        // Un médecin ne voit que ses prescriptions.
+        Integer filtre = currentUserService.filtreMedecinId();
+        return ResponseEntity.ok(PagedResponse.of(
+                filtre != null ? service.getByMedecin(filtre, pageable) : service.getAll(pageable)));
     }
 
     @GetMapping("/type/{type}")
@@ -40,7 +45,9 @@ public class PrescriptionController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        return ResponseEntity.ok(PagedResponse.of(service.getByType(type, pageable)));
+        Integer filtre = currentUserService.filtreMedecinId();
+        return ResponseEntity.ok(PagedResponse.of(
+                filtre != null ? service.getByTypeAndMedecin(type, filtre, pageable) : service.getByType(type, pageable)));
     }
 
     @GetMapping("/patient/{patientId}")
@@ -71,7 +78,9 @@ public class PrescriptionController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        return ResponseEntity.ok(PagedResponse.of(service.search(type, statut, idPatient, dateStart, dateEnd, pageable)));
+        Integer filtre = currentUserService.filtreMedecinId();
+        return ResponseEntity.ok(PagedResponse.of(
+                service.search(type, statut, idPatient, filtre, dateStart, dateEnd, pageable)));
     }
 
     @GetMapping("/{id}")

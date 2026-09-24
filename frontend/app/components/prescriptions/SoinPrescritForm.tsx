@@ -11,8 +11,9 @@ import { toast } from 'react-hot-toast';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { StatutSoin, SoinPrescrit } from '@/app/types/soin';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 const statutOptions = [
   { value: StatutSoin.Prescrit, label: 'Prescrit' },
@@ -96,18 +97,13 @@ export default function SoinPrescritForm({ initialData, isEdit = false }: SoinPr
   if (isEdit && !initialData) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier le soin' : 'Ajouter un soin'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push(returnRoute)}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-4">
+    <PageShell
+      title={isEdit ? 'Modifier le soin' : 'Ajouter un soin'}
+      maxWidth="max-w-6xl"
+      onBack={() => router.push(returnRoute)}
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+        <FormSection>
           <FormInput
             label="Description "
             value={form.description}
@@ -146,15 +142,15 @@ export default function SoinPrescritForm({ initialData, isEdit = false }: SoinPr
               ...personnels.map(p => ({ value: p.idPersonnel, label: `${p.nom} ${p.prenom}` })),
             ]}
           />
-        </div>
+        </FormSection>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.push(returnRoute)}>Annuler</Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Ajouter')}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.push(returnRoute)}
+          submitLabel={isEdit ? 'Modifier' : 'Ajouter'}
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

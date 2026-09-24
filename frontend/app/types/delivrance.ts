@@ -72,3 +72,37 @@ export interface DelivranceRequest {
   signatureElectronique?: boolean;
   details: DetailDelivranceRequest[];
 }
+
+export interface MargeMedicament {
+  idMedicament: number;
+  nomMedicament: string;
+  quantiteDelivree: number;
+  prixVenteMoyen: number;
+  prixAchatMoyen: number;
+  chiffreAffaires: number;
+  coutAchat: number;
+  marge: number;
+  tauxMarge: number;
+}
+
+export interface MargePharmacien {
+  idPharmacien: number;
+  nomPharmacien: string;
+  nbDelivrances: number;
+  chiffreAffaires: number;
+  coutAchat: number;
+  marge: number;
+  tauxMarge: number;
+}
+
+export interface RapportMargePharmacie {
+  dateDebut: string;
+  dateFin: string;
+  chiffreAffairesTotal: number;
+  coutAchatTotal: number;
+  margeTotale: number;
+  tauxMargeTotal: number;
+  nbDelivrances: number;
+  parMedicament: MargeMedicament[];
+  parPharmacien: MargePharmacien[];
+}

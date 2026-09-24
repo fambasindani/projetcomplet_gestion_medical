@@ -3,6 +3,7 @@ import adc.gestion_hospitaliere.Enums.StatutInterventionUrgence;
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.urgence.InterventionUrgenceRequestDto;
 import adc.gestion_hospitaliere.dto.urgence.InterventionUrgenceResponseDto;
+import adc.gestion_hospitaliere.service.CurrentUserService;
 import adc.gestion_hospitaliere.service.InterventionUrgenceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.List;
 public class InterventionUrgenceController {
 
     private final InterventionUrgenceService service;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<PagedResponse<InterventionUrgenceResponseDto>> getAll(
@@ -32,7 +34,10 @@ public class InterventionUrgenceController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        return ResponseEntity.ok(PagedResponse.of(service.search(statut, idPatient, idMedecin, dateStart, dateEnd, pageable)));
+        // Un médecin ne voit que ses interventions.
+        Integer force = currentUserService.filtreMedecinId();
+        return ResponseEntity.ok(PagedResponse.of(service.search(
+                statut, idPatient, force != null ? force : idMedecin, dateStart, dateEnd, pageable)));
     }
 
     @GetMapping("/admission/{idAdmission}")

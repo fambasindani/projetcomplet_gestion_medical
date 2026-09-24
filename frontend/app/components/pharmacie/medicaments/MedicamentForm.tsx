@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaSave, FaArrowLeft, FaPills, FaFlask, FaClipboardList, FaEuroSign, FaBoxes } from 'react-icons/fa';
+import { FaSave, FaPills, FaFlask, FaClipboardList, FaEuroSign, FaBoxes } from 'react-icons/fa';
 import { FormInput } from '../../common/FormInput';
 import { FormSelect } from '../../common/FormSelect';
 import { FormTextarea } from '../../common/FormTextarea';
@@ -12,8 +12,9 @@ import { medicamentService } from '@/app/services/medicamentService';
 import { MedicamentCreate } from '@/app/types/medicament';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 interface MedicamentFormProps {
   initialData?: MedicamentCreate & { idMedicament?: number };
@@ -147,22 +148,16 @@ export default function MedicamentForm({ initialData, isEdit = false }: Medicame
   if (initialLoading) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier le médicament' : 'Nouveau médicament'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/pharmacie/medicaments')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="max-w-7xl mx-auto">
+    <PageShell
+      title={isEdit ? 'Modifier le médicament' : 'Nouveau médicament'}
+      onBack={() => router.back()}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             {/* Identifiants */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2"><FaPills /> Informations générales</h5>
+            <FormSection title="Informations générales" icon={<FaPills />}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormInput label="Code CIP" name="codeCip" value={formData.codeCip} onChange={handleChange} required error={errors.codeCip} />
                 <FormInput label="Code CIS" name="codeCis" value={formData.codeCis || ''} onChange={handleChange} />
@@ -177,41 +172,37 @@ export default function MedicamentForm({ initialData, isEdit = false }: Medicame
                 </div>
                 <FormInput label="Laboratoire" name="laboratoire" value={formData.laboratoire || ''} onChange={handleChange} />
               </div>
-            </div>
+            </FormSection>
 
             {/* Composition */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2"><FaFlask /> Composition</h5>
+            <FormSection title="Composition" icon={<FaFlask />}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormTextarea label="Substance active" name="substanceActive" value={formData.substanceActive || ''} onChange={handleChange} rows={2} />
                 <FormTextarea label="Excipients" name="excipients" value={formData.excipients || ''} onChange={handleChange} rows={2} />
               </div>
-            </div>
+            </FormSection>
 
             {/* Informations médicales */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2"><FaClipboardList /> Informations médicales</h5>
+            <FormSection title="Informations médicales" icon={<FaClipboardList />}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormTextarea label="Indications" name="indications" value={formData.indications || ''} onChange={handleChange} rows={2} />
                 <FormTextarea label="Contre-indications" name="contreIndications" value={formData.contreIndications || ''} onChange={handleChange} rows={2} />
                 <FormTextarea label="Effets secondaires" name="effetsSecondaires" value={formData.effetsSecondaires || ''} onChange={handleChange} rows={2} />
                 <FormTextarea label="Précautions d'emploi" name="precautionsEmploi" value={formData.precautionsEmploi || ''} onChange={handleChange} rows={2} />
               </div>
-            </div>
+            </FormSection>
 
             {/* Conservation */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600">Conservation</h5>
+            <FormSection title="Conservation">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormTextarea label="Conditions" name="conservationConditions" value={formData.conservationConditions || ''} onChange={handleChange} rows={2} className="col-span-2" />
                 <FormInput label="Température" name="temperatureConservation" value={formData.temperatureConservation || ''} onChange={handleChange} />
                 <FormInput label="Durée (mois)" name="dureeConservationMois" type="number" value={formData.dureeConservationMois?.toString() || ''} onChange={handleChange} />
               </div>
-            </div>
+            </FormSection>
 
             {/* Réglementation et prix */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2"><FaEuroSign /> Réglementation &amp; Prix ($)</h5>
+            <FormSection title="Réglementation & Prix ($)" icon={<FaEuroSign />}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormSelect label="Prescription obligatoire" name="prescriptionObligatoire" value={formData.prescriptionObligatoire ? 'true' : 'false'} onChange={handleChange} options={ouiNonOptions} />
                 <FormSelect label="Liste psychotrope" name="listePsychotrope" value={formData.listePsychotrope ? 'true' : 'false'} onChange={handleChange} options={ouiNonOptions} />
@@ -221,43 +212,37 @@ export default function MedicamentForm({ initialData, isEdit = false }: Medicame
                 <FormInput label="Prix de vente ($)" name="prixVente" type="number" step="0.001" value={formData.prixVente?.toString() || ''} onChange={handleChange} />
                 <FormInput label="Taux remboursement (%)" name="tauxRemboursement" type="number" value={formData.tauxRemboursement?.toString() || ''} onChange={handleChange} />
               </div>
-            </div>
+            </FormSection>
 
             {/* Stock */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2"><FaBoxes /> Gestion des stocks</h5>
+            <FormSection title="Gestion des stocks" icon={<FaBoxes />}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormInput label="Stock minimum" name="stockMinimum" type="number" value={formData.stockMinimum.toString()} onChange={handleChange} />
                 <FormInput label="Stock maximum" name="stockMaximum" type="number" value={formData.stockMaximum.toString()} onChange={handleChange} />
                 <FormInput label="Alerte péremption (jours)" name="datePeremptionAlerte" type="number" value={formData.datePeremptionAlerte.toString()} onChange={handleChange} />
                 <FormSelect label="Actif" name="actif" value={formData.actif ? 'true' : 'false'} onChange={handleChange} options={ouiNonOptions} />
               </div>
-            </div>
+            </FormSection>
           </div>
 
           {/* Notes - colonne de droite */}
           <div className="lg:col-span-1">
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
-                <h5 className="font-semibold text-gray-800 flex items-center gap-2"><FaClipboardList /> Informations complémentaires</h5>
+            <FormSection title="Informations complémentaires" icon={<FaClipboardList />} className="sticky top-6">
+              <p className="text-sm text-gray-600">Aucune note spécifique pour ce médicament.</p>
+              <div className="p-3 bg-blue-50 rounded-md text-xs text-blue-700">
+                Les champs marqués d&apos;une étoile (*) sont obligatoires.
               </div>
-              <div className="p-6">
-                <p className="text-sm text-gray-600">Aucune note spécifique pour ce médicament.</p>
-                <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
-                  Les champs marqués d&apos;une étoile (*) sont obligatoires.
-                </div>
-              </div>
-            </div>
+            </FormSection>
           </div>
         </div>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.push('/pharmacie/medicaments')}>Annuler</Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Enregistrement...' : (isEdit ? 'Mettre à jour' : 'Créer')}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.back()}
+          loading={loading}
+          submitLabel={isEdit ? 'Mettre à jour' : 'Créer'}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

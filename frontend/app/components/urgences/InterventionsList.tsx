@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaFilter, FaPlus, FaSyringe, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaFilter, FaPlus, FaSyringe, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Pagination from '@/app/ui/Pagination';
@@ -86,7 +86,7 @@ export default function InterventionsList() {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
-    <div className="min-h-screen space-y-6 bg-gray-50 p-6">
+    <div className="min-h-screen space-y-6 bg-slate-50 p-6">
       <PageHeader
         title="Interventions d&apos;urgence"
         subtitle={`${pagedData?.totalCount ?? 0} intervention(s)`}
@@ -104,7 +104,7 @@ export default function InterventionsList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterSelect
               value={filtreStatut}
@@ -165,6 +165,9 @@ export default function InterventionsList() {
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-2">
+                      <IconButton color="gray" title="Voir la fiche" onClick={() => router.push(`/urgences/interventions/${int.idInterventionUrgence}`)}>
+                        <FaEye size={14} />
+                      </IconButton>
                       <IconButton color="indigo" title="Modifier" onClick={() => router.push(`/urgences/interventions/${int.idInterventionUrgence}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>

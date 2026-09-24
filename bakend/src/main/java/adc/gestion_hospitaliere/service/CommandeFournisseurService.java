@@ -30,8 +30,23 @@ public class CommandeFournisseurService {
     private String generateNumeroCommande() {
         String prefix = "CMD-";
         String year = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
-        long count = commandeRepository.count() + 1;
-        return prefix + year + "-" + String.format("%03d", count);
+        long compteur = commandeRepository.count() + 1;
+        String numero;
+        do {
+            numero = prefix + year + "-" + String.format("%03d", compteur);
+            compteur++;
+        } while (commandeRepository.existsByNumeroCommande(numero));
+        return numero;
+    }
+
+    private BigDecimal calculerTotalLigne(DetailCommandeRequestDto detailDto) {
+        BigDecimal prixUnitaire = detailDto.getPrixUnitaire() != null
+                ? detailDto.getPrixUnitaire() : BigDecimal.ZERO;
+        BigDecimal remise = detailDto.getRemise() != null ? detailDto.getRemise() : BigDecimal.ZERO;
+        int quantite = detailDto.getQuantiteCommandee() != null ? detailDto.getQuantiteCommandee() : 0;
+        return prixUnitaire
+                .multiply(BigDecimal.valueOf(quantite))
+                .multiply(BigDecimal.ONE.subtract(remise.divide(BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP)));
     }
 
     public Page<CommandeFournisseurResponseDto> getAll(Pageable pageable) {
@@ -86,11 +101,7 @@ public class CommandeFournisseurService {
                 detail.setQuantiteRecue(detailDto.getQuantiteRecue() != null ? detailDto.getQuantiteRecue() : 0);
                 detail.setPrixUnitaire(detailDto.getPrixUnitaire());
                 detail.setRemise(detailDto.getRemise() != null ? detailDto.getRemise() : BigDecimal.ZERO);
-                // Calcul total ligne
-                BigDecimal total = detailDto.getPrixUnitaire()
-                        .multiply(BigDecimal.valueOf(detailDto.getQuantiteCommandee()))
-                        .multiply(BigDecimal.ONE.subtract(detailDto.getRemise().divide(BigDecimal.valueOf(100))));
-                detail.setTotalLigne(total);
+                detail.setTotalLigne(calculerTotalLigne(detailDto));
                 detailsRepository.save(detail);
             }
         }
@@ -121,10 +132,7 @@ public class CommandeFournisseurService {
                 detail.setQuantiteRecue(detailDto.getQuantiteRecue() != null ? detailDto.getQuantiteRecue() : 0);
                 detail.setPrixUnitaire(detailDto.getPrixUnitaire());
                 detail.setRemise(detailDto.getRemise() != null ? detailDto.getRemise() : BigDecimal.ZERO);
-                BigDecimal total = detailDto.getPrixUnitaire()
-                        .multiply(BigDecimal.valueOf(detailDto.getQuantiteCommandee()))
-                        .multiply(BigDecimal.ONE.subtract(detailDto.getRemise().divide(BigDecimal.valueOf(100))));
-                detail.setTotalLigne(total);
+                detail.setTotalLigne(calculerTotalLigne(detailDto));
                 detailsRepository.save(detail);
             }
         }

@@ -5,13 +5,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { FaPlus, FaTrash, FaEye, FaPrint, FaArrowLeft, FaFlask } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEye, FaPrint, FaArrowLeft, FaFlask, FaClipboardList, FaUserInjured, FaUserMd } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { examenService } from '@/app/services/examenService';
 import { prescriptionService } from '@/app/services/prescriptionService';
 import SkeletonTable from '@/app/ui/SkeletonTable';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
 import EmptyState from '@/app/ui/EmptyState';
+import { InfoGrid, InfoCard } from '@/app/ui/InfoCard';
 import Button, { IconButton } from '@/app/ui/Button';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import Link from 'next/link';
@@ -82,41 +83,34 @@ export default function PrescriptionExamens() {
   if (!prescription) return <div className="p-6 text-center">Prescription non trouvée</div>;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <PageHeader
-        title="Examens de la prescription"
-        subtitle={
-          <span>
-            Prescription n° {prescription.numeroPrescription} – {prescription.patientNom} {prescription.patientPrenom}
-          </span>
-        }
-        actions={
-          <>
-            <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/prescriptions')}>
-              Retour aux prescriptions
-            </Button>
-            <Link href={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
-              <Button icon={<FaPlus />}>Ajouter un examen</Button>
-            </Link>
-          </>
-        }
-      />
+    <PageShell
+      title="Examens de la prescription"
+      subtitle={
+        <span>
+          Prescription n° {prescription.numeroPrescription} – {prescription.patientNom} {prescription.patientPrenom}
+        </span>
+      }
+      maxWidth="max-w-6xl"
+      onBack={() => router.push('/prescriptions')}
+      backLabel="Retour aux prescriptions"
+      actions={
+        <>
+          <Link href={`/prescriptions/${prescriptionId}/soins`}>
+            <Button variant="secondary">Voir les soins</Button>
+          </Link>
+          <Link href={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
+            <Button icon={<FaPlus />}>Ajouter un examen</Button>
+          </Link>
+        </>
+      }
+    >
 
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <span className="text-sm text-gray-500">N° prescription</span>
-            <p className="font-semibold">{prescription.numeroPrescription}</p>
-          </div>
-          <div>
-            <span className="text-sm text-gray-500">Patient</span>
-            <p className="font-semibold">{prescription.patientNom} {prescription.patientPrenom}</p>
-          </div>
-          <div>
-            <span className="text-sm text-gray-500">Médecin</span>
-            <p className="font-semibold">Dr. {prescription.medecinNom} {prescription.medecinPrenom}</p>
-          </div>
-        </div>
+      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+        <InfoGrid>
+          <InfoCard icon={FaClipboardList} label="N° prescription" value={prescription.numeroPrescription} />
+          <InfoCard icon={FaUserInjured} label="Patient" value={`${prescription.patientNom} ${prescription.patientPrenom}`} />
+          <InfoCard icon={FaUserMd} label="Médecin" value={`Dr. ${prescription.medecinNom} ${prescription.medecinPrenom}`} />
+        </InfoGrid>
       </div>
 
       {examens.length === 0 ? (
@@ -173,14 +167,7 @@ export default function PrescriptionExamens() {
                       <IconButton
                         color="green"
                         title="Imprimer"
-                        onClick={() => {
-                          const sansResultat = !(ex.resultat || ex.interpretation || ex.compteRendu || ex.conclusion || ex.anomalies);
-                          if (sansResultat) {
-                            toast.error('Résultat pas disponible');
-                          } else {
-                            router.push(`/examens/${ex.idExamen}/impression`);
-                          }
-                        }}
+                        onClick={() => router.push(`/examens/${ex.idExamen}/impression`)}
                       >
                         <FaPrint size={14} />
                       </IconButton>
@@ -199,6 +186,6 @@ export default function PrescriptionExamens() {
       <Button variant="ghost" icon={<FaArrowLeft />} onClick={() => router.push('/prescriptions')}>
         Retour aux prescriptions
       </Button>
-    </div>
+    </PageShell>
   );
 }

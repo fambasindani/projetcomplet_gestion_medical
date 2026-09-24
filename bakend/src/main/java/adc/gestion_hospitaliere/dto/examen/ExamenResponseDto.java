@@ -19,6 +19,9 @@ public class ExamenResponseDto {
     private String typeExamen;
     private Integer idCategorieExamen;
     private String libelleCategorie;
+    private Integer idActeCatalogue;
+    private String libelleActeCatalogue;
+    private Double prixActeCatalogue;
     private LocalDateTime datePrescription;
     private LocalDateTime datePlanification;
     private LocalDateTime dateRealisation;

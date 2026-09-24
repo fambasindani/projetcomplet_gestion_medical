@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import {
   FaSave,
-  FaArrowLeft,
   FaPlus,
   FaTrash,
   FaTruck,
@@ -22,7 +21,9 @@ import { commandeService } from '@/app/services/commandeService';
 import { CommandeCreate, StatutCommandeFournisseur, DetailCommande } from '@/app/types/commande';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import Button, { IconButton } from '@/app/ui/Button';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 
@@ -187,25 +188,17 @@ export default function CommandeForm({ initialData, isEditing = false }: Props) 
   if (loading) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEditing ? 'Modifier la commande' : 'Nouvelle commande'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/pharmacie/commandes')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate>
+    <PageShell
+      title={isEditing ? 'Modifier la commande' : 'Nouvelle commande'}
+      onBack={() => router.back()}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Colonne principale */}
           <div className="lg:col-span-2 space-y-6">
             {/* Informations générales */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                <FaTruck /> Informations générales
-              </h5>
+            <FormSection title="Informations générales" icon={<FaTruck />}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FournisseurSearchSelect
                   value={formData.idFournisseur}
@@ -263,16 +256,12 @@ export default function CommandeForm({ initialData, isEditing = false }: Props) 
                   Paiement effectué
                 </label>
               </div>
-            </div>
+            </FormSection>
 
             {/* Médicaments commandés */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-              <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2">
-                <FaBoxes /> Médicaments commandés
-              </h5>
-
+            <FormSection title="Médicaments commandés" icon={<FaBoxes />}>
               {/* Ligne d'ajout */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="bg-slate-50 p-4 rounded-lg space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
                   <div className="md:col-span-2">
                     <MedicamentSearchSelect
@@ -410,10 +399,10 @@ export default function CommandeForm({ initialData, isEditing = false }: Props) 
                   </Table>
                 </TableContainer>
               )}
-            </div>
+            </FormSection>
 
             {/* Notes */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+            <FormSection>
               <FormTextarea
                 label="Notes"
                 name="notes"
@@ -422,63 +411,45 @@ export default function CommandeForm({ initialData, isEditing = false }: Props) 
                 rows={3}
                 placeholder="Informations complémentaires…"
               />
-            </div>
+            </FormSection>
           </div>
 
           {/* Colonne latérale : résumé */}
           <div className="lg:col-span-1">
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
-                <h5 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <FaClipboardList /> Récapitulatif
-                </h5>
+            <FormSection title="Récapitulatif" icon={<FaClipboardList />} className="sticky top-6">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Articles</span>
+                <span className="font-medium">{formData.details.length}</span>
               </div>
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Articles</span>
-                  <span className="font-medium">{formData.details.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Total HT</span>
-                  <span className="font-medium">{totalHT.toFixed(2)} $</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Remise totale</span>
-                  <span className="font-medium text-red-600">- {totalRemise.toFixed(2)} $</span>
-                </div>
-                <hr className="my-2" />
-                <div className="flex justify-between text-sm font-semibold">
-                  <span>Net à payer</span>
-                  <span className="text-indigo-600">{net.toFixed(2)} $</span>
-                </div>
-                <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
-                  <FaCheckCircle className="inline mr-1" /> Les champs marqués d&apos;une étoile (*) sont
-                  obligatoires.
-                </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Total HT</span>
+                <span className="font-medium">{totalHT.toFixed(2)} $</span>
               </div>
-            </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Remise totale</span>
+                <span className="font-medium text-red-600">- {totalRemise.toFixed(2)} $</span>
+              </div>
+              <hr className="my-2" />
+              <div className="flex justify-between text-sm font-semibold">
+                <span>Net à payer</span>
+                <span className="text-indigo-600">{net.toFixed(2)} $</span>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
+                <FaCheckCircle className="inline mr-1" /> Les champs marqués d&apos;une étoile (*) sont
+                obligatoires.
+              </div>
+            </FormSection>
           </div>
         </div>
 
         {/* Boutons d'action */}
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.push('/pharmacie/commandes')}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                En cours...
-              </>
-            ) : (
-              <>
-                <FaSave /> {isEditing ? 'Mettre à jour' : 'Créer'}
-              </>
-            )}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.back()}
+          loading={loading}
+          submitLabel={isEditing ? 'Mettre à jour' : 'Créer'}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

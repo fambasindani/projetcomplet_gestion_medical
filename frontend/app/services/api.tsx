@@ -1,5 +1,6 @@
 // services/api.ts
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -25,7 +26,7 @@ api.interceptors.response.use(
     if (typeof window !== 'undefined' && error?.response?.status === 401) {
       const requestUrl = error.config?.url ?? '';
       // Ne pas intercepter les appels d'authentification eux-mêmes
-      if (!requestUrl.includes('/auth/login') && !requestUrl.includes('/auth/register')) {
+      if (!requestUrl.includes('/auth/login') && !requestUrl.includes('/auth/refresh')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         document.cookie = 'auth_ok=; Max-Age=0; path=/';
@@ -37,6 +38,14 @@ api.interceptors.response.use(
           }
           setTimeout(() => { redirectingToLogin = false; }, 1000);
         }
+      }
+    }
+    if (typeof window !== 'undefined' && error?.response?.status === 403) {
+      // On n'affiche l'alerte que pour une action volontaire (pas les chargements GET
+      // de widgets que le rôle courant n'a pas le droit de consulter).
+      const method = String(error.config?.method ?? 'get').toLowerCase();
+      if (method !== 'get') {
+        toast.error('Accès refusé : permission insuffisante', { id: 'access-denied' });
       }
     }
     return Promise.reject(error);

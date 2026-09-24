@@ -52,7 +52,7 @@ export default function DelivranceStatistique() {
       {/* Cartes */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {cards.map((card, idx) => (
-          <div key={idx} className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+          <div key={idx} className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <div className={`p-4 rounded-2xl ${card.bg} ${card.color}`}>
               <card.icon size={24} />
             </div>
@@ -66,15 +66,15 @@ export default function DelivranceStatistique() {
 
       {/* Top Médicaments */}
       {stats.topMedicaments?.length > 0 && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3 mb-6">
             <FaBoxes className="text-indigo-600" /> Top médicaments délivrés
           </h2>
           <div className="space-y-4">
             {stats.topMedicaments.map((med, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+              <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-gray-100 transition">
                 <span className="font-medium text-gray-700">{med.nom}</span>
-                <span className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm font-bold text-indigo-600">
+                <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-bold text-indigo-600">
                   {med.quantiteTotale} unités
                 </span>
               </div>

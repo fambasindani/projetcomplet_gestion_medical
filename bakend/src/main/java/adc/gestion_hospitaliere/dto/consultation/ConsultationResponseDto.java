@@ -15,6 +15,9 @@ public class ConsultationResponseDto {
     private Integer idMedecin;
     private String medecinNom;
     private String medecinPrenom;
+    private Integer idActeCatalogue;
+    private String libelleActeCatalogue;
+    private Double prixActeCatalogue;
     private LocalDateTime dateConsultation;
     private String motifConsultation;
     private String histoireMaladie;

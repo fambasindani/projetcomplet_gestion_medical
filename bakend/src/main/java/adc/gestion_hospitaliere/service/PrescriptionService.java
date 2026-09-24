@@ -55,10 +55,15 @@ public class PrescriptionService {
         return prescriptionRepository.findByTypePrescription(type, pageable).map(this::toResponseDto);
     }
 
+    public Page<PrescriptionResponseDto> getByTypeAndMedecin(TypePrescription type, Integer idMedecin, Pageable pageable) {
+        return prescriptionRepository.findByTypePrescriptionAndIdMedecin(type, idMedecin, pageable).map(this::toResponseDto);
+    }
+
     public Page<PrescriptionResponseDto> search(TypePrescription type, StatutPrescription statut,
-                                                Integer idPatient, LocalDateTime dateStart,
-                                                LocalDateTime dateEnd, Pageable pageable) {
-        return prescriptionRepository.search(type, statut, idPatient, dateStart, dateEnd, pageable)
+                                                Integer idPatient, Integer idMedecin,
+                                                LocalDateTime dateStart, LocalDateTime dateEnd,
+                                                Pageable pageable) {
+        return prescriptionRepository.search(type, statut, idPatient, idMedecin, dateStart, dateEnd, pageable)
                 .map(this::toResponseDto);
     }
 
@@ -168,7 +173,11 @@ public class PrescriptionService {
         p.setUrgente(dto.getUrgente() != null ? dto.getUrgente() : false);
         p.setDateDebut(dto.getDateDebut());
         p.setDateFin(dto.getDateFin());
-        p.setStatut(dto.getStatut() != null ? dto.getStatut() : StatutPrescription.Active);
+        if (dto.getStatut() != null) {
+            p.setStatut(dto.getStatut());
+        } else if (p.getStatut() == null) {
+            p.setStatut(StatutPrescription.Active);
+        }
         p.setMotifAnnulation(dto.getMotifAnnulation());
         p.setNotesComplementaires(dto.getNotesComplementaires());
     }

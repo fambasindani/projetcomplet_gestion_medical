@@ -4,6 +4,10 @@ import axios from 'axios';
 export const extractErrorMessage = (error: unknown): string => {
   // Cas AxiosError
   if (axios.isAxiosError(error)) {
+    // Aucune réponse : backend éteint, mauvaise URL ou origine bloquée (CORS)
+    if (!error.response) {
+      return 'Impossible de contacter le serveur. Vérifiez que le backend est démarré et que votre origine est autorisée (CORS).';
+    }
     // Si le backend a renvoyé un message dans une propriété 'message'
     if (error.response?.data?.message) {
       return error.response.data.message;

@@ -27,6 +27,14 @@ public class SoinInfirmier {
     @JoinColumn(name = "id_hospitalisation", insertable = false, updatable = false)
     private Hospitalisation hospitalisation;
 
+    // --- Relation vers le référentiel d'actes (catalogue) ---
+    @Column(name = "id_acte_catalogue")
+    private Integer idActeCatalogue;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_acte_catalogue", insertable = false, updatable = false)
+    private ActeCatalogue acteCatalogue;
+
     @Column(name = "id_infirmier", nullable = false)
     private Integer idInfirmier;
 

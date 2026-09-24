@@ -33,6 +33,17 @@ public interface PersonnelRepository extends JpaRepository<Personnel, Integer> {
             "LOWER(p.fonction) LIKE LOWER(CONCAT('%', :term, '%'))")
     Page<Personnel> searchByKeyword(@Param("term") String term, Pageable pageable);
 
+    // Recherche par fonction + mot-clé (nom, prénom, matricule)
+    @Query("SELECT p FROM Personnel p WHERE " +
+            "LOWER(p.fonction) LIKE LOWER(CONCAT('%', :fonction, '%')) AND (" +
+            ":term = '' OR " +
+            "LOWER(p.nom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            "LOWER(p.prenom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            "LOWER(p.matricule) LIKE LOWER(CONCAT('%', :term, '%')))")
+    Page<Personnel> searchByFonctionAndKeyword(@Param("fonction") String fonction,
+                                               @Param("term") String term,
+                                               Pageable pageable);
+
     // Statistiques
     long countByFonction(String fonction);
     long countByService(String service);

@@ -92,7 +92,7 @@ export default function FacturesList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterSelect value={filtreStatut} onChange={(e) => handleStatutChange(e.target.value)}>
               <option value="">Tous les statuts</option>

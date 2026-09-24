@@ -25,6 +25,7 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Inte
     Page<Prescription> findByIdPatient(Integer idPatient, Pageable pageable);
     Page<Prescription> findByIdMedecin(Integer idMedecin, Pageable pageable);
     Page<Prescription> findByTypePrescription(TypePrescription type, Pageable pageable);
+    Page<Prescription> findByTypePrescriptionAndIdMedecin(TypePrescription type, Integer idMedecin, Pageable pageable);
     Page<Prescription> findByStatut(StatutPrescription statut, Pageable pageable);
 
     List<Prescription> findByIdConsultation(Integer idConsultation);
@@ -36,11 +37,13 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Inte
             "(:type IS NULL OR p.typePrescription = :type) AND " +
             "(:statut IS NULL OR p.statut = :statut) AND " +
             "(:idPatient IS NULL OR p.idPatient = :idPatient) AND " +
+            "(:idMedecin IS NULL OR p.idMedecin = :idMedecin) AND " +
             "(:dateStart IS NULL OR p.datePrescription >= :dateStart) AND " +
             "(:dateEnd IS NULL OR p.datePrescription <= :dateEnd)")
     Page<Prescription> search(@Param("type") TypePrescription type,
                               @Param("statut") StatutPrescription statut,
                               @Param("idPatient") Integer idPatient,
+                              @Param("idMedecin") Integer idMedecin,
                               @Param("dateStart") LocalDateTime dateStart,
                               @Param("dateEnd") LocalDateTime dateEnd,
                               Pageable pageable);

@@ -8,6 +8,9 @@ export interface Consultation {
   idMedecin: number;
   medecinNom: string;
   medecinPrenom: string;
+  idActeCatalogue: number | null;
+  libelleActeCatalogue: string | null;
+  prixActeCatalogue: number | null;
   dateConsultation: string;
   motifConsultation: string;
   histoireMaladie: string | null;
@@ -31,7 +34,10 @@ export interface Consultation {
   notesConfidentielles: string | null;
 }
 
-export type ConsultationCreate = Omit<Consultation, 'idConsultation' | 'patientNom' | 'patientPrenom' | 'medecinNom' | 'medecinPrenom' | 'imc'>;
+export type ConsultationCreate = Omit<
+  Consultation,
+  'idConsultation' | 'patientNom' | 'patientPrenom' | 'medecinNom' | 'medecinPrenom' | 'imc' | 'libelleActeCatalogue' | 'prixActeCatalogue'
+>;
 
 export interface ConsultationStatsData {
   totalConsultations: number;

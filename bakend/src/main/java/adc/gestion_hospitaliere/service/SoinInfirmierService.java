@@ -10,6 +10,7 @@ import adc.gestion_hospitaliere.Repository.HospitalisationRepository;
 import adc.gestion_hospitaliere.Repository.PatientRepository;
 import adc.gestion_hospitaliere.Repository.PersonnelRepository;
 import adc.gestion_hospitaliere.Repository.SoinInfirmierRepository;
+import adc.gestion_hospitaliere.Repository.ActeCatalogueRepository;
 import adc.gestion_hospitaliere.dto.soin.SoinInfirmierRequestDto;
 import adc.gestion_hospitaliere.dto.soin.SoinInfirmierResponseDto;
 import jakarta.transaction.Transactional;
@@ -34,6 +35,7 @@ public class SoinInfirmierService {
     private final HospitalisationRepository hospitalisationRepository;
     private final PatientRepository patientRepository;
     private final PersonnelRepository personnelRepository;
+    private final ActeCatalogueRepository acteCatalogueRepository;
 
     public List<SoinInfirmierResponseDto> getByHospitalisation(Integer hospitalisationId) {
         return repository.findByIdHospitalisation(hospitalisationId)
@@ -57,10 +59,15 @@ public class SoinInfirmierService {
     public SoinInfirmierResponseDto create(SoinInfirmierRequestDto dto) {
         hospitalisationRepository.findById(dto.getIdHospitalisation())
                 .orElseThrow(() -> new ResourceNotFoundException("Hospitalisation non trouvée"));
+        if (dto.getIdActeCatalogue() != null) {
+            acteCatalogueRepository.findById(dto.getIdActeCatalogue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Acte du référentiel non trouvé"));
+        }
 
         SoinInfirmier soin = SoinInfirmier.builder()
                 .idHospitalisation(dto.getIdHospitalisation())
                 .idInfirmier(dto.getIdInfirmier())
+                .idActeCatalogue(dto.getIdActeCatalogue())
                 .dateSoin(dto.getDateSoin())
                 .typeSoin(dto.getTypeSoin())
                 .description(dto.getDescription())
@@ -78,6 +85,11 @@ public class SoinInfirmierService {
         soin.setIdInfirmier(dto.getIdInfirmier());
         soin.setDateSoin(dto.getDateSoin());
         soin.setTypeSoin(dto.getTypeSoin());
+        if (dto.getIdActeCatalogue() != null) {
+            acteCatalogueRepository.findById(dto.getIdActeCatalogue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Acte du référentiel non trouvé"));
+            soin.setIdActeCatalogue(dto.getIdActeCatalogue());
+        }
         soin.setDescription(dto.getDescription());
         soin.setObservations(dto.getObservations());
         soin.setSignatureInfirmier(dto.getSignatureInfirmier() != null && dto.getSignatureInfirmier());
@@ -107,6 +119,9 @@ public class SoinInfirmierService {
                 .infirmierNom(infirmierNom)
                 .dateSoin(soin.getDateSoin())
                 .typeSoin(soin.getTypeSoin())
+                .idActeCatalogue(soin.getIdActeCatalogue())
+                .libelleActeCatalogue(soin.getActeCatalogue() != null ? soin.getActeCatalogue().getLibelle() : null)
+                .prixActeCatalogue(soin.getActeCatalogue() != null ? soin.getActeCatalogue().getPrixDefaut().doubleValue() : null)
                 .description(soin.getDescription())
                 .observations(soin.getObservations())
                 .signatureInfirmier(soin.getSignatureInfirmier())

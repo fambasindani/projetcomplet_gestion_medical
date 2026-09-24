@@ -126,7 +126,7 @@ const PlanningMedecin: React.FC = () => {
       />
 
       {/* Filtres */}
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <FilterPanel>
           <FilterInput
             type="datetime-local"

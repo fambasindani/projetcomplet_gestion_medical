@@ -1,5 +1,5 @@
-import UnderConstruction from '../ui/UnderConstruction';
+import ProfileView from '@/app/components/settings/ProfileView';
 
 export default function ProfilePage() {
-  return <UnderConstruction title="Mon profil" backHref="/" />;
+  return <ProfileView />;
 }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { FaPlus, FaTrash, FaEye, FaCheckCircle, FaFilter, FaBoxOpen } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEye, FaCheckCircle, FaFilter, FaBoxOpen, FaClipboardCheck, FaPrint } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { inventaireService } from '@/app/services/inventaireService';
 import Pagination from '@/app/ui/Pagination';
@@ -20,8 +20,8 @@ import type { Inventaire } from '@/app/types/inventaire';
 
 const statutStyles: Record<string, string> = {
   En_cours: 'bg-amber-50 text-amber-700 border-amber-200',
-  Valide: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  Annule: 'bg-rose-50 text-rose-700 border-rose-200',
+  Validé: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Clôturé: 'bg-blue-50 text-blue-700 border-blue-200',
 };
 
 export default function InventairesList() {
@@ -76,6 +76,18 @@ export default function InventairesList() {
     }
   };
 
+  const handleCloturer = async (id: number) => {
+    const ok = await confirm({ title: 'Clôturer', message: 'Clôturer définitivement cet inventaire ?' });
+    if (!ok) return;
+    try {
+      await inventaireService.cloturer(id);
+      toast.success('Inventaire clôturé');
+      fetchData();
+    } catch {
+      toast.error('Erreur lors de la clôture');
+    }
+  };
+
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
@@ -97,14 +109,15 @@ export default function InventairesList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterInput type="datetime-local" onChange={e => setFilters({ ...filters, start: e.target.value })} />
             <FilterInput type="datetime-local" onChange={e => setFilters({ ...filters, end: e.target.value })} />
             <FilterSelect onChange={e => setFilters({ ...filters, statut: e.target.value })}>
               <option value="">Tous les statuts</option>
               <option value="En_cours">En cours</option>
-              <option value="Valide">Validé</option>
+              <option value="Validé">Validé</option>
+              <option value="Clôturé">Clôturé</option>
             </FilterSelect>
             <button type="button" onClick={() => setFilters({ statut: '', type: '', start: '', end: '' })} className="self-start text-sm text-gray-400 hover:text-red-500">
               Réinitialiser
@@ -154,9 +167,17 @@ export default function InventairesList() {
                       <IconButton color="gray" title="Voir" onClick={() => router.push(`/pharmacie/inventaire/${inv.idInventaire}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <IconButton color="indigo" title="Imprimer le PV" onClick={() => router.push(`/pharmacie/inventaire/${inv.idInventaire}/impression`)}>
+                        <FaPrint size={14} />
+                      </IconButton>
                       {inv.statut === 'En_cours' && (
                         <IconButton color="green" title="Valider" onClick={() => handleValider(inv.idInventaire)}>
                           <FaCheckCircle size={14} />
+                        </IconButton>
+                      )}
+                      {inv.statut === 'Validé' && (
+                        <IconButton color="blue" title="Clôturer" onClick={() => handleCloturer(inv.idInventaire)}>
+                          <FaClipboardCheck size={14} />
                         </IconButton>
                       )}
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(inv.idInventaire)}>

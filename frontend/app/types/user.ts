@@ -1,4 +1,11 @@
-export type UserRole = 'ADMIN' | 'PHARMACIEN' | 'MEDECIN' | 'SECRETAIRE';
+export type UserRole =
+  | 'ADMIN'
+  | 'MEDECIN'
+  | 'PATIENT'
+  | 'SECRETAIRE'
+  | 'PHARMACIEN'
+  | 'INFIRMIER'
+  | 'RH';
 
 export interface User {
   id: number;
@@ -8,6 +15,7 @@ export interface User {
   role: UserRole;
   actif: boolean;
   personnelId: number | null;
+  permissions?: string[];
   dateCreation: string;
   dateModification: string;
 }

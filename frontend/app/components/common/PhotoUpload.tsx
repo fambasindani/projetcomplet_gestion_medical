@@ -105,7 +105,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
     <div className="w-full">
       <div className="relative aspect-square w-full overflow-hidden rounded-full bg-gray-100">
         {uploading ? (
-          <div className="flex h-full w-full flex-col items-center justify-center bg-gray-50">
+          <div className="flex h-full w-full flex-col items-center justify-center bg-slate-50">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
             <p className="mt-2 text-sm text-gray-500">Upload en cours...</p>
           </div>
@@ -141,7 +141,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         ) : (
           <div
             onClick={handleClick}
-            className="flex h-full w-full cursor-pointer flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 transition-all hover:from-indigo-100 hover:to-purple-100"
+            className="flex h-full w-full cursor-pointer flex-col items-center justify-center bg-slate-50 transition-all hover:from-indigo-100 hover:to-purple-100"
           >
             <FaUserMd className="mb-2 text-4xl text-indigo-500" />
             <p className="text-sm font-semibold text-gray-700">{name || 'Médecin'}</p>
@@ -162,7 +162,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         <button
           type="button"
           onClick={handleClick}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-slate-50"
         >
           <FaUpload className="text-indigo-500" />
           Choisir une photo

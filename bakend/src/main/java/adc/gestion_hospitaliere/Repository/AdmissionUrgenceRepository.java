@@ -30,11 +30,13 @@ public interface AdmissionUrgenceRepository extends JpaRepository<AdmissionUrgen
             "(:statut IS NULL OR a.statut = :statut) AND " +
             "(:gravite IS NULL OR a.gravite = :gravite) AND " +
             "(:idPatient IS NULL OR a.idPatient = :idPatient) AND " +
+            "(:idMedecin IS NULL OR a.idMedecin = :idMedecin) AND " +
             "(:dateStart IS NULL OR a.dateArrivee >= :dateStart) AND " +
             "(:dateEnd IS NULL OR a.dateArrivee <= :dateEnd)")
     Page<AdmissionUrgence> search(@Param("statut") StatutAdmissionUrgence statut,
                                   @Param("gravite") GraviteUrgence gravite,
                                   @Param("idPatient") Integer idPatient,
+                                  @Param("idMedecin") Integer idMedecin,
                                   @Param("dateStart") LocalDateTime dateStart,
                                   @Param("dateEnd") LocalDateTime dateEnd,
                                   Pageable pageable);

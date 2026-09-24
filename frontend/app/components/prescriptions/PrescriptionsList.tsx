@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { FaFilter, FaEye, FaEdit, FaTrash, FaBan, FaUserMd, FaFlask, FaPlus, FaFilePrescription } from 'react-icons/fa';
+import { FaFilter, FaEye, FaEdit, FaTrash, FaBan, FaUserNurse, FaFlask, FaPlus, FaFilePrescription } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
@@ -20,9 +20,9 @@ import { PagedResult } from '@/app/types/pagination';
 
 const statutStyles: Record<string, string> = {
   Active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'En attente': 'bg-amber-50 text-amber-700 border-amber-200',
-  Terminée: 'bg-gray-50 text-gray-600 border-gray-200',
-  Annulée: 'bg-rose-50 text-rose-700 border-rose-200',
+  EnAttente: 'bg-amber-50 text-amber-700 border-amber-200',
+  Terminee: 'bg-slate-50 text-gray-600 border-slate-200',
+  Annulee: 'bg-rose-50 text-rose-700 border-rose-200',
 };
 
 export default function PrescriptionsList() {
@@ -77,7 +77,7 @@ export default function PrescriptionsList() {
       />
 
       {showFilters && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
             <FilterSelect onChange={e => setFilters({...filters, type: e.target.value})}>
               <option value="">Tous les types</option>
@@ -131,13 +131,17 @@ export default function PrescriptionsList() {
                       <IconButton color="blue" title="Modifier" onClick={() => router.push(`/prescriptions/${p.idPrescription}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>
-                      <IconButton color="green" title="Examens" onClick={() => router.push(`/prescriptions/examens/${p.idPrescription}`)}>
-                        <FaFlask size={14} />
-                      </IconButton>
-                      <IconButton color="indigo" title="Soins" onClick={() => router.push(`/prescriptions/${p.idPrescription}/soins`)}>
-                        <FaUserMd size={14} />
-                      </IconButton>
-                      {p.statut !== 'Annulée' && (
+                      {p.typePrescription === TypePrescription.Examen && (
+                        <IconButton color="green" title="Examens de la prescription" onClick={() => router.push(`/prescriptions/examens/${p.idPrescription}`)}>
+                          <FaFlask size={14} />
+                        </IconButton>
+                      )}
+                      {p.typePrescription === TypePrescription.Soin && (
+                        <IconButton color="indigo" title="Soins de la prescription" onClick={() => router.push(`/prescriptions/${p.idPrescription}/soins`)}>
+                          <FaUserNurse size={14} />
+                        </IconButton>
+                      )}
+                      {p.statut !== 'Annulee' && (
                         <IconButton
                           color="gray"
                           title="Annuler"

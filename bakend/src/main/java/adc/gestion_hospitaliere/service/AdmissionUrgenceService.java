@@ -10,6 +10,7 @@ import adc.gestion_hospitaliere.Repository.MedecinRepository;
 import adc.gestion_hospitaliere.Repository.PatientRepository;
 import adc.gestion_hospitaliere.dto.urgence.AdmissionUrgenceRequestDto;
 import adc.gestion_hospitaliere.dto.urgence.AdmissionUrgenceResponseDto;
+import adc.gestion_hospitaliere.util.TransitionsStatut;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,9 +43,10 @@ public class AdmissionUrgenceService {
     }
 
     public Page<AdmissionUrgenceResponseDto> search(StatutAdmissionUrgence statut, GraviteUrgence gravite,
-                                                    Integer idPatient, LocalDateTime dateStart, LocalDateTime dateEnd,
+                                                    Integer idPatient, Integer idMedecin,
+                                                    LocalDateTime dateStart, LocalDateTime dateEnd,
                                                     Pageable pageable) {
-        return admissionUrgenceRepository.search(statut, gravite, idPatient, dateStart, dateEnd, pageable)
+        return admissionUrgenceRepository.search(statut, gravite, idPatient, idMedecin, dateStart, dateEnd, pageable)
                 .map(this::toResponseDto);
     }
 
@@ -90,6 +92,7 @@ public class AdmissionUrgenceService {
     public AdmissionUrgenceResponseDto changerStatut(Integer id, StatutAdmissionUrgence nouveauStatut) {
         AdmissionUrgence a = admissionUrgenceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Admission aux urgences non trouvée"));
+        TransitionsStatut.verifierAdmissionUrgence(a.getStatut(), nouveauStatut);
         a.setStatut(nouveauStatut);
         if (nouveauStatut == StatutAdmissionUrgence.En_consultation && a.getDatePriseEnCharge() == null) {
             a.setDatePriseEnCharge(LocalDateTime.now());

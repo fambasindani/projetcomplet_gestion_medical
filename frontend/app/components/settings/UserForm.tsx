@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaArrowLeft, FaSave } from 'react-icons/fa';
+import { FaSave, FaUser, FaLock, FaUserTag } from 'react-icons/fa';
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
 import { PersonnelSearchSelect } from '@/app/components/common/PersonnelSearchSelect';
@@ -12,8 +12,9 @@ import { User, UserRole, UserUpdate } from '@/app/types/user';
 import { toast } from 'react-hot-toast';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 
 interface UserFormProps {
   initialData?: User | null;
@@ -21,40 +22,36 @@ interface UserFormProps {
 }
 
 const roleOptions = [
-  { value: 'ADMIN', label: 'Admin' },
-  { value: 'PHARMACIEN', label: 'Pharmacien' },
+  { value: '', label: '-- Choisir un rôle --' },
+  { value: 'ADMIN', label: 'Administrateur' },
   { value: 'MEDECIN', label: 'Médecin' },
   { value: 'SECRETAIRE', label: 'Secrétaire' },
+  { value: 'PHARMACIEN', label: 'Pharmacien' },
+  { value: 'INFIRMIER', label: 'Infirmier' },
+  { value: 'RH', label: 'Ressources humaines' },
+  { value: 'PATIENT', label: 'Patient' },
 ];
 
 export default function UserForm({ initialData, isEdit = false }: UserFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState(() => initialData ? {
-    id: initialData.id,
-    personnelId: initialData.personnelId || 0,
-    email: initialData.email,
+  const [formData, setFormData] = useState(() => ({
+    id: initialData?.id ?? 0,
+    personnelId: initialData?.personnelId ?? 0,
+    email: initialData?.email ?? '',
     password: '',
     confirmPassword: '',
-    role: initialData.role,
-    isActive: initialData.actif,
-  } : {
-    id: 0,
-    personnelId: 0,
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'PHARMACIEN' as UserRole,
-    isActive: true,
-  });
+    role: (initialData?.role ?? '') as UserRole | '',
+    isActive: initialData?.actif ?? true,
+  }));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [personnelError, setPersonnelError] = useState('');
 
-  const handlePersonnelChange = (id: number | null, nom?: string, prenom?: string, email?: string) => {
-    setFormData(prev => ({
+  const handlePersonnelChange = (id: number | null, _nom?: string, _prenom?: string, email?: string) => {
+    setFormData((prev) => ({
       ...prev,
       personnelId: id || 0,
-      email: email || '',
+      email: email || prev.email,
     }));
     if (id) setPersonnelError('');
   };
@@ -63,11 +60,11 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({ ...prev, [name]: checked }));
+      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validate = (): boolean => {
@@ -75,13 +72,13 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
     if (!formData.personnelId) newErrors.personnelId = 'Sélectionnez un personnel';
     if (!formData.email) newErrors.email = 'Email requis';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email invalide';
+    if (!formData.role) newErrors.role = 'Le rôle est requis';
     if (!initialData) {
-      // en création : password obligatoire
       if (!formData.password) newErrors.password = 'Mot de passe requis';
-      else if (formData.password.length < 4) newErrors.password = 'Minimum 4 caractères';
+      else if (formData.password.length < 6) newErrors.password = 'Minimum 6 caractères';
       if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
     } else if (formData.password) {
-      // en modification : si un nouveau mot de passe est saisi, on vérifie la confirmation
+      if (formData.password.length < 6) newErrors.password = 'Minimum 6 caractères';
       if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
     }
     setErrors(newErrors);
@@ -95,11 +92,10 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
     setLoading(true);
     try {
       if (initialData) {
-        // Modification
         const payload: UserUpdate = {
           id: formData.id,
           email: formData.email,
-          role: formData.role,
+          role: formData.role as UserRole,
           isActive: formData.isActive,
           personnelId: formData.personnelId || undefined,
         };
@@ -110,13 +106,12 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
         await userService.update(initialData.id, payload);
         toast.success('Utilisateur modifié');
       } else {
-        // Création
         await userService.create({
           personnelId: formData.personnelId,
           email: formData.email,
           password: formData.password,
           confirmPassword: formData.confirmPassword,
-          role: formData.role,
+          role: formData.role as UserRole,
         });
         toast.success('Utilisateur créé');
       }
@@ -131,26 +126,23 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
   if (isEdit && !initialData) return <SkeletonDetails />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEdit ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/settings/utilisateurs')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} className="mx-auto max-w-4xl">
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 space-y-6">
-          <div className="space-y-4">
-            <PersonnelSearchSelect
-              value={formData.personnelId}
-              onChange={handlePersonnelChange}
-              label="Personnel"
-              required
-              error={personnelError}
-            />
+    <PageShell
+      title={isEdit ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
+      subtitle="Un compte est lié à un membre du personnel."
+      onBack={() => router.push('/settings/utilisateurs')}
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <FormSection title="Compte utilisateur" icon={<FaUser />}>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <PersonnelSearchSelect
+                value={formData.personnelId}
+                onChange={handlePersonnelChange}
+                label="Personnel rattaché"
+                required
+                error={personnelError}
+              />
+            </div>
             <FormInput
               label="Email"
               name="email"
@@ -159,76 +151,67 @@ export default function UserForm({ initialData, isEdit = false }: UserFormProps)
               onChange={handleChange}
               required
               error={errors.email}
+              placeholder="prenom.nom@hopital.fr"
             />
-            {!initialData && (
-              <>
-                <FormInput
-                  label="Mot de passe"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  error={errors.password}
-                />
-                <FormInput
-                  label="Confirmer le mot de passe"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  error={errors.confirmPassword}
-                />
-              </>
-            )}
-            {initialData && (
-              <>
-                <FormInput
-                  label="Nouveau mot de passe (laisser vide pour ne pas changer)"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <FormInput
-                  label="Confirmer"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  error={errors.confirmPassword}
-                />
-              </>
-            )}
             <FormSelect
-              label="Rôle *"
+              label="Rôle"
               name="role"
               value={formData.role}
               onChange={handleChange}
               options={roleOptions}
+              required
+              error={errors.role}
             />
-            <div className="flex items-center gap-2 pt-2">
-              <input
-                type="checkbox"
-                id="isActive"
-                name="isActive"
-                checked={formData.isActive}
-                onChange={handleChange}
-                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <label htmlFor="isActive" className="text-sm text-gray-700">Utilisateur actif</label>
-            </div>
           </div>
-        </div>
+          <label className="flex w-fit cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              id="isActive"
+              name="isActive"
+              checked={formData.isActive}
+              onChange={handleChange}
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <FaUserTag className="text-slate-400" /> Compte actif
+          </label>
+        </FormSection>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.push('/settings/utilisateurs')}>Annuler</Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Ajouter')}
-          </Button>
-        </div>
+        <FormSection
+          title="Sécurité"
+          icon={<FaLock />}
+          description={initialData ? 'Laisser vide pour conserver le mot de passe actuel.' : undefined}
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormInput
+              label={initialData ? 'Nouveau mot de passe' : 'Mot de passe'}
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              required={!initialData}
+              error={errors.password}
+              placeholder="••••••••"
+            />
+            <FormInput
+              label="Confirmer le mot de passe"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required={!initialData}
+              error={errors.confirmPassword}
+              placeholder="••••••••"
+            />
+          </div>
+        </FormSection>
+
+        <FormActions
+          onCancel={() => router.push('/settings/utilisateurs')}
+          submitLabel={isEdit ? 'Enregistrer' : 'Créer l\'utilisateur'}
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 }

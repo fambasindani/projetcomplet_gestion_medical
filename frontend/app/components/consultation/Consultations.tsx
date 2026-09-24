@@ -16,10 +16,14 @@ import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table'
 import type { PagedResult } from '@/app/types/pagination';
 import type { Consultation } from '@/app/types/consultation';
 import { consultationService } from '@/app/services/consultationService';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { peutModifier } from '@/app/utils/permissions';
 
 const ConsultationList: React.FC = () => {
   const router = useRouter();
   const confirm = useConfirm();
+  const { user } = useAuth();
+  const estMedecin = user?.role === 'MEDECIN';
 
   const [pagedData, setPagedData] = useState<PagedResult<Consultation> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +112,7 @@ const ConsultationList: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Consultations"
+        title={estMedecin ? 'Mes consultations' : 'Toutes les consultations'}
         subtitle={
           <span>
             <FaStethoscope className="mr-1 inline" /> {pagedData.totalCount} consultation(s)
@@ -175,7 +179,9 @@ const ConsultationList: React.FC = () => {
               </tr>
             </THead>
             <TBody>
-              {pagedData.items.map((cons) => (
+              {pagedData.items.map((cons) => {
+                const peutEditer = peutModifier(user?.role, user?.medecinId, cons.idMedecin);
+                return (
                 <Tr key={cons.idConsultation}>
                   <Td className="whitespace-nowrap text-gray-900">
                     {new Date(cons.dateConsultation).toLocaleString()}
@@ -207,24 +213,29 @@ const ConsultationList: React.FC = () => {
                       >
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton
-                        color="blue"
-                        title="Modifier"
-                        onClick={() => router.push(`/consultations/${cons.idConsultation}/modifier`)}
-                      >
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton
-                        color="red"
-                        title="Supprimer"
-                        onClick={() => handleDelete(cons.idConsultation)}
-                      >
-                        <FaTrash size={14} />
-                      </IconButton>
+                      {peutEditer && (
+                        <>
+                          <IconButton
+                            color="blue"
+                            title="Modifier"
+                            onClick={() => router.push(`/consultations/${cons.idConsultation}/modifier`)}
+                          >
+                            <FaEdit size={14} />
+                          </IconButton>
+                          <IconButton
+                            color="red"
+                            title="Supprimer"
+                            onClick={() => handleDelete(cons.idConsultation)}
+                          >
+                            <FaTrash size={14} />
+                          </IconButton>
+                        </>
+                      )}
                     </div>
                   </Td>
                 </Tr>
-              ))}
+                );
+              })}
             </TBody>
           </Table>
           {pagedData.totalPages > 1 && (

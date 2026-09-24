@@ -1,5 +1,5 @@
 import api from './api';
-import type { DelivranceResponse, DelivranceRequest, DelivranceUpdateRequest, DelivranceStatistiques } from '../types/delivrance';
+import type { DelivranceResponse, DelivranceRequest, DelivranceUpdateRequest, DelivranceStatistiques, RapportMargePharmacie } from '../types/delivrance';
 import type { PagedResult } from '../types/pagination';
 
 
@@ -40,6 +40,16 @@ async update(id: number, data: DelivranceUpdateRequest): Promise<DelivranceRespo
 
   async getStatistiques(): Promise<DelivranceStatistiques> {
     const res = await api.get('/delivrances/statistiques');
+    return res.data;
+  },
+
+  async getRapportMarge(dateDebut?: string, dateFin?: string): Promise<RapportMargePharmacie> {
+    const res = await api.get('/delivrances/marges', {
+      params: {
+        dateDebut: dateDebut || undefined,
+        dateFin: dateFin || undefined,
+      },
+    });
     return res.data;
   },
 

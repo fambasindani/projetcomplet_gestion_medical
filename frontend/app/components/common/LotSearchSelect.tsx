@@ -90,6 +90,15 @@ export const LotSearchSelect: React.FC<LotSearchSelectProps> = ({
     }
   };
 
+  // Recharge la liste quand le médicament change : évite d'afficher des lots d'un autre médicament.
+  useEffect(() => {
+    setLots([]);
+    if (isOpen) {
+      void searchLots('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [medicamentId]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -177,14 +186,14 @@ export const LotSearchSelect: React.FC<LotSearchSelectProps> = ({
 
       {isOpen && !disabled && (
         <div className="absolute z-50 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg">
-          <div className="border-b border-gray-200 p-2">
+          <div className="border-b border-slate-200 p-2">
             <div className="relative">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={handleSearchChange}
                 placeholder="Numéro de lot..."
-                className="w-full rounded-md border border-gray-200 py-1.5 pr-8 pl-2 text-sm focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-md border border-slate-200 py-1.5 pr-8 pl-2 text-sm focus:border-indigo-500 focus:outline-none"
                 autoFocus
               />
               <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />

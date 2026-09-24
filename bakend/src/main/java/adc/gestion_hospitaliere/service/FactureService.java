@@ -15,12 +15,15 @@ import adc.gestion_hospitaliere.Entity.Hospitalisation;
 import adc.gestion_hospitaliere.Entity.Medicament;
 import adc.gestion_hospitaliere.Entity.Paiement;
 import adc.gestion_hospitaliere.Entity.Patient;
+import adc.gestion_hospitaliere.Entity.ActeCatalogue;
+import adc.gestion_hospitaliere.Entity.SoinInfirmier;
+import adc.gestion_hospitaliere.Entity.InterventionUrgence;
 import adc.gestion_hospitaliere.Enums.CategorieActeMedical;
 import adc.gestion_hospitaliere.Enums.ModePaiement;
 import adc.gestion_hospitaliere.Enums.StatutFacture;
-import adc.gestion_hospitaliere.Enums.StatutHospitalisation;
 import adc.gestion_hospitaliere.Enums.StatutPaiement;
 import adc.gestion_hospitaliere.Repository.ActeMedicalRepository;
+import adc.gestion_hospitaliere.Repository.ActeCatalogueRepository;
 import adc.gestion_hospitaliere.Repository.ConsultationRepository;
 import adc.gestion_hospitaliere.Repository.DetailDelivranceRepository;
 import adc.gestion_hospitaliere.Repository.DetailFactureRepository;
@@ -33,6 +36,8 @@ import adc.gestion_hospitaliere.Repository.PaiementRepository;
 import adc.gestion_hospitaliere.Repository.PatientRepository;
 import adc.gestion_hospitaliere.Repository.PrescriptionMedicamentRepository;
 import adc.gestion_hospitaliere.Repository.PrescriptionRepository;
+import adc.gestion_hospitaliere.Repository.SoinInfirmierRepository;
+import adc.gestion_hospitaliere.Repository.InterventionUrgenceRepository;
 import adc.gestion_hospitaliere.dto.facture.DetailFactureRequestDto;
 import adc.gestion_hospitaliere.dto.facture.DetailFactureResponseDto;
 import adc.gestion_hospitaliere.dto.facture.ElementFacturableDto;
@@ -45,7 +50,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,9 +59,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +81,9 @@ public class FactureService {
     private final HospitalisationRepository hospitalisationRepository;
     private final MedicamentRepository medicamentRepository;
     private final ActeMedicalRepository acteMedicalRepository;
+    private final ActeCatalogueRepository acteCatalogueRepository;
+    private final SoinInfirmierRepository soinInfirmierRepository;
+    private final InterventionUrgenceRepository interventionUrgenceRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final PrescriptionMedicamentRepository prescriptionMedicamentRepository;
 
@@ -91,7 +101,8 @@ public class FactureService {
 
     // ---------- ÉLÉMENTS FACTURABLES D'UN PATIENT ----------
     @Transactional(readOnly = true)
-    public Page<ElementFacturableDto> getElementsFacturables(Integer idPatient, Integer idConsultation, Pageable pageable) {
+    public Page<ElementFacturableDto> getElementsFacturables(Integer idPatient, Integer idConsultation,
+                                                             Integer idHospitalisation, Pageable pageable) {
         patientRepository.findById(idPatient)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient non trouvé avec l'id : " + idPatient));
 
@@ -106,14 +117,36 @@ public class FactureService {
             elements.addAll(elementsConsultations(idPatient));
             elements.addAll(elementsExamens(idPatient));
             elements.addAll(elementsMedicaments(idPatient));
-            elements.addAll(elementsHospitalisations(idPatient));
+            ajouterHospitalisations(elements, idPatient, null, idHospitalisation);
+            elements.addAll(elementsSoins(idPatient));
+            elements.addAll(elementsInterventions(idPatient));
         } else {
             // Facture liée à UNE consultation : seuls les éléments de cette visite
             elements.addAll(elementsConsultations(idPatient, idConsultation));
             elements.addAll(elementsExamens(idPatient, idConsultation));
             elements.addAll(elementsMedicaments(idPatient, idConsultation));
-            elements.addAll(elementsHospitalisations(idPatient, idConsultation));
+            ajouterHospitalisations(elements, idPatient, idConsultation, idHospitalisation);
+            elements.addAll(elementsSoins(idPatient));
+            elements.addAll(elementsInterventions(idPatient));
         }
+
+        Set<Integer> consultationsFacturees = new HashSet<>(factureRepository.findConsultationsFacturees());
+        Set<Integer> hospitalisationsFacturees = new HashSet<>(factureRepository.findHospitalisationsFacturees());
+        Set<String> legacyDescriptions = new HashSet<>(factureRepository.findLegacyDescriptionsFacturees());
+
+        List<ElementFacturableDto> nonFactures = new ArrayList<>();
+        for (ElementFacturableDto el : elements) {
+            Integer idSource = el.getIdSource();
+            boolean dejaFacture =
+                    (idSource != null && factureRepository.existsDetailFactureNonAnnule(el.getSource(), idSource))
+                    || ("CONSULTATION".equals(el.getSource()) && idSource != null && consultationsFacturees.contains(idSource))
+                    || ("HOSPITALISATION".equals(el.getSource()) && idSource != null && hospitalisationsFacturees.contains(idSource))
+                    // Repli pour les anciennes factures (détails sans source)
+                    || (el.getDescription() != null && legacyDescriptions.contains(el.getDescription()));
+            if (dejaFacture) continue;
+            nonFactures.add(el);
+        }
+        elements = nonFactures;
 
         elements.sort((a, b) -> {
             if (a.getDateElement() == null) return 1;
@@ -166,9 +199,10 @@ public class FactureService {
     }
 
     private ElementFacturableDto toConsultationElement(Consultation c, Integer idActeConsultation) {
-        Double prix = idActeConsultation != null ? prixActe(idActeConsultation) : 0.0;
+        Double prix = prixActeCatalogue(c.getIdActeCatalogue(), idActeConsultation);
         return ElementFacturableDto.builder()
                 .source("CONSULTATION")
+                .idSource(c.getIdConsultation())
                 .idActe(idActeConsultation)
                 .description("Consultation du " + c.getDateConsultation().toLocalDate()
                         + (c.getMotifConsultation() != null && !c.getMotifConsultation().isBlank()
@@ -207,9 +241,10 @@ public class FactureService {
     }
 
     private ElementFacturableDto toExamenElement(Examen e, Integer idActeExamen) {
-        Double prix = idActeExamen != null ? prixActe(idActeExamen) : 0.0;
+        Double prix = prixActeCatalogue(e.getIdActeCatalogue(), idActeExamen);
         return ElementFacturableDto.builder()
                 .source("EXAMEN")
+                .idSource(e.getIdExamen())
                 .idActe(idActeExamen)
                 .description("Examen " + (e.getTypeExamen() != null ? e.getTypeExamen() : "")
                         + " du " + e.getDatePrescription().toLocalDate())
@@ -217,6 +252,33 @@ public class FactureService {
                 .prixUnitaire(prix)
                 .dateElement(e.getDatePrescription())
                 .build();
+    }
+
+    private List<ElementFacturableDto> elementsSoins(Integer idPatient) {
+        List<ElementFacturableDto> result = new ArrayList<>();
+        Integer idActeSoin = findIdActeParCategorie(CategorieActeMedical.Soin);
+
+        List<Hospitalisation> hospitalisations = hospitalisationRepository.findByPatientId(idPatient);
+        if (hospitalisations == null) return result;
+
+        for (Hospitalisation h : hospitalisations) {
+            List<SoinInfirmier> soins = soinInfirmierRepository.findByIdHospitalisation(h.getIdHospitalisation());
+            if (soins == null) continue;
+            for (SoinInfirmier s : soins) {
+                Double prix = prixActeCatalogue(s.getIdActeCatalogue(), idActeSoin);
+                result.add(ElementFacturableDto.builder()
+                        .source("SOIN")
+                        .idSource(s.getIdSoin() != null ? s.getIdSoin() : null)
+                        .idActe(idActeSoin)
+                        .description("Soin " + (s.getTypeSoin() != null ? s.getTypeSoin() : "")
+                                + " du " + s.getDateSoin().toLocalDate())
+                        .quantite(1)
+                        .prixUnitaire(prix)
+                        .dateElement(s.getDateSoin())
+                        .build());
+            }
+        }
+        return result;
     }
 
     private List<ElementFacturableDto> elementsMedicaments(Integer idPatient) {
@@ -227,6 +289,30 @@ public class FactureService {
 
         for (DelivranceMedicament d : delivrances.getContent()) {
             result.addAll(toMedicamentElements(d));
+        }
+        return result;
+    }
+
+    private List<ElementFacturableDto> elementsInterventions(Integer idPatient) {
+        List<ElementFacturableDto> result = new ArrayList<>();
+        Integer idActeIntervention = findIdActeParCategorie(CategorieActeMedical.Intervention);
+
+        Page<InterventionUrgence> interventions = interventionUrgenceRepository
+                .findByIdPatient(idPatient, PageRequest.of(0, 1000));
+        if (interventions == null || interventions.isEmpty()) return result;
+
+        for (InterventionUrgence i : interventions.getContent()) {
+            Double prix = prixActeCatalogue(i.getIdActeCatalogue(), idActeIntervention);
+            result.add(ElementFacturableDto.builder()
+                    .source("INTERVENTION")
+                    .idSource(i.getIdInterventionUrgence())
+                    .idActe(idActeIntervention)
+                    .description("Intervention " + (i.getTypeIntervention() != null ? i.getTypeIntervention() : "")
+                            + " du " + i.getDateIntervention().toLocalDate())
+                    .quantite(1)
+                    .prixUnitaire(prix)
+                    .dateElement(i.getDateIntervention())
+                    .build());
         }
         return result;
     }
@@ -255,6 +341,7 @@ public class FactureService {
             }
             result.add(ElementFacturableDto.builder()
                     .source("MEDICAMENT")
+                    .idSource(det.getIdDetailDelivrance())
                     .idMedicament(det.getIdMedicament())
                     .description("Délivrance médicament"
                             + (nomMedicament != null ? " - " + nomMedicament : "")
@@ -265,6 +352,27 @@ public class FactureService {
                     .build());
         }
         return result;
+    }
+
+    /**
+     * Ajoute les éléments d'hospitalisation. Si une hospitalisation précise est fournie
+     * (association de la chambre à la facture), seule celle-ci est prise en compte.
+     */
+    private void ajouterHospitalisations(List<ElementFacturableDto> elements, Integer idPatient,
+                                         Integer idConsultation, Integer idHospitalisation) {
+        if (idHospitalisation != null) {
+            hospitalisationRepository.findById(idHospitalisation).ifPresent(h -> {
+                if (h.getIdPatient() != null && h.getIdPatient().equals(idPatient)) {
+                    elements.addAll(toHospitalisationElements(h));
+                }
+            });
+            return;
+        }
+        if (idConsultation != null) {
+            elements.addAll(elementsHospitalisations(idPatient, idConsultation));
+        } else {
+            elements.addAll(elementsHospitalisations(idPatient));
+        }
     }
 
     private List<ElementFacturableDto> elementsHospitalisations(Integer idPatient) {
@@ -297,13 +405,13 @@ public class FactureService {
 
         int nbJours = nbJoursHospitalisation(h);
 
-        String statut = h.getStatut() != null ? h.getStatut().name() : "En_cours";
         String description = "Hospitalisation - Admission " + h.getNumeroAdmission()
                 + (numeroChambre != null ? " - Chambre " + numeroChambre : "")
                 + " (" + nbJours + " jour" + (nbJours > 1 ? "s" : "") + ")";
 
         result.add(ElementFacturableDto.builder()
                 .source("HOSPITALISATION")
+                .idSource(h.getIdHospitalisation())
                 .idHospitalisation(h.getIdHospitalisation())
                 .description(description)
                 .quantite(nbJours)
@@ -311,17 +419,6 @@ public class FactureService {
                 .dateElement(h.getDateAdmission())
                 .build());
 
-        if (StatutHospitalisation.En_cours.name().equals(statut)) {
-            result.add(ElementFacturableDto.builder()
-                    .source("HOSPITALISATION")
-                    .idHospitalisation(h.getIdHospitalisation())
-                    .description("Frais de séjour - Chambre " + (numeroChambre != null ? numeroChambre : "N/A")
-                            + " (à régulariser à la sortie)")
-                    .quantite(nbJours)
-                    .prixUnitaire(prixJour != null ? prixJour : 0.0)
-                    .dateElement(h.getDateAdmission())
-                    .build());
-        }
         return result;
     }
 
@@ -348,6 +445,16 @@ public class FactureService {
                 .orElse(0.0);
     }
 
+    private Double prixActeCatalogue(Integer idActeCatalogue, Integer idActeFallback) {
+        if (idActeCatalogue != null) {
+            Optional<ActeCatalogue> acte = acteCatalogueRepository.findById(idActeCatalogue);
+            if (acte.isPresent() && acte.get().getPrixDefaut() != null) {
+                return acte.get().getPrixDefaut().doubleValue();
+            }
+        }
+        return idActeFallback != null ? prixActe(idActeFallback) : 0.0;
+    }
+
     // ---------- CREATE ----------
     @Transactional
     public FactureResponseDto createFacture(FactureRequestDto dto) {
@@ -357,14 +464,16 @@ public class FactureService {
         BigDecimal tvaRate = dto.getTva() != null ? BigDecimal.valueOf(dto.getTva()) : BigDecimal.ZERO;
         BigDecimal tauxTva = BigDecimal.ONE.add(tvaRate.divide(BigDecimal.valueOf(100)));
 
+        if (dto.getDetails() == null || dto.getDetails().isEmpty()) {
+            throw new BusinessException("Une facture doit contenir au moins une ligne");
+        }
+
         List<DetailFacture> details = new ArrayList<>();
         BigDecimal montantHt = BigDecimal.ZERO;
-        if (dto.getDetails() != null) {
-            for (DetailFactureRequestDto detDto : dto.getDetails()) {
-                DetailFacture detail = toDetailEntity(detDto, tvaRate);
-                details.add(detail);
-                montantHt = montantHt.add(detail.getMontantHt());
-            }
+        for (DetailFactureRequestDto detDto : dto.getDetails()) {
+            DetailFacture detail = toDetailEntity(detDto, tvaRate);
+            details.add(detail);
+            montantHt = montantHt.add(detail.getMontantHt());
         }
 
         BigDecimal montantTtc = montantHt.multiply(tauxTva);
@@ -404,22 +513,33 @@ public class FactureService {
     public FactureResponseDto updateFacture(Integer id, FactureRequestDto dto) {
         Facture facture = getFacture(id);
 
+        if (StatutFacture.Annulé.equals(facture.getStatut())) {
+            throw new BusinessException("Impossible de modifier une facture annulée");
+        }
+        if (dto.getDetails() == null || dto.getDetails().isEmpty()) {
+            throw new BusinessException("Une facture doit contenir au moins une ligne");
+        }
+
         BigDecimal tvaRate = dto.getTva() != null ? BigDecimal.valueOf(dto.getTva()) : BigDecimal.ZERO;
         BigDecimal tauxTva = BigDecimal.ONE.add(tvaRate.divide(BigDecimal.valueOf(100)));
 
         List<DetailFacture> newDetails = new ArrayList<>();
         BigDecimal montantHt = BigDecimal.ZERO;
-        if (dto.getDetails() != null) {
-            for (DetailFactureRequestDto detDto : dto.getDetails()) {
-                DetailFacture detail = toDetailEntity(detDto, tvaRate);
-                detail.setIdFacture(facture.getIdFacture());
-                detail.setFacture(facture);
-                newDetails.add(detail);
-                montantHt = montantHt.add(detail.getMontantHt());
-            }
+        for (DetailFactureRequestDto detDto : dto.getDetails()) {
+            DetailFacture detail = toDetailEntity(detDto, tvaRate);
+            detail.setIdFacture(facture.getIdFacture());
+            detail.setFacture(facture);
+            newDetails.add(detail);
+            montantHt = montantHt.add(detail.getMontantHt());
         }
 
         BigDecimal montantTtc = montantHt.multiply(tauxTva);
+        BigDecimal dejaPaye = facture.getMontantPaye() != null ? facture.getMontantPaye() : BigDecimal.ZERO;
+        BigDecimal nouveauRestant = montantTtc.subtract(dejaPaye);
+        if (nouveauRestant.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Le nouveau montant TTC (" + montantTtc
+                    + ") est inférieur aux paiements déjà encaissés (" + dejaPaye + ")");
+        }
 
         facture.setIdPatient(dto.getIdPatient());
         facture.setIdHospitalisation(dto.getIdHospitalisation());
@@ -428,7 +548,7 @@ public class FactureService {
         facture.setTva(tvaRate);
         facture.setMontantHt(montantHt);
         facture.setMontantTtc(montantTtc);
-        facture.setMontantRestant(montantTtc.subtract(facture.getMontantPaye()));
+        facture.setMontantRestant(nouveauRestant);
         facture.setAssurancePriseEnCharge(dto.getAssurancePriseEnCharge() != null ? dto.getAssurancePriseEnCharge() : false);
         facture.setMutuelleId(dto.getMutuelleId());
         facture.setMutuellePriseEnCharge(dto.getMutuellePriseEnCharge() != null ? BigDecimal.valueOf(dto.getMutuellePriseEnCharge()) : null);
@@ -446,7 +566,8 @@ public class FactureService {
     @Transactional
     public void deleteFacture(Integer id) {
         Facture facture = getFacture(id);
-        if (facture.getPaiements() != null && !facture.getPaiements().isEmpty()) {
+        long nbPaiements = paiementRepository.countByFactureIdFacture(facture.getIdFacture());
+        if (nbPaiements > 0) {
             throw new BusinessException("Impossible de supprimer une facture avec des paiements");
         }
         detailFactureRepository.deleteByFactureIdFacture(facture.getIdFacture());
@@ -457,6 +578,13 @@ public class FactureService {
     @Transactional
     public FactureResponseDto annulerFacture(Integer id) {
         Facture facture = getFacture(id);
+        if (StatutFacture.Annulé.equals(facture.getStatut())) {
+            throw new BusinessException("Cette facture est déjà annulée");
+        }
+        BigDecimal dejaPaye = facture.getMontantPaye() != null ? facture.getMontantPaye() : BigDecimal.ZERO;
+        if (dejaPaye.compareTo(BigDecimal.ZERO) > 0) {
+            throw new BusinessException("Impossible d'annuler une facture ayant des paiements encaissés");
+        }
         facture.setStatut(StatutFacture.Annulé);
         facture = factureRepository.save(facture);
         return toResponseDto(facture);
@@ -467,7 +595,14 @@ public class FactureService {
     public FactureResponseDto ajouterPaiement(Integer idFacture, PaiementRequestDto dto) {
         Facture facture = getFacture(idFacture);
 
+        if (StatutFacture.Annulé.equals(facture.getStatut())) {
+            throw new BusinessException("Impossible d'encaisser un paiement sur une facture annulée");
+        }
+
         BigDecimal montant = BigDecimal.valueOf(dto.getMontant());
+        if (montant.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Le montant du paiement doit être supérieur à zéro");
+        }
         BigDecimal restant = facture.getMontantRestant() != null ? facture.getMontantRestant() : BigDecimal.ZERO;
         if (montant.compareTo(restant) > 0) {
             throw new BusinessException("Le montant du paiement (" + dto.getMontant()
@@ -487,9 +622,11 @@ public class FactureService {
         paiement.setFacture(facture);
         paiementRepository.save(paiement);
 
-        BigDecimal montantPaye = facture.getMontantPaye().add(montant);
+        BigDecimal payeActuel = facture.getMontantPaye() != null ? facture.getMontantPaye() : BigDecimal.ZERO;
+        BigDecimal montantPaye = payeActuel.add(montant);
         facture.setMontantPaye(montantPaye);
-        facture.setMontantRestant(facture.getMontantTtc().subtract(montantPaye));
+        BigDecimal totalTtc = facture.getMontantTtc() != null ? facture.getMontantTtc() : BigDecimal.ZERO;
+        facture.setMontantRestant(totalTtc.subtract(montantPaye));
         mettreAJourStatut(facture);
 
         facture = factureRepository.save(facture);
@@ -576,6 +713,8 @@ public class FactureService {
         return DetailFacture.builder()
                 .idActe(dto.getIdActe())
                 .idMedicament(dto.getIdMedicament())
+                .source(dto.getSource())
+                .idSource(dto.getIdSource())
                 .description(dto.getDescription())
                 .quantite(dto.getQuantite() != null ? dto.getQuantite() : 1)
                 .prixUnitaire(prixUnitaire)
@@ -654,6 +793,7 @@ public class FactureService {
                 .acteLibelle(acteLibelle)
                 .idMedicament(detail.getIdMedicament())
                 .medicamentNom(medicamentNom)
+                .source(detail.getSource())
                 .description(detail.getDescription())
                 .quantite(detail.getQuantite())
                 .prixUnitaire(toDouble(detail.getPrixUnitaire()))

@@ -7,7 +7,7 @@ interface TableContainerProps {
 
 export function TableContainer({ children, className = '' }: TableContainerProps) {
   return (
-    <div className={`overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 ${className}`}>
+    <div className={`overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 ${className}`}>
       <div className="overflow-x-auto">{children}</div>
     </div>
   );
@@ -27,7 +27,7 @@ interface THeadProps {
 }
 
 export function THead({ children }: THeadProps) {
-  return <thead className="border-b border-gray-100 bg-gray-50/50">{children}</thead>;
+  return <thead className="border-b border-slate-100 bg-slate-50/50">{children}</thead>;
 }
 
 interface ThProps {
@@ -50,7 +50,7 @@ interface TBodyProps {
 }
 
 export function TBody({ children }: TBodyProps) {
-  return <tbody className="divide-y divide-gray-50">{children}</tbody>;
+  return <tbody className="divide-y divide-slate-100">{children}</tbody>;
 }
 
 interface TrProps {
@@ -61,7 +61,7 @@ interface TrProps {
 
 export function Tr({ children, onClick, className = '' }: TrProps) {
   return (
-    <tr onClick={onClick} className={`transition-colors hover:bg-gray-50/50 ${onClick ? 'cursor-pointer' : ''} ${className}`}>
+    <tr onClick={onClick} className={`transition-colors hover:bg-slate-50/50 ${onClick ? 'cursor-pointer' : ''} ${className}`}>
       {children}
     </tr>
   );

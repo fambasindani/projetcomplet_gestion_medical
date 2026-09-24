@@ -19,7 +19,6 @@ import {
   FaFileAlt,
   FaCheckCircle,
   FaBuilding,
-  FaArrowLeft,
   FaSave,
   FaCamera,
 } from 'react-icons/fa';
@@ -30,8 +29,9 @@ import { FormInput } from '../common/FormInput';
 import { FormSelect } from '../common/FormSelect';
 import { FormTextarea } from '../common/FormTextarea';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
-import PageHeader from '@/app/ui/PageHeader';
-import Button from '@/app/ui/Button';
+import PageShell from '@/app/ui/PageShell';
+import FormSection from '@/app/ui/FormSection';
+import FormActions from '@/app/ui/FormActions';
 import type { MedecinCreate } from '@/app/types/medecin';
 import type { Specialite } from '@/app/types/specialite';
 
@@ -241,293 +241,261 @@ const MedecinFormPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEditMode ? 'Modifier le médecin' : 'Nouveau médecin'}
-        actions={
-          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/medecins')}>
-            Retour
-          </Button>
-        }
-      />
-
-      <form onSubmit={handleSubmit} noValidate className="max-w-7xl mx-auto">
+    <PageShell
+      title={isEditMode ? 'Modifier le médecin' : 'Nouveau médecin'}
+      onBack={() => router.push('/medecins')}
+      maxWidth="max-w-6xl"
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Colonne principale - formulaire */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
-              <div className="p-6 space-y-8">
-                {/* Section Informations personnelles */}
-                <div>
-                  <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-                    <FaUser /> Informations personnelles
-                  </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormInput
-                      label="Matricule"
-                      name="matricule"
-                      value={formData.matricule}
-                      onChange={handleChange}
-                      required
-                      error={errors.matricule}
-                      icon={<FaIdCard />}
-                      placeholder="MED-2024-001"
-                      aria-required
-                    />
-                    <FormInput
-                      label="Nom"
-                      name="nom"
-                      value={formData.nom}
-                      onChange={handleChange}
-                      required
-                      error={errors.nom}
-                      icon={<FaUser />}
-                      placeholder="Dupont"
-                    />
-                    <FormInput
-                      label="Prénom"
-                      name="prenom"
-                      value={formData.prenom}
-                      onChange={handleChange}
-                      required
-                      error={errors.prenom}
-                      icon={<FaUser />}
-                      placeholder="Jean"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <FormInput
-                      label="Date de naissance"
-                      name="dateNaissance"
-                      type="date"
-                      value={formData.dateNaissance ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.dateNaissance}
-                      icon={<FaCalendarAlt />}
-                    />
-                    <FormInput
-                      label="Lieu de naissance"
-                      name="lieuNaissance"
-                      value={formData.lieuNaissance ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.lieuNaissance}
-                      icon={<FaMapMarkerAlt />}
-                      placeholder="Paris"
-                    />
-                    <FormSelect
-                      label="Genre"
-                      name="genre"
-                      value={formData.genre}
-                      onChange={handleChange}
-                      options={[
-                        { value: 'M', label: 'Masculin' },
-                        { value: 'F', label: 'Féminin' },
-                      ]}
-                      required
-                      error={errors.genre}
-                      icon={<FaVenusMars />}
-                    />
-                  </div>
-                </div>
-
-                {/* Section Contact */}
-                <div>
-                  <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-                    <FaPhone /> Contact
-                  </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormInput
-                      label="Téléphone"
-                      name="telephone"
-                      value={formData.telephone ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.telephone}
-                      icon={<FaPhone />}
-                      placeholder="01 23 45 67 89"
-                    />
-                    <FormInput
-                      label="Email"
-                      name="email"
-                      type="email"
-                      value={formData.email ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.email}
-                      icon={<FaEnvelope />}
-                      placeholder="jean.dupont@hopital.fr"
-                    />
-                    <FormInput
-                      label="Adresse"
-                      name="adresse"
-                      value={formData.adresse ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.adresse}
-                      icon={<FaMapMarkerAlt />}
-                      placeholder="123 rue de la Paix"
-                    />
-                  </div>
-                </div>
-
-                {/* Section Professionnelle */}
-                <div>
-                  <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-                    <FaStethoscope /> Informations professionnelles
-                  </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormSelect
-                      label="Spécialité"
-                      name="idSpecialite"
-                      value={formData.idSpecialite ?? ''}
-                      onChange={handleChange}
-                      options={[
-                        { value: '', label: 'Sélectionner' },
-                        ...specialites.map((spec) => ({
-                          value: spec.idSpecialite,
-                          label: spec.nomSpecialite,
-                        })),
-                      ]}
-                      error={errors.idSpecialite}
-                      icon={<FaBuilding />}
-                    />
-                    <FormInput
-                      label="Qualification"
-                      name="qualification"
-                      value={formData.qualification ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.qualification}
-                      icon={<FaGraduationCap />}
-                      placeholder="Spécialiste en cardiologie"
-                    />
-                    <FormInput
-                      label="Diplôme"
-                      name="diplome"
-                      value={formData.diplome ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.diplome}
-                      icon={<FaGraduationCap />}
-                      placeholder="Doctorat en médecine"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <FormInput
-                      label="Numéro d'ordre"
-                      name="numeroOrdre"
-                      value={formData.numeroOrdre ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.numeroOrdre}
-                      icon={<FaIdCard />}
-                      placeholder="12345"
-                    />
-                    <FormInput
-                      label="Date d'embauche"
-                      name="dateEmbauche"
-                      type="date"
-                      value={formData.dateEmbauche ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.dateEmbauche}
-                      icon={<FaCalendarAlt />}
-                    />
-                    <FormInput
-                      label="Salaire ($)"
-                      name="salaire"
-                      type="number"
-                      value={formData.salaire ?? ''}
-                      onChange={handleChange}
-                      required
-                      error={errors.salaire}
-                      icon={<FaMoneyBillWave />}
-                      placeholder="5000"
-                      step="100"
-                    />
-                  </div>
-
-                  <div className="mt-4">
-                    <FormSelect
-                      label="Disponibilité"
-                      name="disponibilite"
-                      value={formData.disponibilite}
-                      onChange={handleChange}
-                      options={[
-                        { value: 'Disponible', label: 'Disponible' },
-                        { value: 'EnConge', label: 'En congé' },
-                        { value: 'Absent', label: 'Absent' },
-                        { value: 'EnFormation', label: 'En formation' },
-                      ]}
-                      required
-                      error={errors.disponibilite}
-                      icon={<FaCheckCircle />}
-                    />
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <div>
-                  <h5 className="text-lg font-semibold text-indigo-600 flex items-center gap-2 mb-4">
-                    <FaFileAlt /> Notes
-                  </h5>
-                  <FormTextarea
-                    name="notes"
-                    value={formData.notes || ''}
-                    onChange={handleChange}
-                    error={errors.notes}
-                    rows={4}
-                    placeholder="Informations complémentaires..."
-                  />
-                </div>
+            {/* Section Informations personnelles */}
+            <FormSection title="Informations personnelles" icon={<FaUser />}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormInput
+                  label="Matricule"
+                  name="matricule"
+                  value={formData.matricule}
+                  onChange={handleChange}
+                  required
+                  error={errors.matricule}
+                  icon={<FaIdCard />}
+                  placeholder="MED-2024-001"
+                  aria-required
+                />
+                <FormInput
+                  label="Nom"
+                  name="nom"
+                  value={formData.nom}
+                  onChange={handleChange}
+                  required
+                  error={errors.nom}
+                  icon={<FaUser />}
+                  placeholder="Dupont"
+                />
+                <FormInput
+                  label="Prénom"
+                  name="prenom"
+                  value={formData.prenom}
+                  onChange={handleChange}
+                  required
+                  error={errors.prenom}
+                  icon={<FaUser />}
+                  placeholder="Jean"
+                />
               </div>
-            </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormInput
+                  label="Date de naissance"
+                  name="dateNaissance"
+                  type="date"
+                  value={formData.dateNaissance ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.dateNaissance}
+                  icon={<FaCalendarAlt />}
+                />
+                <FormInput
+                  label="Lieu de naissance"
+                  name="lieuNaissance"
+                  value={formData.lieuNaissance ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.lieuNaissance}
+                  icon={<FaMapMarkerAlt />}
+                  placeholder="Paris"
+                />
+                <FormSelect
+                  label="Genre"
+                  name="genre"
+                  value={formData.genre}
+                  onChange={handleChange}
+                  options={[
+                    { value: 'M', label: 'Masculin' },
+                    { value: 'F', label: 'Féminin' },
+                  ]}
+                  required
+                  error={errors.genre}
+                  icon={<FaVenusMars />}
+                />
+              </div>
+            </FormSection>
+
+            {/* Section Contact */}
+            <FormSection title="Contact" icon={<FaPhone />}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormInput
+                  label="Téléphone"
+                  name="telephone"
+                  value={formData.telephone ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.telephone}
+                  icon={<FaPhone />}
+                  placeholder="01 23 45 67 89"
+                />
+                <FormInput
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={formData.email ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.email}
+                  icon={<FaEnvelope />}
+                  placeholder="jean.dupont@hopital.fr"
+                />
+                <FormInput
+                  label="Adresse"
+                  name="adresse"
+                  value={formData.adresse ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.adresse}
+                  icon={<FaMapMarkerAlt />}
+                  placeholder="123 rue de la Paix"
+                />
+              </div>
+            </FormSection>
+
+            {/* Section Professionnelle */}
+            <FormSection title="Informations professionnelles" icon={<FaStethoscope />}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormSelect
+                  label="Spécialité"
+                  name="idSpecialite"
+                  value={formData.idSpecialite ?? ''}
+                  onChange={handleChange}
+                  options={[
+                    { value: '', label: 'Sélectionner' },
+                    ...specialites.map((spec) => ({
+                      value: spec.idSpecialite,
+                      label: spec.nomSpecialite,
+                    })),
+                  ]}
+                  error={errors.idSpecialite}
+                  icon={<FaBuilding />}
+                />
+                <FormInput
+                  label="Qualification"
+                  name="qualification"
+                  value={formData.qualification ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.qualification}
+                  icon={<FaGraduationCap />}
+                  placeholder="Spécialiste en cardiologie"
+                />
+                <FormInput
+                  label="Diplôme"
+                  name="diplome"
+                  value={formData.diplome ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.diplome}
+                  icon={<FaGraduationCap />}
+                  placeholder="Doctorat en médecine"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormInput
+                  label="Numéro d'ordre"
+                  name="numeroOrdre"
+                  value={formData.numeroOrdre ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.numeroOrdre}
+                  icon={<FaIdCard />}
+                  placeholder="12345"
+                />
+                <FormInput
+                  label="Date d'embauche"
+                  name="dateEmbauche"
+                  type="date"
+                  value={formData.dateEmbauche ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.dateEmbauche}
+                  icon={<FaCalendarAlt />}
+                />
+                <FormInput
+                  label="Salaire ($)"
+                  name="salaire"
+                  type="number"
+                  value={formData.salaire ?? ''}
+                  onChange={handleChange}
+                  required
+                  error={errors.salaire}
+                  icon={<FaMoneyBillWave />}
+                  placeholder="5000"
+                  step="100"
+                />
+              </div>
+
+              <FormSelect
+                label="Disponibilité"
+                name="disponibilite"
+                value={formData.disponibilite}
+                onChange={handleChange}
+                options={[
+                  { value: 'Disponible', label: 'Disponible' },
+                  { value: 'EnConge', label: 'En congé' },
+                  { value: 'Absent', label: 'Absent' },
+                  { value: 'EnFormation', label: 'En formation' },
+                ]}
+                required
+                error={errors.disponibilite}
+                icon={<FaCheckCircle />}
+              />
+            </FormSection>
+
+            {/* Notes */}
+            <FormSection title="Notes" icon={<FaFileAlt />}>
+              <FormTextarea
+                name="notes"
+                value={formData.notes || ''}
+                onChange={handleChange}
+                error={errors.notes}
+                rows={4}
+                placeholder="Informations complémentaires..."
+              />
+            </FormSection>
           </div>
 
           {/* Colonne de droite - Photo */}
           <div className="lg:col-span-1">
-            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden sticky top-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-3 border-b">
-                <h5 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <FaCamera className="text-indigo-500" /> Photo du médecin
-                </h5>
+            <FormSection title="Photo du médecin" icon={<FaCamera />} className="sticky top-6">
+              <PhotoUpload
+                currentPhoto={formData.photo || undefined}
+                onPhotoChange={handlePhotoChange}
+                onPhotoRemove={handlePhotoRemove}
+                name={`${formData.prenom} ${formData.nom}`}
+              />
+              <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
+                <strong>Formats acceptés :</strong> JPG, PNG, GIF
+                <br />
+                <strong>Taille max :</strong> 5 Mo
+                <br />
+                <strong>Dimensions recommandées :</strong> 400x400px
+                <br />
+                La photo sera uploadée après l&apos;enregistrement du médecin.
               </div>
-              <div className="p-6">
-                <PhotoUpload
-                  currentPhoto={formData.photo || undefined}
-                  onPhotoChange={handlePhotoChange}
-                  onPhotoRemove={handlePhotoRemove}
-                  name={`${formData.prenom} ${formData.nom}`}
-                />
-                <div className="mt-4 p-3 bg-blue-50 rounded-md text-xs text-blue-700">
-                  <strong>Formats acceptés :</strong> JPG, PNG, GIF
-                  <br />
-                  <strong>Taille max :</strong> 5 Mo
-                  <br />
-                  <strong>Dimensions recommandées :</strong> 400x400px
-                  <br />
-                  La photo sera uploadée après l&apos;enregistrement du médecin.
-                </div>
-              </div>
-            </div>
+            </FormSection>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4 mt-8">
-          <Button type="button" variant="secondary" onClick={() => router.push('/medecins')}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={loading} icon={<FaSave />}>
-            {loading ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour' : 'Créer')}
-          </Button>
-        </div>
+        <FormActions
+          onCancel={() => router.push('/medecins')}
+          submitLabel={isEditMode ? 'Mettre à jour' : 'Créer'}
+          loading={loading}
+          submitIcon={<FaSave />}
+        />
       </form>
-    </div>
+    </PageShell>
   );
 };
 

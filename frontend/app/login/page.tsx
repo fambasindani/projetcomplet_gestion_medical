@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaHospital, FaEnvelope, FaLock } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -29,75 +30,112 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (err) {
       let message = 'Email ou mot de passe incorrect';
-
       if (axios.isAxiosError<ApiErrorResponse>(err)) {
         message = err.response?.data?.message ?? message;
       }
-
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
+  const inputClass =
+    'w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:bg-slate-100';
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 transition-transform hover:scale-[1.01]">
-        <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
-          Connexion
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4 py-10">
+      <div className="grid w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 md:grid-cols-2">
+        {/* Panneau de marque */}
+        <div className="hidden flex-col justify-between bg-slate-900 p-8 text-white md:flex">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600">
+              <FaHospital size={20} />
+            </div>
+            <div>
+              <p className="font-bold leading-tight">Hôpital Saint-Luc</p>
+              <p className="text-xs text-slate-400">Gestion hospitalière</p>
+            </div>
+          </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="jean.dupont@hopital.fr"
-            />
+            <h2 className="text-2xl font-bold">Bienvenue</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              Connectez-vous pour accéder à votre espace : patients, consultations, pharmacie,
+              facturation et bien plus.
+            </p>
+          </div>
+          <p className="text-xs text-slate-500">© {new Date().getFullYear()} — Tous droits réservés</p>
+        </div>
+
+        {/* Formulaire */}
+        <div className="p-8 sm:p-10">
+          <div className="mb-8 flex items-center gap-3 md:hidden">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white">
+              <FaHospital size={20} />
+            </div>
+            <div>
+              <p className="font-bold leading-tight text-slate-900">Hôpital Saint-Luc</p>
+              <p className="text-xs text-slate-500">Gestion hospitalière</p>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Mot de passe
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="••••••••"
-            />
-          </div>
+          <h1 className="text-xl font-bold text-slate-900">Connexion</h1>
+          <p className="mt-1 text-sm text-slate-500">Accédez à votre compte</p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 transition disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Connexion...
-              </span>
-            ) : (
-              'Se connecter'
-            )}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+            <div>
+              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Email
+              </label>
+              <div className="relative">
+                <FaEnvelope className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className={inputClass}
+                  placeholder="jean.dupont@hopital.fr"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Mot de passe
+              </label>
+              <div className="relative">
+                <FaLock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className={inputClass}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Connexion...
+                </>
+              ) : (
+                'Se connecter'
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

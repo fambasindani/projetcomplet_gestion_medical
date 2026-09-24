@@ -44,7 +44,7 @@ export default function PlanningJournalier() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 flex justify-between items-center">
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 flex justify-between items-center">
         <button onClick={() => setSelectedDate(subDays(selectedDate, 1))} className="p-2 rounded-full hover:bg-gray-100"><FaArrowLeft /></button>
         <div className="flex items-center gap-2">
           <FaCalendarDay className="text-indigo-600" />
@@ -55,7 +55,7 @@ export default function PlanningJournalier() {
 
       <div className="space-y-6">
         {Object.values(groupedByMedecin).map((group, idx) => (
-          <div key={idx} className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
+          <div key={idx} className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
             <div className="bg-indigo-50 px-4 py-2 border-b">
               <h3 className="font-semibold">Dr {group.medecin.medecinNom} {group.medecin.medecinPrenom}</h3>
             </div>
