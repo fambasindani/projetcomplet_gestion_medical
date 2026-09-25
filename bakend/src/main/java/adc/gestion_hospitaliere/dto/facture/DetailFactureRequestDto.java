@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class DetailFactureRequestDto {
 
     private Integer idActe;
+    private Integer idActeCatalogue;
     private Integer idMedicament;
     private String source;
     private Integer idSource;

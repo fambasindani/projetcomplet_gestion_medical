@@ -12,5 +12,7 @@ public class CategorieExamenResponseDto {
     private String libelle;
     private String description;
     private Boolean actif;
+    private Integer idGroupeCatalogue;
+    private String groupeCatalogueLibelle;
     private LocalDateTime dateCreation;
 }

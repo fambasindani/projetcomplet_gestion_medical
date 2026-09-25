@@ -28,6 +28,7 @@ const roleOptions = [
   { value: 'SECRETAIRE', label: 'Secrétaire' },
   { value: 'PHARMACIEN', label: 'Pharmacien' },
   { value: 'INFIRMIER', label: 'Infirmier' },
+  { value: 'LABORANTIN', label: 'Laborantin' },
   { value: 'RH', label: 'Ressources humaines' },
   { value: 'PATIENT', label: 'Patient' },
 ];

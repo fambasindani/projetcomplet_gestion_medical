@@ -18,6 +18,10 @@ export interface ActeCatalogue {
   groupeLibelle: string | null;
   categorie: CategorieActeMedical | null;
   prixDefaut: number;
+  coefficient: number | null;
+  lettreCle: string | null;
+  remboursable: boolean;
+  tauxRemboursement: number | null;
   description: string | null;
   actif: boolean;
   dateCreation: string;
@@ -28,6 +32,10 @@ export interface ActeCatalogueRequest {
   libelle: string;
   idGroupe: number;
   prixDefaut: number;
+  coefficient?: number | null;
+  lettreCle?: string | null;
+  remboursable?: boolean;
+  tauxRemboursement?: number | null;
   description: string | null;
   actif: boolean;
 }

@@ -20,6 +20,7 @@ public class AuthResponse {
     private String email;
     private String role;
     private Integer medecinId;
+    private Integer patientId;
     private String token;
     private String refreshToken;
     private Long expiresIn;

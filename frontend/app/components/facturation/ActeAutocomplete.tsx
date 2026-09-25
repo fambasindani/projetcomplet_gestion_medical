@@ -43,7 +43,8 @@ export default function ActeAutocomplete({
   }, []);
 
   useEffect(() => {
-    if (!open || !categorie) return;
+    if (!open) return;
+    if (!categorie && !value.trim()) return;
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -83,13 +84,13 @@ export default function ActeAutocomplete({
           className="block w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-10 text-sm text-gray-800 shadow-sm outline-none transition-all duration-200 placeholder:text-gray-400 hover:border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-gray-100"
           placeholder={placeholder}
           value={value}
-          disabled={disabled || !categorie}
+          disabled={disabled}
           onChange={(e) => {
             setSelected(null);
             onChange(e.target.value);
             setOpen(true);
           }}
-          onFocus={() => categorie && setOpen(true)}
+          onFocus={() => setOpen(true)}
         />
         {value && (
           <button
@@ -103,7 +104,7 @@ export default function ActeAutocomplete({
         )}
       </div>
 
-      {open && categorie && (value.trim().length >= 1 || suggestions.length > 0) && (
+      {open && (value.trim().length >= 1 || suggestions.length > 0) && (
         <div className="absolute z-40 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
           {loading ? (
             <div className="px-4 py-3 text-sm text-gray-500">Recherche...</div>

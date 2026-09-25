@@ -23,6 +23,7 @@ import FormActions from '@/app/ui/FormActions';
 interface ExamenLigne {
   typeExamen: string;
   idCategorieExamen: number;
+  idGroupeCatalogue: number | null;
   idActeCatalogue: number | null;
   datePlanification: string;
   dateRealisation: string;
@@ -62,6 +63,7 @@ export default function NouveauBatchExamens() {
   const [currentLigne, setCurrentLigne] = useState<ExamenLigne>({
     typeExamen: '',
     idCategorieExamen: 0,
+    idGroupeCatalogue: null,
     idActeCatalogue: null,
     datePlanification: '',
     dateRealisation: '',
@@ -78,21 +80,30 @@ export default function NouveauBatchExamens() {
 
   useEffect(() => {
     categorieExamenService.getAllList().then(setCategories).catch(console.error);
-    acteCatalogueService.getGroupes('Examen').then(setGroupesCatalogue).catch(console.error);
+    acteCatalogueService
+      .getGroupesAdmin('Examen')
+      .then((g) => setGroupesCatalogue(g.filter((x) => x.actif !== false)))
+      .catch(console.error);
   }, []);
 
-  const normalize = (s: string) =>
-    s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-
-  const idGroupeCataloguePourCategorie = (idCategorieExamen: number): number | null => {
-    const categorie = categories.find((c) => c.idCategorieExamen === idCategorieExamen);
-    if (!categorie) return null;
-    const match = groupesCatalogue.find((g) => normalize(g.libelle) === normalize(categorie.libelle));
-    return match ? match.idGroupe : null;
+  // Un seul niveau : le groupe du catalogue (ex. « Agent pathogène »).
+  // On résout automatiquement la catégorie d'examen liée à ce groupe, ou
+  // « Autre » par défaut (le backend exige une catégorie non nulle).
+  const categoriePourGroupe = (idGroupe: number): number => {
+    const liee = categories.find((c) => c.idGroupeCatalogue === idGroupe);
+    if (liee) return liee.idCategorieExamen;
+    const autre = categories.find((c) => c.code === 'AUTRE');
+    return autre?.idCategorieExamen ?? categories[0]?.idCategorieExamen ?? 0;
   };
 
-  const handleCategorieChange = (idCategorieExamen: number) => {
-    setCurrentLigne((prev) => ({ ...prev, idCategorieExamen, typeExamen: '', idActeCatalogue: null }));
+  const handleGroupeChange = (idGroupe: number | null) => {
+    setCurrentLigne((prev) => ({
+      ...prev,
+      idGroupeCatalogue: idGroupe,
+      idCategorieExamen: idGroupe ? categoriePourGroupe(idGroupe) : 0,
+      typeExamen: '',
+      idActeCatalogue: null,
+    }));
   };
 
   const handleCatalogueSelect = (acte: { libelle: string; idActeCatalogue: number }) => {
@@ -100,8 +111,8 @@ export default function NouveauBatchExamens() {
   };
 
   const addLigne = () => {
-    if (!currentLigne.typeExamen || !currentLigne.idCategorieExamen) {
-      toast.error('Type et catégorie requis pour chaque examen');
+    if (!currentLigne.typeExamen || !currentLigne.idGroupeCatalogue || !currentLigne.idCategorieExamen) {
+      toast.error('Groupe et examen précis requis pour chaque ligne');
       return;
     }
     setForm(prev => ({
@@ -111,6 +122,7 @@ export default function NouveauBatchExamens() {
     setCurrentLigne({
       typeExamen: '',
       idCategorieExamen: 0,
+      idGroupeCatalogue: null,
       idActeCatalogue: null,
       datePlanification: '',
       dateRealisation: '',
@@ -211,35 +223,48 @@ const handleSubmit = async (e: React.FormEvent) => {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-800">
-                Examen précis
-              </label>
-              <ActeAutocomplete
-                categorie="Examen"
-                idGroupe={idGroupeCataloguePourCategorie(currentLigne.idCategorieExamen)}
-                value={currentLigne.typeExamen}
-                onChange={(text) => setCurrentLigne({ ...currentLigne, typeExamen: text })}
-                onSelect={handleCatalogueSelect}
-                placeholder={currentLigne.idCategorieExamen ? 'Tapez pour rechercher (ex. : radio, ECG...)' : 'Choisissez d\'abord une catégorie'}
+              <FormSelect
+                label="Groupe d'examens"
+                value={currentLigne.idGroupeCatalogue ?? ''}
+                onChange={(e) => handleGroupeChange(e.target.value ? Number(e.target.value) : null)}
+                options={[
+                  {
+                    value: '',
+                    label: groupesCatalogue.length === 0
+                      ? 'Chargement des groupes...'
+                      : '-- Choisir un groupe --',
+                  },
+                  ...groupesCatalogue.map((g) => ({ value: g.idGroupe, label: g.libelle })),
+                ]}
+                required
               />
-            </div>
-            <FormSelect
-              label="Catégorie"
-              value={currentLigne.idCategorieExamen}
-              onChange={(e) => handleCategorieChange(parseInt(e.target.value))}
-              options={categories.map((c) => ({ value: c.idCategorieExamen, label: c.libelle }))}
-              required
-            />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={addLigne}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-1"
-                >
-                  <FaPlus /> Ajouter
-                </button>
+              <div className="md:col-span-2">
+                <label className="mb-1.5 block text-sm font-semibold text-gray-800">
+                  Examen précis
+                </label>
+                <ActeAutocomplete
+                  categorie="Examen"
+                  idGroupe={currentLigne.idGroupeCatalogue}
+                  value={currentLigne.typeExamen}
+                  onChange={(text) => setCurrentLigne((prev) => ({ ...prev, typeExamen: text, idActeCatalogue: null }))}
+                  onSelect={handleCatalogueSelect}
+                  disabled={!currentLigne.idGroupeCatalogue}
+                  placeholder={
+                    !currentLigne.idGroupeCatalogue
+                      ? 'Choisissez d\'abord un groupe d\'examens'
+                      : 'Tapez pour rechercher (ex. : radio, ECG, paludisme...)'
+                  }
+                />
               </div>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={addLigne}
+                className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-1"
+              >
+                <FaPlus /> Ajouter
+              </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-2">
               <FormInput
@@ -340,7 +365,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <thead className="bg-slate-50">
                     <tr>
                       <th className="px-3 py-2 text-left">Type</th>
-                      <th className="px-3 py-2 text-left">Catégorie</th>
+                      <th className="px-3 py-2 text-left">Groupe</th>
                       <th className="px-3 py-2 text-left">Laboratoire</th>
                       <th className="px-3 py-2 text-left">Technicien</th>
                       <th className="px-3 py-2 text-left">Statut</th>
@@ -352,7 +377,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     {form.examens.map((ex, idx) => (
                       <tr key={idx} className="border-t">
                         <td className="px-3 py-2">{ex.typeExamen}</td>
-                        <td className="px-3 py-2">{categories.find(c => c.idCategorieExamen === ex.idCategorieExamen)?.libelle || ex.idCategorieExamen}</td>
+                        <td className="px-3 py-2">{groupesCatalogue.find(g => g.idGroupe === ex.idGroupeCatalogue)?.libelle || '-'}</td>
                         <td className="px-3 py-2">{ex.laboratoire || '-'}</td>
                         <td className="px-3 py-2">{ex.technicien || '-'}</td>
                         <td className="px-3 py-2">

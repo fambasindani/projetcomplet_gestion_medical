@@ -37,4 +37,13 @@ export const personnelService = {
   async delete(id: number): Promise<void> {
     await api.delete(`/personnel/${id}`);
   },
+
+  async getStatistiques(): Promise<{
+    totalPersonnels: number;
+    topFonctions: { fonction: string; effectif: number }[];
+    repartitionParService: Record<string, number>;
+  }> {
+    const res = await api.get('/personnel/statistiques');
+    return res.data;
+  },
 };

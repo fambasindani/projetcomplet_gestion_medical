@@ -45,6 +45,7 @@ public class CategorieExamenService {
         entity.setLibelle(dto.getLibelle());
         entity.setDescription(dto.getDescription());
         entity.setActif(dto.getActif() != null ? dto.getActif() : true);
+        entity.setIdGroupeCatalogue(dto.getIdGroupeCatalogue());
         return toDto(repository.save(entity));
     }
 
@@ -61,6 +62,7 @@ public class CategorieExamenService {
         entity.setLibelle(dto.getLibelle());
         entity.setDescription(dto.getDescription());
         if (dto.getActif() != null) entity.setActif(dto.getActif());
+        entity.setIdGroupeCatalogue(dto.getIdGroupeCatalogue());
         return toDto(repository.save(entity));
     }
 
@@ -79,6 +81,8 @@ public class CategorieExamenService {
                 .libelle(entity.getLibelle())
                 .description(entity.getDescription())
                 .actif(entity.getActif())
+                .idGroupeCatalogue(entity.getIdGroupeCatalogue())
+                .groupeCatalogueLibelle(entity.getGroupeCatalogue() != null ? entity.getGroupeCatalogue().getLibelle() : null)
                 .dateCreation(entity.getDateCreation())
                 .build();
     }

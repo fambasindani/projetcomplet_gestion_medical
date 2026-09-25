@@ -52,6 +52,8 @@ export interface DetailFacture {
   idFacture: number;
   idActe: number | null;
   acteLibelle: string | null;
+  idActeCatalogue: number | null;
+  acteCatalogueLibelle: string | null;
   idMedicament: number | null;
   medicamentNom: string | null;
   source: string | null;
@@ -94,8 +96,11 @@ export interface Facture {
   statut: StatutFacture;
   modePaiement: ModePaiement | null;
   assurancePriseEnCharge: boolean;
+  tauxAssurance: number | null;
+  montantAssurance: number | null;
   mutuelleId: string | null;
   mutuellePriseEnCharge: number | null;
+  resteAChargePatient: number | null;
   datePaiementTotal: string | null;
   notesComptables: string | null;
   details: DetailFacture[];
@@ -104,6 +109,7 @@ export interface Facture {
 
 export interface FactureDetailLigne {
   idActe: number | null;
+  idActeCatalogue: number | null;
   idMedicament: number | null;
   source: string | null;
   idSource: number | null;
@@ -120,6 +126,7 @@ export interface FactureCreate {
   dateEcheance: string | null;
   tva: number;
   assurancePriseEnCharge: boolean;
+  tauxAssurance: number | null;
   mutuelleId: string | null;
   mutuellePriseEnCharge: number | null;
   notesComptables: string | null;

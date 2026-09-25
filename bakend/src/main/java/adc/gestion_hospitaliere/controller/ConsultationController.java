@@ -12,8 +12,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -82,7 +84,10 @@ public class ConsultationController {
     }
 
     @GetMapping("/statistiques")
-    public ResponseEntity<Map<String, Object>> getStatistiques() {
-        return ResponseEntity.ok(consultationService.getStatistiques());
+    public ResponseEntity<Map<String, Object>> getStatistiques(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false, defaultValue = "month") String granularite) {
+        return ResponseEntity.ok(consultationService.getStatistiques(dateDebut, dateFin, granularite));
     }
 }

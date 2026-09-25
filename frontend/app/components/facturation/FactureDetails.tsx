@@ -218,7 +218,7 @@ export default function FactureDetails() {
                           <Tr key={detail.idDetail}>
                             <Td>
                               <span className="font-medium text-gray-800">
-                                {detail.acteLibelle ?? detail.medicamentNom ?? detail.description ?? '-'}
+                                {detail.acteLibelle ?? detail.acteCatalogueLibelle ?? detail.medicamentNom ?? detail.description ?? '-'}
                               </span>
                               {detail.description && detail.acteLibelle && detail.description !== detail.acteLibelle && (
                                 <span className="block text-xs text-gray-500">{detail.description}</span>

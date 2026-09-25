@@ -5,6 +5,7 @@ export type UserRole =
   | 'SECRETAIRE'
   | 'PHARMACIEN'
   | 'INFIRMIER'
+  | 'LABORANTIN'
   | 'RH';
 
 export interface User {

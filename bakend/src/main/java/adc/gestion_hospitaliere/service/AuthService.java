@@ -211,6 +211,7 @@ public class AuthService {
         Integer medecinId = user.getRole() == Role.MEDECIN
                 ? medecinRepository.findByEmail(user.getEmail()).map(Medecin::getIdMedecin).orElse(null)
                 : null;
+        Integer patientId = user.getPatient() != null ? user.getPatient().getIdPatient() : null;
         return AuthResponse.builder()
                 .id(user.getId())
                 .nom(user.getNom())
@@ -218,6 +219,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .medecinId(medecinId)
+                .patientId(patientId)
                 .token(token)
                 .refreshToken(refreshToken)
                 .expiresIn(jwtExpiration)

@@ -66,4 +66,12 @@ public class RendezVous {
     // Relation One-to-One avec Consultation (si besoin)
     @OneToOne(mappedBy = "rendezVous")
     private Consultation consultation;
+
+    // Valeurs par défaut garanties même en passant par le builder Lombok.
+    @PrePersist
+    void prePersist() {
+        if (statut == null) statut = StatutRendezVous.Programmé;
+        if (dureeEstimee == null) dureeEstimee = 30;
+        if (rappelEnvoye == null) rappelEnvoye = false;
+    }
 }

@@ -109,4 +109,10 @@ export interface MedecinDetails {
     patient: string;
     statut: string;
   }[];
+  tousLesRendezVous?: {
+    idRdv: number;
+    dateRdv: string;
+    patient: string;
+    statut: string;
+  }[];
 }

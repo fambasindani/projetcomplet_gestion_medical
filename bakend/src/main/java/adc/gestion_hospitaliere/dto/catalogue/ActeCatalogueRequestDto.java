@@ -21,6 +21,12 @@ public class ActeCatalogueRequestDto {
     @NotNull(message = "Le prix par défaut est requis")
     private BigDecimal prixDefaut;
 
+    // Cotation
+    private BigDecimal coefficient;
+    private String lettreCle;
+    private Boolean remboursable;
+    private BigDecimal tauxRemboursement;
+
     private String description;
 
     private Boolean actif;

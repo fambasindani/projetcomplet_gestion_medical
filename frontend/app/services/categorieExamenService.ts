@@ -8,6 +8,7 @@ export interface CategorieExamenRequest {
   libelle: string;
   description?: string;
   actif?: boolean;
+  idGroupeCatalogue?: number | null;
 }
 
 export const categorieExamenService = {

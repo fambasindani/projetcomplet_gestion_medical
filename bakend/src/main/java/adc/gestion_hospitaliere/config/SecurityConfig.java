@@ -162,7 +162,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categories-examen/**").hasAuthority("CATEGORIES_EXAMEN_VOIR")
                         .requestMatchers("/api/categories-examen/**").hasAuthority("CATEGORIES_EXAMEN_GERER")
                         .requestMatchers(HttpMethod.GET, "/api/examens/**").hasAuthority("EXAMENS_VOIR")
-                        .requestMatchers("/api/examens/**").hasAuthority("EXAMENS_GERER")
+                        .requestMatchers(HttpMethod.POST, "/api/examens/**").hasAuthority("EXAMENS_GERER")
+                        .requestMatchers(HttpMethod.PUT, "/api/examens/**").hasAnyAuthority("EXAMENS_GERER", "EXAMENS_RESULTAT")
+                        .requestMatchers(HttpMethod.DELETE, "/api/examens/**").hasAuthority("EXAMENS_GERER")
 
                         // ===== SOINS =====
                         .requestMatchers(HttpMethod.GET, "/api/soins-infirmiers/**").hasAuthority("SOINS_VOIR")

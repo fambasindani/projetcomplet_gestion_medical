@@ -26,4 +26,38 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Inte
 
     @Query("SELECT FUNCTION('FORMAT', c.dateConsultation, 'yyyy-MM') as month, COUNT(c) FROM Consultation c WHERE c.dateConsultation >= :start GROUP BY month ORDER BY month ASC")
     List<Object[]> countByMonthSince(@Param("start") LocalDateTime start);
+
+    @Query("SELECT COUNT(c) FROM Consultation c WHERE " +
+            "(:start IS NULL OR c.dateConsultation >= :start) AND " +
+            "(:end IS NULL OR c.dateConsultation <= :end)")
+    long countPeriode(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(DISTINCT c.idMedecin) FROM Consultation c WHERE " +
+            "(:start IS NULL OR c.dateConsultation >= :start) AND " +
+            "(:end IS NULL OR c.dateConsultation <= :end)")
+    long countDistinctMedecinsPeriode(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    // Granularité : jour
+    @Query("SELECT FUNCTION('FORMAT', c.dateConsultation, 'yyyy-MM-dd') as periode, COUNT(c) FROM Consultation c " +
+            "WHERE (:start IS NULL OR c.dateConsultation >= :start) " +
+            "AND (:end IS NULL OR c.dateConsultation <= :end) " +
+            "GROUP BY FUNCTION('FORMAT', c.dateConsultation, 'yyyy-MM-dd') " +
+            "ORDER BY FUNCTION('FORMAT', c.dateConsultation, 'yyyy-MM-dd') ASC")
+    List<Object[]> countParJour(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    // Granularité : mois
+    @Query("SELECT FUNCTION('FORMAT', c.dateConsultation, 'yyyy-MM') as periode, COUNT(c) FROM Consultation c " +
+            "WHERE (:start IS NULL OR c.dateConsultation >= :start) " +
+            "AND (:end IS NULL OR c.dateConsultation <= :end) " +
+            "GROUP BY FUNCTION('FORMAT', c.dateConsultation, 'yyyy-MM') " +
+            "ORDER BY FUNCTION('FORMAT', c.dateConsultation, 'yyyy-MM') ASC")
+    List<Object[]> countParMoisGran(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    // Granularité : année
+    @Query("SELECT FUNCTION('FORMAT', c.dateConsultation, 'yyyy') as periode, COUNT(c) FROM Consultation c " +
+            "WHERE (:start IS NULL OR c.dateConsultation >= :start) " +
+            "AND (:end IS NULL OR c.dateConsultation <= :end) " +
+            "GROUP BY FUNCTION('FORMAT', c.dateConsultation, 'yyyy') " +
+            "ORDER BY FUNCTION('FORMAT', c.dateConsultation, 'yyyy') ASC")
+    List<Object[]> countParAnnee(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

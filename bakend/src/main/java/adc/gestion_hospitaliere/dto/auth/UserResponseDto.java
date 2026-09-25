@@ -17,7 +17,8 @@ public class UserResponseDto {
     private Role role;
     private boolean actif;
     private Integer personnelId;   // optionnel, si l’utilisateur est lié à un personnel
-    private Integer medecinId;     // optionnel, si l’utilisateur est un médecin
+    private Integer medecinId;
+    private Integer patientId;
     private List<String> permissions;
     private LocalDateTime dateCreation;
     private LocalDateTime dateModification;

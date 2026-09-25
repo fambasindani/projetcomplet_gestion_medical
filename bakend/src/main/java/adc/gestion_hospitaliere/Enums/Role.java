@@ -7,5 +7,6 @@ public enum Role {
     SECRETAIRE,
     PHARMACIEN,
     INFIRMIER,
+    LABORANTIN,
     RH
 }

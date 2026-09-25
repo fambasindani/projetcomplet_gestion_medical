@@ -121,6 +121,10 @@ public class ActeCatalogueService {
                 .libelle(dto.getLibelle().trim())
                 .idGroupe(groupe.getIdGroupe())
                 .prixDefaut(dto.getPrixDefaut() != null ? dto.getPrixDefaut() : BigDecimal.ZERO)
+                .coefficient(dto.getCoefficient())
+                .lettreCle(dto.getLettreCle())
+                .remboursable(dto.getRemboursable() != null ? dto.getRemboursable() : true)
+                .tauxRemboursement(dto.getTauxRemboursement())
                 .description(dto.getDescription())
                 .actif(dto.getActif() != null ? dto.getActif() : true)
                 .build();
@@ -145,6 +149,10 @@ public class ActeCatalogueService {
             acte.setIdGroupe(dto.getIdGroupe());
         }
         if (dto.getPrixDefaut() != null) acte.setPrixDefaut(dto.getPrixDefaut());
+        if (dto.getCoefficient() != null) acte.setCoefficient(dto.getCoefficient());
+        if (dto.getLettreCle() != null) acte.setLettreCle(dto.getLettreCle());
+        if (dto.getRemboursable() != null) acte.setRemboursable(dto.getRemboursable());
+        if (dto.getTauxRemboursement() != null) acte.setTauxRemboursement(dto.getTauxRemboursement());
         if (dto.getDescription() != null) acte.setDescription(dto.getDescription());
         if (dto.getActif() != null) acte.setActif(dto.getActif());
         return toDto(catalogueRepository.save(acte));
@@ -176,6 +184,10 @@ public class ActeCatalogueService {
                 .groupeLibelle(groupe != null ? groupe.getLibelle() : null)
                 .categorie(groupe != null ? groupe.getCategorie() : null)
                 .prixDefaut(a.getPrixDefaut())
+                .coefficient(a.getCoefficient())
+                .lettreCle(a.getLettreCle())
+                .remboursable(a.getRemboursable())
+                .tauxRemboursement(a.getTauxRemboursement())
                 .description(a.getDescription())
                 .actif(a.getActif())
                 .dateCreation(a.getDateCreation())

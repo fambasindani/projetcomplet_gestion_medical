@@ -177,30 +177,58 @@ public class ConsultationService {
 
     // ---------- STATISTIQUES ----------
     public Map<String, Object> getStatistiques() {
+        return getStatistiques(null, null, "month");
+    }
+
+    /**
+     * Statistiques de consultations sur une période et une granularité données.
+     * granularite : "day", "month" ou "year" (défaut "month").
+     */
+    public Map<String, Object> getStatistiques(LocalDate dateDebut, LocalDate dateFin, String granularite) {
         Map<String, Object> result = new LinkedHashMap<>();
 
-        long total = consultationRepository.count();
+        LocalDateTime start = dateDebut != null ? dateDebut.atStartOfDay() : null;
+        LocalDateTime end = dateFin != null ? dateFin.atTime(23, 59, 59) : null;
+        boolean filtre = dateDebut != null || dateFin != null;
+
+        long total = filtre ? consultationRepository.countPeriode(start, end) : consultationRepository.count();
         long consultationsMois = consultationRepository.countByDateConsultationBetween(
                 LocalDate.now().withDayOfMonth(1).atStartOfDay(), LocalDate.now().plusMonths(1).withDayOfMonth(1).atStartOfDay().minusNanos(1));
-        long medecinsActifs = consultationRepository.countDistinctMedecins();
+        long medecinsActifs = filtre
+                ? consultationRepository.countDistinctMedecinsPeriode(start, end)
+                : consultationRepository.countDistinctMedecins();
 
-        // Consultations par mois (12 derniers mois)
-        LocalDateTime start = LocalDate.now().minusMonths(11).withDayOfMonth(1).atStartOfDay();
-        List<Object[]> parMoisRaw = consultationRepository.countByMonthSince(start);
-        Map<String, Long> parMoisMap = parMoisRaw.stream()
-                .collect(Collectors.toMap(
-                        row -> String.valueOf(row[0]),
-                        row -> ((Number) row[1]).longValue()
-                ));
+        String gran = granularite == null ? "month" : granularite.toLowerCase();
+        String format = switch (gran) {
+            case "day" -> "yyyy-MM-dd";
+            case "year" -> "yyyy";
+            default -> "yyyy-MM";
+        };
+
+        List<Object[]> rows = switch (gran) {
+            case "day" -> consultationRepository.countParJour(start, end);
+            case "year" -> consultationRepository.countParAnnee(start, end);
+            default -> consultationRepository.countParMoisGran(start, end);
+        };
+        DateTimeFormatter labelFormatter = switch (format) {
+            case "yyyy-MM-dd" -> DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            case "yyyy" -> DateTimeFormatter.ofPattern("yyyy");
+            default -> DateTimeFormatter.ofPattern("MMM yy", Locale.FRENCH);
+        };
+        DateTimeFormatter keyFormatter = DateTimeFormatter.ofPattern(format);
         List<Map<String, Object>> parMois = new ArrayList<>();
-        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM yy", Locale.FRENCH);
-        for (int i = 11; i >= 0; i--) {
-            LocalDate d = LocalDate.now().minusMonths(i);
-            String key = d.format(DateTimeFormatter.ofPattern("yyyy-MM"));
-            String mois = d.format(labelFormatter);
+        for (Object[] row : rows) {
+            String raw = row[0] != null ? row[0].toString() : null;
+            long nombre = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+            String label = raw;
+            try {
+                label = LocalDate.parse(raw, keyFormatter).format(labelFormatter);
+            } catch (Exception ignored) {
+                // on garde la valeur brute
+            }
             Map<String, Object> item = new LinkedHashMap<>();
-            item.put("mois", mois);
-            item.put("nombre", parMoisMap.getOrDefault(key, 0L));
+            item.put("mois", label);
+            item.put("nombre", nombre);
             parMois.add(item);
         }
         result.put("parMois", parMois);

@@ -13,41 +13,58 @@ import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import EmptyState from '@/app/ui/EmptyState';
 import Button from '@/app/ui/Button';
 import PageShell from '@/app/ui/PageShell';
-import DetailBanner from '@/app/ui/DetailBanner';
-import { InfoCard, InfoGrid } from '@/app/ui/InfoCard';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 import { specialiteService } from '@/app/services/specialiteService';
 import type { Specialite } from '@/app/types/specialite';
 import type { Medecin } from '@/app/types/medecin';
 import type { Chambre } from '@/app/types/chambre';
 
-const getDisponibiliteColor = (d?: string) => {
-  switch (d) {
-    case 'Disponible':
-      return 'bg-green-100 text-green-800';
-    case 'EnConge':
-      return 'bg-amber-100 text-amber-800';
-    case 'Absent':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+const DISPO_COLORS: Record<string, string> = {
+  Disponible: '#10b981',
+  EnConge: '#facc15',
+  'En congé': '#facc15',
+  Absent: '#7c3aed',
+  EnFormation: '#ec4899',
+  'En formation': '#ec4899',
 };
 
-const getStatutChambreColor = (s?: string) => {
-  switch (s) {
-    case 'Disponible':
-      return 'bg-green-100 text-green-800';
-    case 'Occupee':
-    case 'Reservee':
-      return 'bg-red-100 text-red-800';
-    case 'En_nettoyage':
-    case 'Hors_service':
-      return 'bg-amber-100 text-amber-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+const DISPO_LABELS: Record<string, string> = {
+  Disponible: 'Disponible',
+  EnConge: 'En congé',
+  'En congé': 'En congé',
+  Absent: 'Absent',
+  EnFormation: 'En formation',
+  'En formation': 'En formation',
 };
+
+const CHAMBRE_COLORS: Record<string, string> = {
+  Disponible: '#10b981',
+  Occupee: '#7c3aed',
+  Reservee: '#f59e0b',
+  En_nettoyage: '#f59e0b',
+  Hors_service: '#ef4444',
+};
+
+const CHAMBRE_LABELS: Record<string, string> = {
+  Disponible: 'Disponible',
+  Occupee: 'Occupée',
+  Reservee: 'Réservée',
+  En_nettoyage: 'En nettoyage',
+  Hors_service: 'Hors service',
+};
+
+function Badge({ value, colors, labels }: { value?: string; colors: Record<string, string>; labels: Record<string, string> }) {
+  const color = colors[value ?? ''] ?? '#64748b';
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium"
+      style={{ background: `${color}14`, color }}
+    >
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+      {labels[value ?? ''] ?? value ?? '-'}
+    </span>
+  );
+}
 
 const SpecialiteDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -131,73 +148,108 @@ const SpecialiteDetails: React.FC = () => {
         </>
       }
     >
-      {/* Carte principale */}
-      <DetailBanner
-        title={specialite.nomSpecialite}
-        subtitle={specialite.chefService ? `Chef de service : ${specialite.chefService}` : 'Aucun chef de service'}
-        meta="Spécialité"
-        badges={
-          <span className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-bold uppercase ${specialite.actif ? 'bg-emerald-500/20 text-emerald-100' : 'bg-red-500/20 text-red-100'}`}>
-            {specialite.actif ? <><FaCheckCircle className="mr-1" /> Actif</> : <><FaTimesCircle className="mr-1" /> Inactif</>}
-          </span>
-        }
-      >
-        <div className="grid grid-cols-1 divide-y divide-slate-100 md:grid-cols-3 md:divide-x">
-          <div className="p-6 text-center">
-            <div className="text-3xl font-bold text-indigo-600">{medecins.length}</div>
-            <div className="mt-1 text-sm text-gray-500 flex items-center justify-center gap-1"><FaUserMd /> Médecins</div>
+      {/* Carte principale (style AdminLTE) */}
+      <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
+        <div className="relative h-24 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-30"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 20% 120%, rgba(99,102,241,0.6), transparent 50%), radial-gradient(circle at 80% -20%, rgba(14,165,233,0.5), transparent 50%)',
+            }}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-6 px-6 pb-6 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+              <div
+                className="relative z-10 -mt-16 mb-3 flex h-24 w-24 items-center justify-center rounded-full bg-white text-indigo-500 ring-4 ring-white"
+                style={{ boxShadow: '0 4px 14px rgba(15,23,42,0.15)' }}
+              >
+                <FaBuilding className="text-3xl" />
+              </div>
+              <h2 className="text-lg font-semibold text-slate-800">{specialite.nomSpecialite}</h2>
+              <p className="text-sm text-slate-500">
+                {specialite.chefService ? `Chef de service : ${specialite.chefService}` : 'Aucun chef de service'}
+              </p>
+              <span
+                className="mt-2 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium"
+                style={{
+                  background: specialite.actif ? '#10b98114' : '#ef444414',
+                  color: specialite.actif ? '#059669' : '#dc2626',
+                }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: specialite.actif ? '#10b981' : '#ef4444' }} />
+                {specialite.actif ? 'Actif' : 'Inactif'}
+              </span>
+            </div>
           </div>
-          <div className="p-6 text-center">
-            <div className="text-3xl font-bold text-purple-600">{chambres.length}</div>
-            <div className="mt-1 text-sm text-gray-500 flex items-center justify-center gap-1"><FaBed /> Chambres</div>
-          </div>
-          <div className="p-6 text-center">
-            <div className="text-3xl font-bold text-emerald-600">{specialite.actif ? 'Actif' : 'Inactif'}</div>
-            <div className="mt-1 text-sm text-gray-500 flex items-center justify-center gap-1"><FaClipboardList /> Statut</div>
+
+          <div className="lg:col-span-8">
+            <div className="grid grid-cols-3 gap-3 border-b border-slate-100 py-4">
+              {[
+                { label: 'Médecins', value: medecins.length, color: '#6366f1', icon: FaUserMd },
+                { label: 'Chambres', value: chambres.length, color: '#8b5cf6', icon: FaBed },
+                { label: 'Statut', value: specialite.actif ? 'Actif' : 'Inactif', color: specialite.actif ? '#10b981' : '#ef4444', icon: FaClipboardList },
+              ].map((kpi) => (
+                <div key={kpi.label} className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-center">
+                  <p className="text-2xl font-semibold tabular-nums" style={{ color: kpi.color }}>{kpi.value}</p>
+                  <p className="mt-0.5 flex items-center justify-center gap-1 text-[11px] font-medium uppercase tracking-wide text-slate-400">
+                    <kpi.icon size={10} /> {kpi.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="pt-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Coordonnées</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <InfoLine icon={FaPhone} label="Téléphone" value={specialite.telephoneService} />
+                <InfoLine icon={FaEnvelope} label="Email" value={specialite.emailService} />
+                <InfoLine
+                  icon={FaCalendarAlt}
+                  label="Création"
+                  value={specialite.dateCreation ? new Date(specialite.dateCreation).toLocaleDateString('fr-FR') : '-'}
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </DetailBanner>
+      </div>
 
-      {/* Onglets */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-200">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 rounded-t-lg px-4 py-2 font-medium transition ${
-              activeTab === tab.key
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <tab.icon size={14} /> {tab.label}
-          </button>
-        ))}
+      {/* Onglets (nav-tabs AdminLTE) */}
+      <div className="border-b border-slate-200">
+        <nav className="flex flex-wrap gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+                activeTab === tab.key
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+              }`}
+            >
+              <tab.icon size={13} /> {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
       {activeTab === 'infos' && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-            <div className="bg-slate-50 px-6 py-3 border-b font-semibold text-gray-800">
-              <FaBuilding className="inline mr-1 text-indigo-500" /> Informations
-            </div>
-            <InfoGrid>
-              <InfoCard icon={FaUserTie} label="Chef de service" value={specialite.chefService || '-'} />
-              <InfoCard icon={FaPhone} label="Téléphone" value={specialite.telephoneService || '-'} />
-              <InfoCard icon={FaEnvelope} label="Email" value={specialite.emailService || '-'} />
-              <InfoCard icon={FaCalendarAlt} label="Date de création" value={specialite.dateCreation ? new Date(specialite.dateCreation).toLocaleDateString('fr-FR') : '-'} />
-              <InfoCard icon={FaDoorOpen} label="Statut" value={specialite.actif ? 'Actif' : 'Inactif'} />
-            </InfoGrid>
-          </div>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <Panel title="Informations" icon={<FaBuilding className="text-indigo-500" />}>
+            <Field label="Chef de service" value={specialite.chefService} />
+            <Field label="Téléphone" value={specialite.telephoneService} />
+            <Field label="Email" value={specialite.emailService} />
+            <Field label="Date de création" value={specialite.dateCreation ? new Date(specialite.dateCreation).toLocaleDateString('fr-FR') : '-'} />
+            <Field label="Statut" value={specialite.actif ? 'Actif' : 'Inactif'} />
+          </Panel>
 
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-            <div className="bg-slate-50 px-6 py-3 border-b font-semibold text-gray-800">
-              <FaClipboardList className="inline mr-1 text-indigo-500" /> Description
+          <Panel title="Description" icon={<FaClipboardList className="text-indigo-500" />}>
+            <div className="py-3">
+              <p className="leading-relaxed text-slate-600">{specialite.description || 'Aucune description.'}</p>
             </div>
-            <div className="p-5">
-              <p className="text-gray-700 leading-relaxed">{specialite.description || 'Aucune description.'}</p>
-            </div>
-          </div>
+          </Panel>
         </div>
       )}
 
@@ -222,9 +274,7 @@ const SpecialiteDetails: React.FC = () => {
                     <Td className="whitespace-nowrap text-gray-600">{m.matricule}</Td>
                     <Td className="whitespace-nowrap text-gray-600">{m.telephone || m.email || '-'}</Td>
                     <Td className="whitespace-nowrap">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getDisponibiliteColor(m.disponibilite)}`}>
-                        {m.disponibilite === 'EnConge' ? 'En congé' : m.disponibilite}
-                      </span>
+                      <Badge value={m.disponibilite} colors={DISPO_COLORS} labels={DISPO_LABELS} />
                     </Td>
                   </Tr>
                 ))
@@ -262,9 +312,7 @@ const SpecialiteDetails: React.FC = () => {
                     <Td className="whitespace-nowrap text-gray-600">{c.etage ?? '-'}</Td>
                     <Td className="whitespace-nowrap text-gray-600">{c.typeChambre || '-'}</Td>
                     <Td className="whitespace-nowrap">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatutChambreColor(c.statut)}`}>
-                        {c.statut || '-'}
-                      </span>
+                      <Badge value={c.statut} colors={CHAMBRE_COLORS} labels={CHAMBRE_LABELS} />
                     </Td>
                     <Td className="whitespace-nowrap text-gray-600">{c.prixJour ? `${c.prixJour} $` : '-'}</Td>
                   </Tr>
@@ -283,5 +331,39 @@ const SpecialiteDetails: React.FC = () => {
     </PageShell>
   );
 };
+
+function InfoLine({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string | null }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-lg border border-slate-100 bg-white px-3 py-2.5">
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500">
+        <Icon size={12} />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</p>
+        <p className="truncate text-sm text-slate-700">{value || '-'}</p>
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
+      <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-5 py-3.5">
+        <h5 className="text-sm font-semibold text-slate-700">{icon} {title}</h5>
+      </div>
+      <div className="divide-y divide-slate-100 px-5">{children}</div>
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-right text-sm font-medium text-slate-700">{value || '-'}</span>
+    </div>
+  );
+}
 
 export default SpecialiteDetails;

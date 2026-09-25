@@ -57,7 +57,7 @@ export default function ExamenDetails() {
   const { id } = useParams();
   const router = useRouter();
   const confirm = useConfirm();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [examen, setExamen] = useState<Examen | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -88,7 +88,11 @@ export default function ExamenDetails() {
   if (!examen) return <div className="p-6 text-center">Examen non trouvé</div>;
 
   // Un médecin ne peut modifier/saisir/supprimer que ses propres examens.
-  const editable = peutModifier(user?.role, user?.medecinId, examen.idMedecinPrescripteur);
+  const proprietaire = peutModifier(user?.role, user?.medecinId, examen.idMedecinPrescripteur);
+  const peutGerer = hasPermission('EXAMENS_GERER');
+  const peutResultat = hasPermission('EXAMENS_GERER') || hasPermission('EXAMENS_RESULTAT');
+  const editable = peutGerer && proprietaire;          // modifier la demande / supprimer
+  const saisirResultat = peutResultat && proprietaire; // saisir / modifier le résultat
   const aResultat = !!(examen.resultat || examen.interpretation || examen.compteRendu || examen.conclusion || examen.anomalies);
 
   const infos: { icon: IconType; label: string; value: string }[] = [
@@ -116,7 +120,7 @@ export default function ExamenDetails() {
                 Modifier la demande
               </Button>
             )}
-            {editable && examen.statut !== 'Validé' && (
+            {saisirResultat && examen.statut !== 'Validé' && (
               <Button icon={<FaFlask />} onClick={() => router.push(`/examens/resultat/${examen.idExamen}`)}>
                 {examen.statut === 'Réalisé' ? 'Modifier le résultat' : 'Saisir le résultat'}
               </Button>
@@ -207,7 +211,7 @@ export default function ExamenDetails() {
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center shadow-sm">
           <FaFlask className="text-4xl text-gray-200" />
           <p className="text-sm text-gray-500">Aucun résultat pour cet examen.</p>
-          {examen.statut !== 'Validé' && (
+          {saisirResultat && examen.statut !== 'Validé' && (
             <Button icon={<FaPlusCircle />} onClick={() => router.push(`/examens/resultat/${examen.idExamen}`)}>
               Saisir le résultat
             </Button>

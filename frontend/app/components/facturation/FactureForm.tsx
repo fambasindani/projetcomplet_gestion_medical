@@ -17,7 +17,8 @@ import {
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
-import { acteMedicalService } from '@/app/services/acteMedicalService';
+import ActeAutocomplete from '@/app/components/facturation/ActeAutocomplete';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { consultationService } from '@/app/services/consultationService';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 import { factureService, SourceElementLabels, type ElementFacturable, type SourceElement } from '@/app/services/factureService';
@@ -31,6 +32,7 @@ import Button, { IconButton } from '@/app/ui/Button';
 
 interface LigneFacture {
   idActe: number | null;
+  idActeCatalogue: number | null;
   idMedicament: number | null;
   source: string | null;
   idSource: number | null;
@@ -40,15 +42,9 @@ interface LigneFacture {
   remise: number;
 }
 
-interface ActeOption {
-  idActe: number;
-  codeActe: string;
-  libelle: string;
-  prixBase: number;
-}
-
 const nouvelleLigne = (): LigneFacture => ({
   idActe: null,
+  idActeCatalogue: null,
   idMedicament: null,
   source: null,
   idSource: null,
@@ -70,20 +66,27 @@ const formatDateForBackend = (dateStr: string): string | null => {
 
 export default function FactureForm() {
   const router = useRouter();
-  const [actes, setActes] = useState<ActeOption[]>([]);
+  const { hasPermission } = useAuth();
+  // Règle internationale : par défaut, on ne facture que les prestations
+  // réalisées et tracées (issues du dossier patient). L'ajout manuel d'un acte
+  // est réservé aux profils disposant de FACTURATION_GERER.
+  const peutAjouterActe = hasPermission('FACTURATION_GERER');
   const [loading, setLoading] = useState(false);
 
   const [idPatient, setIdPatient] = useState<number | null>(null);
   const [tva, setTva] = useState(18);
   const [dateEcheance, setDateEcheance] = useState('');
   const [assurancePriseEnCharge, setAssurancePriseEnCharge] = useState(false);
+  const [tauxAssurance, setTauxAssurance] = useState(0);
   const [mutuellePriseEnCharge, setMutuellePriseEnCharge] = useState(false);
   const [montantMutuelle, setMontantMutuelle] = useState(0);
   const [mutuelleId, setMutuelleId] = useState('');
   const [notesComptables, setNotesComptables] = useState('');
-  const [lignes, setLignes] = useState<LigneFacture[]>([nouvelleLigne()]);
+  const [lignes, setLignes] = useState<LigneFacture[]>(peutAjouterActe ? [nouvelleLigne()] : []);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [dateDebut, setDateDebut] = useState('');
+  const [dateFin, setDateFin] = useState('');
   const [elementsPatient, setElementsPatient] = useState<ElementFacturable[]>([]);
   const [elementsCharges, setElementsCharges] = useState(false);
   const [chargementElements, setChargementElements] = useState(false);
@@ -94,28 +97,14 @@ export default function FactureForm() {
   const [hospitalisationsPatient, setHospitalisationsPatient] = useState<{ idHospitalisation: number; numeroAdmission?: string; chambreNumero?: string; statut?: string }[]>([]);
   const [idHospitalisation, setIdHospitalisation] = useState<number | ''>('');
 
-  const loadActes = useCallback(async () => {
-    try {
-      const list = await acteMedicalService.getSimpleList();
-      setActes(list);
-    } catch (error) {
-      toast.error(extractErrorMessage(error));
-    }
-  }, []);
-
-  useEffect(() => {
-    void (async () => { await loadActes(); })();
-  }, [loadActes]);
-
-  const handleActeChange = (index: number, acteId: number | null) => {
+  const handleCatalogueSelect = (index: number, acte: { idActeCatalogue: number; libelle: string; prixDefaut: number }) => {
     setLignes((prev) => {
       const updated = [...prev];
-      const acte = actes.find((a) => a.idActe === acteId);
       updated[index] = {
         ...updated[index],
-        idActe: acteId,
-        description: acte ? acte.libelle : updated[index].description,
-        prixUnitaire: acte ? acte.prixBase : updated[index].prixUnitaire,
+        idActeCatalogue: acte.idActeCatalogue,
+        description: acte.libelle,
+        prixUnitaire: acte.prixDefaut,
       };
       return updated;
     });
@@ -172,10 +161,15 @@ export default function FactureForm() {
     }
     setChargementElements(true);
     try {
+      // Facturation par période (modèle séjour / journée) : on ne récupère que
+      // les prestations comprises entre les dates choisies. Si aucune période
+      // n'est renseignée, tout l'historique du patient est proposé.
       const elements = await factureService.getElementsPatient(
         idPatient,
-        idConsultation || null,
-        idHospitalisation || null
+        null,
+        null,
+        dateDebut || null,
+        dateFin || null
       );
       setElementsPatient(elements);
       setElementsCharges(true);
@@ -210,8 +204,9 @@ export default function FactureForm() {
       return;
     }
     setLignes((prev) => {
-      const nouvelles = elementsAjoutes.map(({ el }) => ({
+      const nouvelles: LigneFacture[] = elementsAjoutes.map(({ el }) => ({
         idActe: el.idActe,
+        idActeCatalogue: el.idActeCatalogue ?? null,
         idMedicament: el.idMedicament,
         source: el.source,
         idSource: el.idSource,
@@ -252,10 +247,15 @@ export default function FactureForm() {
     });
     const montantTva = totalHt * (tva / 100);
     const totalTtc = totalHt + montantTva;
-    return { totalHt, montantTva, totalTtc };
+    // Ventilation tiers payant (France / Belgique / Chine)
+    const partAssurance = assurancePriseEnCharge ? totalTtc * (tauxAssurance / 100) : 0;
+    const partComplementaire = mutuellePriseEnCharge ? montantMutuelle : 0;
+    const couverture = Math.min(partAssurance + partComplementaire, totalTtc);
+    const reste = Math.max(totalTtc - couverture, 0);
+    return { totalHt, montantTva, totalTtc, partAssurance, partComplementaire, reste };
   };
 
-  const { totalHt, montantTva, totalTtc } = calculs();
+  const { totalHt, montantTva, totalTtc, partAssurance, partComplementaire, reste } = calculs();
 
   const ORDRE_SOURCES: SourceElement[] = ['CONSULTATION', 'EXAMEN', 'MEDICAMENT', 'HOSPITALISATION', 'SOIN', 'INTERVENTION'];
 
@@ -312,11 +312,13 @@ export default function FactureForm() {
         dateEcheance: formatDateForBackend(dateEcheance),
         tva,
         assurancePriseEnCharge,
+        tauxAssurance: assurancePriseEnCharge ? tauxAssurance : null,
         mutuelleId: mutuellePriseEnCharge && mutuelleId ? String(mutuelleId) : null,
         mutuellePriseEnCharge: mutuellePriseEnCharge ? montantMutuelle : null,
         notesComptables: notesComptables || null,
         details: lignes.map((ligne) => ({
           idActe: ligne.idActe,
+          idActeCatalogue: ligne.idActeCatalogue,
           idMedicament: ligne.idMedicament,
           source: ligne.source,
           idSource: ligne.idSource,
@@ -402,7 +404,7 @@ export default function FactureForm() {
                   ))}
                 </select>
                 <p className="mt-2 text-xs text-gray-500">
-                  La facture est liée à une consultation : seuls les actes, examens et médicaments de cette visite seront proposés. Sinon, tout l&apos;historique du patient est affiché.
+                  Renseigne la consultation à laquelle la facture se rattache. La liste des éléments reste celle de <strong>tout l&apos;historique du patient</strong> ; cochez uniquement les prestations à facturer.
                 </p>
               </div>
 
@@ -436,17 +438,71 @@ export default function FactureForm() {
               </div>
 
               <div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <FormInput
+                    label="Période — du"
+                    name="dateDebut"
+                    type="date"
+                    value={dateDebut}
+                    onChange={(e) => setDateDebut(e.target.value)}
+                  />
+                  <FormInput
+                    label="Période — au"
+                    name="dateFin"
+                    type="date"
+                    value={dateFin}
+                    onChange={(e) => setDateFin(e.target.value)}
+                  />
+                  <div className="flex items-end">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const today = new Date().toISOString().slice(0, 10);
+                          setDateDebut(today);
+                          setDateFin(today);
+                        }}
+                        className="text-xs text-indigo-600 hover:underline"
+                      >
+                        Aujourd&apos;hui
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+                          const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+                          setDateDebut(first);
+                          setDateFin(last);
+                        }}
+                        className="text-xs text-indigo-600 hover:underline"
+                      >
+                        Ce mois
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setDateDebut(''); setDateFin(''); }}
+                        className="text-xs text-gray-500 hover:underline"
+                      >
+                        Effacer
+                      </button>
+                    </div>
+                  </div>
+                </div>
                 <Button
                   type="button"
                   variant="secondary"
                   disabled={!idPatient || chargementElements}
                   onClick={chargerElementsPatient}
                   icon={chargementElements ? <FaSpinner className="animate-spin" /> : <FaDownload size={14} />}
+                  className="mt-2"
                 >
                   {chargementElements ? 'Chargement...' : 'Récupérer les éléments du patient'}
                 </Button>
                 <p className="mt-2 text-xs text-gray-500">
-                  Regroupe automatiquement les consultations, examens, médicaments délivrés et l&apos;hospitalisation (chambre) de ce patient, avec leurs tarifs.
+                  Ne remonte que les prestations <strong>réalisées et non encore facturées</strong> de la période
+                  choisie : consultations, examens validés, médicaments délivrés, hospitalisations, soins et
+                  interventions. Sans période, tout l&apos;historique est proposé.
                 </p>
               </div>
 
@@ -552,7 +608,7 @@ export default function FactureForm() {
                     onChange={(e) => setAssurancePriseEnCharge(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                   />
-                  Assurance prise en charge
+                  Régime obligatoire (Assurance Maladie / INAMI)
                 </label>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
@@ -561,9 +617,23 @@ export default function FactureForm() {
                     onChange={(e) => setMutuellePriseEnCharge(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                   />
-                  Mutuelle prise en charge
+                  Complémentaire (mutuelle)
                 </label>
               </div>
+
+              {assurancePriseEnCharge && (
+                <FormInput
+                  label="Taux de couverture du régime obligatoire (%)"
+                  name="tauxAssurance"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  max={100}
+                  value={tauxAssurance}
+                  onChange={(e) => setTauxAssurance(parseFloat(e.target.value) || 0)}
+                  placeholder="ex. 70 (France) ou 75 (Belgique)"
+                />
+              )}
 
               {mutuellePriseEnCharge && (
                 <>
@@ -599,6 +669,15 @@ export default function FactureForm() {
 
             <FormSection title="Lignes de la facture" icon={<FaClipboardList />}>
 
+              {!peutAjouterActe && (
+                <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Seules les prestations <strong>réalisées et tracées</strong> du dossier patient
+                  (consultations, examens validés, soins, médicaments délivrés, hospitalisations,
+                  interventions terminées) peuvent être facturées. Utilisez
+                  « Récupérer les éléments du patient » puis cochez les lignes.
+                </div>
+              )}
+
               {lignes.length === 0 && (
                 <p className="text-sm text-gray-500">Aucune ligne. Ajoutez au moins une prestation.</p>
               )}
@@ -624,30 +703,39 @@ export default function FactureForm() {
                       </IconButton>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Acte médical</label>
-                        <select
-                          value={ligne.idActe ?? ''}
-                          onChange={(e) =>
-                            handleActeChange(index, e.target.value === '' ? null : Number(e.target.value))
-                          }
-                          className="block w-full rounded-lg border border-gray-300 p-2 text-sm"
-                        >
-                          <option value="">Aucun acte (saisie libre)</option>
-                          {actes.map((acte) => (
-                            <option key={acte.idActe} value={acte.idActe}>
-                              {acte.codeActe} - {acte.libelle}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
+                      {peutAjouterActe && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Acte du catalogue (ajout manuel)
+                          </label>
+                          <ActeAutocomplete
+                            categorie=""
+                            value={ligne.description}
+                            onChange={(text) =>
+                              updateLigne(index, 'description', text)
+                            }
+                            onSelect={(acte) => handleCatalogueSelect(index, {
+                              idActeCatalogue: acte.idActeCatalogue,
+                              libelle: acte.libelle,
+                              prixDefaut: acte.prixDefaut,
+                            })}
+                            onClear={() => setLignes((prev) => {
+                              const updated = [...prev];
+                              updated[index] = { ...updated[index], idActeCatalogue: null };
+                              return updated;
+                            })}
+                            placeholder="Rechercher dans le catalogue (ex. : paludisme, ECG...)"
+                          />
+                        </div>
+                      )}
+                      <div className={peutAjouterActe ? '' : 'md:col-span-2'}>
                         <FormInput
                           label="Description"
                           name={`description-${index}`}
                           value={ligne.description}
                           onChange={(e) => updateLigne(index, 'description', e.target.value)}
                           placeholder="Libellé de la prestation"
+                          disabled={!peutAjouterActe}
                         />
                       </div>
                     </div>
@@ -685,15 +773,17 @@ export default function FactureForm() {
 
               {errors.lignes && <p className="text-sm text-red-600">{errors.lignes}</p>}
 
-              <Button
-                type="button"
-                variant="secondary"
-                icon={<FaPlus size={12} />}
-                onClick={addLigne}
-                className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
-              >
-                Ajouter une ligne
-              </Button>
+              {peutAjouterActe && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon={<FaPlus size={12} />}
+                  onClick={addLigne}
+                  className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                >
+                  Ajouter une ligne
+                </Button>
+              )}
             </FormSection>
           </div>
 
@@ -722,6 +812,31 @@ export default function FactureForm() {
                   <span>Total TTC</span>
                   <span className="text-indigo-600">{totalTtc.toFixed(2)} $</span>
                 </div>
+
+                {(assurancePriseEnCharge || mutuellePriseEnCharge) && (
+                  <>
+                    <hr className="my-2" />
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      Ventilation tiers payant
+                    </p>
+                    {assurancePriseEnCharge && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Régime obligatoire ({tauxAssurance}%)</span>
+                        <span className="font-medium text-emerald-600">- {partAssurance.toFixed(2)} $</span>
+                      </div>
+                    )}
+                    {mutuellePriseEnCharge && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Complémentaire</span>
+                        <span className="font-medium text-emerald-600">- {partComplementaire.toFixed(2)} $</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-semibold">
+                      <span>Reste à charge patient</span>
+                      <span className="text-rose-600">{reste.toFixed(2)} $</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

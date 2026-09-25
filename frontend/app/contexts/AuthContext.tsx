@@ -59,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: response.email,
       role: response.role,
       medecinId: response.medecinId ?? null,
+      patientId: response.patientId ?? null,
       permissions: response.permissions ?? [],
     });
   };

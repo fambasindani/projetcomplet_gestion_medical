@@ -59,10 +59,64 @@ public interface FactureRepository extends JpaRepository<Facture, Integer> {
     BigDecimal sumMontantRestant();
 
     @Query("SELECT f.statut, COUNT(f), COALESCE(SUM(f.montantTtc), 0), COALESCE(SUM(f.montantPaye), 0) " +
-            "FROM Facture f GROUP BY f.statut")
-    List<Object[]> statsParStatut();
+            "FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd) " +
+            "GROUP BY f.statut")
+    List<Object[]> statsParStatut(@Param("dateStart") LocalDateTime dateStart,
+                                 @Param("dateEnd") LocalDateTime dateEnd);
 
-    @Query("SELECT FUNCTION('FORMAT', f.dateEmission, 'yyyy-MM') as mois, COUNT(f), COALESCE(SUM(f.montantTtc), 0) " +
-            "FROM Facture f GROUP BY mois ORDER BY mois ASC")
-    List<Object[]> statsParMois();
+    // Granularité : jour
+    @Query("SELECT FUNCTION('FORMAT', f.dateEmission, 'yyyy-MM-dd') as periode, COUNT(f), COALESCE(SUM(f.montantTtc), 0) " +
+            "FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd) " +
+            "GROUP BY FUNCTION('FORMAT', f.dateEmission, 'yyyy-MM-dd') " +
+            "ORDER BY FUNCTION('FORMAT', f.dateEmission, 'yyyy-MM-dd') ASC")
+    List<Object[]> statsParJour(@Param("dateStart") LocalDateTime dateStart,
+                                @Param("dateEnd") LocalDateTime dateEnd);
+
+    // Granularité : mois
+    @Query("SELECT FUNCTION('FORMAT', f.dateEmission, 'yyyy-MM') as periode, COUNT(f), COALESCE(SUM(f.montantTtc), 0) " +
+            "FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd) " +
+            "GROUP BY FUNCTION('FORMAT', f.dateEmission, 'yyyy-MM') " +
+            "ORDER BY FUNCTION('FORMAT', f.dateEmission, 'yyyy-MM') ASC")
+    List<Object[]> statsParMoisGran(@Param("dateStart") LocalDateTime dateStart,
+                                    @Param("dateEnd") LocalDateTime dateEnd);
+
+    // Granularité : année
+    @Query("SELECT FUNCTION('FORMAT', f.dateEmission, 'yyyy') as periode, COUNT(f), COALESCE(SUM(f.montantTtc), 0) " +
+            "FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd) " +
+            "GROUP BY FUNCTION('FORMAT', f.dateEmission, 'yyyy') " +
+            "ORDER BY FUNCTION('FORMAT', f.dateEmission, 'yyyy') ASC")
+    List<Object[]> statsParAnnee(@Param("dateStart") LocalDateTime dateStart,
+                                 @Param("dateEnd") LocalDateTime dateEnd);
+
+    @Query("SELECT COUNT(f) FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd)")
+    long countPeriode(@Param("dateStart") LocalDateTime dateStart,
+                      @Param("dateEnd") LocalDateTime dateEnd);
+
+    @Query("SELECT COALESCE(SUM(f.montantTtc), 0) FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd)")
+    BigDecimal sumMontantTtcPeriode(@Param("dateStart") LocalDateTime dateStart,
+                                    @Param("dateEnd") LocalDateTime dateEnd);
+
+    @Query("SELECT COALESCE(SUM(f.montantPaye), 0) FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd)")
+    BigDecimal sumMontantPayePeriode(@Param("dateStart") LocalDateTime dateStart,
+                                     @Param("dateEnd") LocalDateTime dateEnd);
+
+    @Query("SELECT COALESCE(SUM(f.montantRestant), 0) FROM Facture f " +
+            "WHERE (:dateStart IS NULL OR f.dateEmission >= :dateStart) " +
+            "AND (:dateEnd IS NULL OR f.dateEmission <= :dateEnd)")
+    BigDecimal sumMontantRestantPeriode(@Param("dateStart") LocalDateTime dateStart,
+                                        @Param("dateEnd") LocalDateTime dateEnd);
 }

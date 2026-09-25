@@ -16,6 +16,7 @@ public class ElementFacturableDto {
     private String source;
     private Integer idSource;
     private Integer idActe;
+    private Integer idActeCatalogue;
     private Integer idMedicament;
     private Integer idHospitalisation;
     private String description;

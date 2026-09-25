@@ -20,7 +20,9 @@ import adc.gestion_hospitaliere.Entity.SoinInfirmier;
 import adc.gestion_hospitaliere.Entity.InterventionUrgence;
 import adc.gestion_hospitaliere.Enums.CategorieActeMedical;
 import adc.gestion_hospitaliere.Enums.ModePaiement;
+import adc.gestion_hospitaliere.Enums.StatutExamen;
 import adc.gestion_hospitaliere.Enums.StatutFacture;
+import adc.gestion_hospitaliere.Enums.StatutInterventionUrgence;
 import adc.gestion_hospitaliere.Enums.StatutPaiement;
 import adc.gestion_hospitaliere.Repository.ActeMedicalRepository;
 import adc.gestion_hospitaliere.Repository.ActeCatalogueRepository;
@@ -55,16 +57,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +85,6 @@ public class FactureService {
     private final DetailDelivranceRepository detailDelivranceRepository;
     private final HospitalisationRepository hospitalisationRepository;
     private final MedicamentRepository medicamentRepository;
-    private final ActeMedicalRepository acteMedicalRepository;
     private final ActeCatalogueRepository acteCatalogueRepository;
     private final SoinInfirmierRepository soinInfirmierRepository;
     private final InterventionUrgenceRepository interventionUrgenceRepository;
@@ -102,7 +106,9 @@ public class FactureService {
     // ---------- ÉLÉMENTS FACTURABLES D'UN PATIENT ----------
     @Transactional(readOnly = true)
     public Page<ElementFacturableDto> getElementsFacturables(Integer idPatient, Integer idConsultation,
-                                                             Integer idHospitalisation, Pageable pageable) {
+                                                             Integer idHospitalisation,
+                                                             LocalDate dateDebut, LocalDate dateFin,
+                                                             Pageable pageable) {
         patientRepository.findById(idPatient)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient non trouvé avec l'id : " + idPatient));
 
@@ -128,6 +134,20 @@ public class FactureService {
             ajouterHospitalisations(elements, idPatient, idConsultation, idHospitalisation);
             elements.addAll(elementsSoins(idPatient));
             elements.addAll(elementsInterventions(idPatient));
+        }
+
+        // Filtre par période de facturation (modèle séjour / journée).
+        // Une date nulle = borne ouverte de ce côté.
+        if (dateDebut != null || dateFin != null) {
+            elements = elements.stream()
+                    .filter(el -> el.getDateElement() != null)
+                    .filter(el -> {
+                        LocalDate d = el.getDateElement().toLocalDate();
+                        if (dateDebut != null && d.isBefore(dateDebut)) return false;
+                        if (dateFin != null && d.isAfter(dateFin)) return false;
+                        return true;
+                    })
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
 
         Set<Integer> consultationsFacturees = new HashSet<>(factureRepository.findConsultationsFacturees());
@@ -204,6 +224,7 @@ public class FactureService {
                 .source("CONSULTATION")
                 .idSource(c.getIdConsultation())
                 .idActe(idActeConsultation)
+                .idActeCatalogue(c.getIdActeCatalogue())
                 .description("Consultation du " + c.getDateConsultation().toLocalDate()
                         + (c.getMotifConsultation() != null && !c.getMotifConsultation().isBlank()
                         ? " - " + c.getMotifConsultation() : ""))
@@ -213,6 +234,12 @@ public class FactureService {
                 .build();
     }
 
+    // Règle internationale (France / Belgique / Chine) : on ne facture QUE
+    // les actes réellement exécutés et tracés. Un examen prescrit/planifié
+    // ou annulé n'est jamais facturable.
+    private static final Set<StatutExamen> STATUTS_EXAMEN_FACTURABLES =
+            EnumSet.of(StatutExamen.Réalisé, StatutExamen.Validé);
+
     private List<ElementFacturableDto> elementsExamens(Integer idPatient) {
         List<ElementFacturableDto> result = new ArrayList<>();
         List<Examen> examens = examenRepository.findByIdPatient(idPatient);
@@ -221,6 +248,7 @@ public class FactureService {
         Integer idActeExamen = findIdActeParCategorie(CategorieActeMedical.Examen);
 
         for (Examen e : examens) {
+            if (!STATUTS_EXAMEN_FACTURABLES.contains(e.getStatut())) continue;
             result.add(toExamenElement(e, idActeExamen));
         }
         return result;
@@ -234,6 +262,7 @@ public class FactureService {
             List<Examen> examens = examenRepository.findByIdPrescription(idPrescription);
             if (examens == null) continue;
             for (Examen e : examens) {
+                if (!STATUTS_EXAMEN_FACTURABLES.contains(e.getStatut())) continue;
                 result.add(toExamenElement(e, idActeExamen));
             }
         }
@@ -246,6 +275,7 @@ public class FactureService {
                 .source("EXAMEN")
                 .idSource(e.getIdExamen())
                 .idActe(idActeExamen)
+                .idActeCatalogue(e.getIdActeCatalogue())
                 .description("Examen " + (e.getTypeExamen() != null ? e.getTypeExamen() : "")
                         + " du " + e.getDatePrescription().toLocalDate())
                 .quantite(1)
@@ -265,11 +295,14 @@ public class FactureService {
             List<SoinInfirmier> soins = soinInfirmierRepository.findByIdHospitalisation(h.getIdHospitalisation());
             if (soins == null) continue;
             for (SoinInfirmier s : soins) {
+                // Un soin infirmier n'existe qu'une fois réalisé (tracé) :
+                // pas de statut « prescrit » ici, on facture donc directement.
                 Double prix = prixActeCatalogue(s.getIdActeCatalogue(), idActeSoin);
                 result.add(ElementFacturableDto.builder()
-                        .source("SOIN")
-                        .idSource(s.getIdSoin() != null ? s.getIdSoin() : null)
-                        .idActe(idActeSoin)
+                .source("SOIN")
+                .idSource(s.getIdSoin() != null ? s.getIdSoin() : null)
+                .idActe(idActeSoin)
+                .idActeCatalogue(s.getIdActeCatalogue())
                         .description("Soin " + (s.getTypeSoin() != null ? s.getTypeSoin() : "")
                                 + " du " + s.getDateSoin().toLocalDate())
                         .quantite(1)
@@ -302,11 +335,14 @@ public class FactureService {
         if (interventions == null || interventions.isEmpty()) return result;
 
         for (InterventionUrgence i : interventions.getContent()) {
+            // Facturable seulement si l'intervention est terminée.
+            if (i.getStatut() != null && i.getStatut() != StatutInterventionUrgence.Terminee) continue;
             Double prix = prixActeCatalogue(i.getIdActeCatalogue(), idActeIntervention);
             result.add(ElementFacturableDto.builder()
-                    .source("INTERVENTION")
-                    .idSource(i.getIdInterventionUrgence())
-                    .idActe(idActeIntervention)
+                .source("INTERVENTION")
+                .idSource(i.getIdInterventionUrgence())
+                .idActe(idActeIntervention)
+                .idActeCatalogue(i.getIdActeCatalogue())
                     .description("Intervention " + (i.getTypeIntervention() != null ? i.getTypeIntervention() : "")
                             + " du " + i.getDateIntervention().toLocalDate())
                     .quantite(1)
@@ -432,16 +468,18 @@ public class FactureService {
         return (int) Math.max(1, jours);
     }
 
+    // Référentiel unique : on cherche dans le catalogue (via le groupe de la catégorie),
+    // plus dans l'ancienne table actes_medicaux.
     private Integer findIdActeParCategorie(CategorieActeMedical categorie) {
-        Page<adc.gestion_hospitaliere.Entity.ActeMedical> actes = acteMedicalRepository
-                .search(null, categorie, true, PageRequest.of(0, 1));
+        List<ActeCatalogue> actes = acteCatalogueRepository
+                .findByCategorie(categorie, PageRequest.of(0, 1));
         if (actes == null || actes.isEmpty()) return null;
-        return actes.getContent().get(0).getIdActe();
+        return actes.get(0).getIdActeCatalogue();
     }
 
-    private Double prixActe(Integer idActe) {
-        return acteMedicalRepository.findById(idActe)
-                .map(acte -> acte.getPrixBase() != null ? acte.getPrixBase().doubleValue() : 0.0)
+    private Double prixActe(Integer idActeCatalogue) {
+        return acteCatalogueRepository.findById(idActeCatalogue)
+                .map(acte -> acte.getPrixDefaut() != null ? acte.getPrixDefaut().doubleValue() : 0.0)
                 .orElse(0.0);
     }
 
@@ -478,6 +516,21 @@ public class FactureService {
 
         BigDecimal montantTtc = montantHt.multiply(tauxTva);
 
+        // ---- Ventilation tiers payant (France / Belgique / Chine) ----
+        BigDecimal tauxAssuranceBd = dto.getTauxAssurance() != null
+                ? BigDecimal.valueOf(dto.getTauxAssurance()) : BigDecimal.ZERO;
+        BigDecimal montantAssurance = montantTtc
+                .multiply(tauxAssuranceBd)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        BigDecimal mutuelle = dto.getMutuellePriseEnCharge() != null
+                ? BigDecimal.valueOf(dto.getMutuellePriseEnCharge()) : BigDecimal.ZERO;
+        // Le total assurance + mutuelle ne peut pas dépasser le montant TTC.
+        BigDecimal couverture = montantAssurance.add(mutuelle);
+        if (couverture.compareTo(montantTtc) > 0) {
+            couverture = montantTtc;
+        }
+        BigDecimal resteACharge = montantTtc.subtract(couverture).max(BigDecimal.ZERO);
+
         Facture facture = Facture.builder()
                 .numeroFacture(generateNumeroFacture())
                 .idPatient(dto.getIdPatient())
@@ -492,8 +545,11 @@ public class FactureService {
                 .montantRestant(montantTtc)
                 .statut(StatutFacture.En_attente)
                 .assurancePriseEnCharge(dto.getAssurancePriseEnCharge() != null ? dto.getAssurancePriseEnCharge() : false)
+                .tauxAssurance(tauxAssuranceBd)
+                .montantAssurance(montantAssurance)
                 .mutuelleId(dto.getMutuelleId())
-                .mutuellePriseEnCharge(dto.getMutuellePriseEnCharge() != null ? BigDecimal.valueOf(dto.getMutuellePriseEnCharge()) : null)
+                .mutuellePriseEnCharge(mutuelle)
+                .resteAChargePatient(resteACharge)
                 .notesComptables(dto.getNotesComptables())
                 .build();
         facture = factureRepository.save(facture);
@@ -550,8 +606,20 @@ public class FactureService {
         facture.setMontantTtc(montantTtc);
         facture.setMontantRestant(nouveauRestant);
         facture.setAssurancePriseEnCharge(dto.getAssurancePriseEnCharge() != null ? dto.getAssurancePriseEnCharge() : false);
+        BigDecimal tauxAssuranceMaj = dto.getTauxAssurance() != null
+                ? BigDecimal.valueOf(dto.getTauxAssurance()) : BigDecimal.ZERO;
+        BigDecimal montantAssuranceMaj = montantTtc
+                .multiply(tauxAssuranceMaj)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        BigDecimal mutuelleMaj = dto.getMutuellePriseEnCharge() != null
+                ? BigDecimal.valueOf(dto.getMutuellePriseEnCharge()) : BigDecimal.ZERO;
+        BigDecimal couvertureMaj = montantAssuranceMaj.add(mutuelleMaj);
+        if (couvertureMaj.compareTo(montantTtc) > 0) couvertureMaj = montantTtc;
+        facture.setTauxAssurance(tauxAssuranceMaj);
+        facture.setMontantAssurance(montantAssuranceMaj);
         facture.setMutuelleId(dto.getMutuelleId());
-        facture.setMutuellePriseEnCharge(dto.getMutuellePriseEnCharge() != null ? BigDecimal.valueOf(dto.getMutuellePriseEnCharge()) : null);
+        facture.setMutuellePriseEnCharge(mutuelleMaj);
+        facture.setResteAChargePatient(montantTtc.subtract(couvertureMaj).max(BigDecimal.ZERO));
         facture.setNotesComptables(dto.getNotesComptables());
 
         detailFactureRepository.deleteByFactureIdFacture(facture.getIdFacture());
@@ -650,13 +718,26 @@ public class FactureService {
 
     // ---------- STATISTIQUES ----------
     public FactureStatsDto getStatistiques() {
-        long totalFactures = factureRepository.count();
-        Double totalMontantEmis = toDouble(factureRepository.sumMontantTtc());
-        Double totalPaye = toDouble(factureRepository.sumMontantPaye());
-        Double totalRestant = toDouble(factureRepository.sumMontantRestant());
+        return getStatistiques(null, null, "month");
+    }
+
+    /**
+     * Statistiques de facturation sur une période et une granularité données.
+     * granularite : "day", "month" ou "year" (défaut "month").
+     */
+    public FactureStatsDto getStatistiques(LocalDate dateDebut, LocalDate dateFin, String granularite) {
+        LocalDateTime start = dateDebut != null ? dateDebut.atStartOfDay() : null;
+        LocalDateTime end = dateFin != null ? dateFin.atTime(23, 59, 59) : null;
+
+        String gran = granularite == null ? "month" : granularite.toLowerCase();
+
+        long totalFactures = factureRepository.countPeriode(start, end);
+        Double totalMontantEmis = toDouble(factureRepository.sumMontantTtcPeriode(start, end));
+        Double totalPaye = toDouble(factureRepository.sumMontantPayePeriode(start, end));
+        Double totalRestant = toDouble(factureRepository.sumMontantRestantPeriode(start, end));
 
         List<Map<String, Object>> parStatut = new ArrayList<>();
-        for (Object[] row : factureRepository.statsParStatut()) {
+        for (Object[] row : factureRepository.statsParStatut(start, end)) {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("statut", row[0] != null ? row[0].toString() : "Inconnu");
             item.put("nombre", row[1] != null ? ((Number) row[1]).longValue() : 0L);
@@ -665,8 +746,14 @@ public class FactureService {
             parStatut.add(item);
         }
 
+        List<Object[]> rows = switch (gran) {
+            case "day" -> factureRepository.statsParJour(start, end);
+            case "year" -> factureRepository.statsParAnnee(start, end);
+            default -> factureRepository.statsParMoisGran(start, end);
+        };
+
         List<Map<String, Object>> parMois = new ArrayList<>();
-        for (Object[] row : factureRepository.statsParMois()) {
+        for (Object[] row : rows) {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("mois", row[0] != null ? row[0].toString() : null);
             item.put("nombre", row[1] != null ? ((Number) row[1]).longValue() : 0L);
@@ -712,6 +799,7 @@ public class FactureService {
 
         return DetailFacture.builder()
                 .idActe(dto.getIdActe())
+                .idActeCatalogue(dto.getIdActeCatalogue())
                 .idMedicament(dto.getIdMedicament())
                 .source(dto.getSource())
                 .idSource(dto.getIdSource())
@@ -768,8 +856,11 @@ public class FactureService {
                 .statut(facture.getStatut())
                 .modePaiement(facture.getModePaiement())
                 .assurancePriseEnCharge(facture.getAssurancePriseEnCharge())
+                .tauxAssurance(toDouble(facture.getTauxAssurance()))
+                .montantAssurance(toDouble(facture.getMontantAssurance()))
                 .mutuelleId(facture.getMutuelleId())
                 .mutuellePriseEnCharge(toDouble(facture.getMutuellePriseEnCharge()))
+                .resteAChargePatient(toDouble(facture.getResteAChargePatient()))
                 .datePaiementTotal(facture.getDatePaiementTotal())
                 .notesComptables(facture.getNotesComptables())
                 .details(detailDtos)
@@ -782,6 +873,10 @@ public class FactureService {
         if (detail.getActe() != null) {
             acteLibelle = detail.getActe().getLibelle();
         }
+        String acteCatalogueLibelle = null;
+        if (detail.getActeCatalogue() != null) {
+            acteCatalogueLibelle = detail.getActeCatalogue().getLibelle();
+        }
         String medicamentNom = null;
         if (detail.getMedicament() != null) {
             medicamentNom = detail.getMedicament().getNomCommercial();
@@ -791,6 +886,8 @@ public class FactureService {
                 .idFacture(detail.getIdFacture())
                 .idActe(detail.getIdActe())
                 .acteLibelle(acteLibelle)
+                .idActeCatalogue(detail.getIdActeCatalogue())
+                .acteCatalogueLibelle(acteCatalogueLibelle)
                 .idMedicament(detail.getIdMedicament())
                 .medicamentNom(medicamentNom)
                 .source(detail.getSource())

@@ -45,6 +45,11 @@ public class User implements UserDetails {
     @JoinColumn(name = "personnel_id", referencedColumnName = "id_personnel")
     private Personnel personnel;
 
+    // Lien vers le dossier patient quand le compte est un portail patient.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id", referencedColumnName = "id_patient")
+    private Patient patient;
+
     @Column(name = "DateCreation", updatable = false)
     private LocalDateTime dateCreation;
 

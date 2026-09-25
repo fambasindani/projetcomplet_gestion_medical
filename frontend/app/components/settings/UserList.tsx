@@ -25,6 +25,7 @@ const roleColors: Record<string, string> = {
   SECRETAIRE: 'bg-yellow-100 text-yellow-800',
   PATIENT: 'bg-gray-100 text-gray-800',
   INFIRMIER: 'bg-pink-100 text-pink-800',
+  LABORANTIN: 'bg-cyan-100 text-cyan-800',
   RH: 'bg-indigo-100 text-indigo-800',
 };
 
@@ -177,6 +178,7 @@ export default function UserList() {
               <option value="SECRETAIRE">Secrétaire</option>
               <option value="PATIENT">Patient</option>
               <option value="INFIRMIER">Infirmier</option>
+              <option value="LABORANTIN">Laborantin</option>
               <option value="RH">RH</option>
             </FilterSelect>
             <FilterSelect

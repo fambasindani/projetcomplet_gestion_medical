@@ -14,6 +14,8 @@ public class DetailFactureResponseDto {
     private Integer idFacture;
     private Integer idActe;
     private String acteLibelle;
+    private Integer idActeCatalogue;
+    private String acteCatalogueLibelle;
     private Integer idMedicament;
     private String medicamentNom;
     private String source;

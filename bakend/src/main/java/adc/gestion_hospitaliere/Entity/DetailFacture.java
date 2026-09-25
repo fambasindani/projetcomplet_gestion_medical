@@ -34,6 +34,13 @@ public class DetailFacture {
     @JoinColumn(name = "id_acte", insertable = false, updatable = false)
     private ActeMedical acte;
 
+    @Column(name = "id_acte_catalogue")
+    private Integer idActeCatalogue;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_acte_catalogue", insertable = false, updatable = false)
+    private ActeCatalogue acteCatalogue;
+
     @Column(name = "id_medicament")
     private Integer idMedicament;
 

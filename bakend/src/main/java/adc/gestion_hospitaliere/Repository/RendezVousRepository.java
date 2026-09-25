@@ -69,4 +69,10 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Integer>
     List<RendezVous> findUpcomingByMedecin(@Param("idMedecin") Integer idMedecin,
                                            @Param("date") LocalDateTime date,
                                            @Param("annule") StatutRendezVous annule);
+
+    // Tous les rendez-vous d'un médecin (passés et à venir), du plus récent au plus ancien.
+    @Query("SELECT r FROM RendezVous r LEFT JOIN FETCH r.patient p " +
+            "WHERE r.idMedecin = :idMedecin " +
+            "ORDER BY r.dateRdv DESC")
+    List<RendezVous> findAllByMedecin(@Param("idMedecin") Integer idMedecin);
 }

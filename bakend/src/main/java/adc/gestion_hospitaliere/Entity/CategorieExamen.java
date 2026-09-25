@@ -35,9 +35,22 @@ public class CategorieExamen {
     @Column(name = "actif")
     private Boolean actif = true;
 
+    @Column(name = "id_groupe_catalogue")
+    private Integer idGroupeCatalogue;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_groupe_catalogue", insertable = false, updatable = false)
+    private GroupeActe groupeCatalogue;
+
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 
     @OneToMany(mappedBy = "categorie", fetch = FetchType.LAZY)
     private List<Examen> examens = new ArrayList<>();
+
+    @PrePersist
+    void prePersist() {
+        if (dateCreation == null) dateCreation = LocalDateTime.now();
+        if (actif == null) actif = true;
+    }
 }

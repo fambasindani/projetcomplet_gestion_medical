@@ -31,8 +31,11 @@ public class FactureResponseDto {
     private StatutFacture statut;
     private String modePaiement;
     private Boolean assurancePriseEnCharge;
+    private Double tauxAssurance;
+    private Double montantAssurance;
     private String mutuelleId;
     private Double mutuellePriseEnCharge;
+    private Double resteAChargePatient;
     private LocalDateTime datePaiementTotal;
     private String notesComptables;
     private List<DetailFactureResponseDto> details;

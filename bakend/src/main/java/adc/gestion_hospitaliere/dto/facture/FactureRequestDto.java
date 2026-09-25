@@ -27,9 +27,14 @@ public class FactureRequestDto {
     private Double tva;
 
     private Boolean assurancePriseEnCharge;
+
+    // Taux de couverture du régime obligatoire (ex. 70 % France, 75 % Belgique).
+    @PositiveOrZero(message = "Le taux de couverture assurance ne peut pas être négatif")
+    private Double tauxAssurance;
+
     private String mutuelleId;
 
-    @PositiveOrZero(message = "Le montant de prise en charge mutuelle ne peut pas être négatif")
+    @PositiveOrZero(message = "Le montant de prise en charge mutuelle ne peut pas Ǧtre nǸgatif")
     private Double mutuellePriseEnCharge;
 
     private String notesComptables;

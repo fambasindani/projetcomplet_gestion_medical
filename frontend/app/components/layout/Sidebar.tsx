@@ -28,8 +28,23 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
+  // PORTAIL PATIENT
+  {
+    path: '/mon-espace-module',
+    name: 'Mon espace',
+    icon: FaUserInjured,
+    roles: ['PATIENT'],
+    children: [
+      { path: '/mon-espace/rendez-vous', name: 'Mes rendez-vous', icon: FaCalendarCheck },
+      { path: '/mon-espace/examens', name: 'Mes résultats', icon: FaFlask },
+      { path: '/mon-espace/ordonnances', name: 'Ordonnances & consultations', icon: FaListAlt },
+      { path: '/mon-espace/factures', name: 'Mes factures', icon: FaFileInvoiceDollar },
+      { path: '/mon-espace/dossier', name: 'Mon dossier', icon: FaClipboardList },
+    ],
+  },
+
   // DASHBOARD
-  { path: '/dashboard', name: 'Dashboard', icon: FaTachometerAlt, badge: 'Actif', badgeColor: '#10b981', permission: 'DASHBOARD_VOIR' },
+  { path: '/dashboard', name: 'Tableau de bord', icon: FaTachometerAlt, badge: 'Actif', badgeColor: '#10b981', permission: 'DASHBOARD_VOIR' },
 
   // MÉDECINS
   {
@@ -182,7 +197,6 @@ const menuItems: MenuItem[] = [
     permission: 'FACTURATION_VOIR',
     children: [
       { path: '/factures', name: 'Factures', icon: FaFileInvoiceDollar },
-      { path: '/factures/actes', name: 'Actes médicaux', icon: FaNotesMedical },
       { path: '/factures/catalogue', name: "Catalogue d'actes", icon: FaListAlt },
       { path: '/factures/paiements', name: 'Paiements', icon: FaMoneyBillWave },
       { path: '/factures/statistiques', name: 'Statistiques', icon: FaChartBar },
@@ -200,6 +214,7 @@ const menuItems: MenuItem[] = [
       { path: '/settings/profil', name: 'Mon profil', icon: FaUserMd },
       { path: '/settings/utilisateurs', name: 'Utilisateurs', icon: FaUsers },
       { path: '/settings/roles', name: 'Rôles & permissions', icon: FaClipboardCheck },
+      { path: '/settings/categories-examen', name: "Catégories d'examen", icon: FaListAlt },
     ]
   },
 ];

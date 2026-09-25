@@ -22,6 +22,7 @@ export interface ElementFacturable {
   source: SourceElement;
   idSource: number | null;
   idActe: number | null;
+  idActeCatalogue?: number | null;
   idMedicament: number | null;
   idHospitalisation: number | null;
   description: string;
@@ -68,15 +69,27 @@ export const factureService = {
     return response.data;
   },
 
-  async getStatistiques(): Promise<FactureStats> {
-    const response = await api.get<FactureStats>('/factures/statistiques');
+  async getStatistiques(params?: {
+    dateDebut?: string | null;
+    dateFin?: string | null;
+    granularite?: 'day' | 'month' | 'year';
+  }): Promise<FactureStats> {
+    const response = await api.get<FactureStats>('/factures/statistiques', {
+      params: {
+        dateDebut: params?.dateDebut || undefined,
+        dateFin: params?.dateFin || undefined,
+        granularite: params?.granularite || undefined,
+      },
+    });
     return response.data;
   },
 
   async getElementsPatient(
     idPatient: number,
     idConsultation?: number | null,
-    idHospitalisation?: number | null
+    idHospitalisation?: number | null,
+    dateDebut?: string | null,
+    dateFin?: string | null
   ): Promise<ElementFacturable[]> {
     const response = await api.get<PagedResult<ElementFacturable>>(`/factures/elements/${idPatient}`, {
       params: {
@@ -84,6 +97,8 @@ export const factureService = {
         pageSize: 500,
         idConsultation: idConsultation ?? undefined,
         idHospitalisation: idHospitalisation ?? undefined,
+        dateDebut: dateDebut || undefined,
+        dateFin: dateFin || undefined,
       },
     });
     return response.data.items;

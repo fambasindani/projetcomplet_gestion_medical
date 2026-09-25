@@ -38,6 +38,19 @@ public class ActeCatalogue {
     @Column(name = "prix_defaut", nullable = false, precision = 10, scale = 2)
     private BigDecimal prixDefaut = BigDecimal.ZERO;
 
+    // Cotation (France : lettre clé + coefficient NGAP/CCAM ; Belgique : nomenclature INAMI)
+    @Column(name = "coefficient", precision = 10, scale = 2)
+    private BigDecimal coefficient;
+
+    @Column(name = "lettre_cle", length = 20)
+    private String lettreCle;
+
+    @Column(name = "remboursable")
+    private Boolean remboursable = true;
+
+    @Column(name = "taux_remboursement", precision = 5, scale = 2)
+    private BigDecimal tauxRemboursement;
+
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
@@ -46,4 +59,11 @@ public class ActeCatalogue {
 
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
+
+    @PrePersist
+    void prePersist() {
+        if (dateCreation == null) dateCreation = LocalDateTime.now();
+        if (actif == null) actif = true;
+        if (prixDefaut == null) prixDefaut = BigDecimal.ZERO;
+    }
 }

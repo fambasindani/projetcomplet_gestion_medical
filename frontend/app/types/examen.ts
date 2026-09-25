@@ -9,13 +9,15 @@ export const CONFIDENTIALITE_OPTIONS: ConfidentialiteExamen[] = [
 ];
 
 export interface CategorieExamen {
-  idCategorieExamen: number;
-  code: string;
-  libelle: string;
-  description?: string;
-  actif: boolean;
-  dateCreation: string;
-}
+    idCategorieExamen: number;
+    code: string;
+    libelle: string;
+    description?: string;
+    actif: boolean;
+    idGroupeCatalogue?: number | null;
+    groupeCatalogueLibelle?: string | null;
+    dateCreation: string;
+  }
 
 export interface Examen {
   idExamen: number;

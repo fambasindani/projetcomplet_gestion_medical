@@ -30,6 +30,10 @@ interface ActeFormState {
   libelle: string;
   idGroupe: number | '';
   prixDefaut: string;
+  coefficient: string;
+  lettreCle: string;
+  remboursable: boolean;
+  tauxRemboursement: string;
   description: string;
   actif: boolean;
 }
@@ -39,6 +43,10 @@ const emptyActeForm = (): ActeFormState => ({
   libelle: '',
   idGroupe: '',
   prixDefaut: '0',
+  coefficient: '',
+  lettreCle: '',
+  remboursable: true,
+  tauxRemboursement: '',
   description: '',
   actif: true,
 });
@@ -144,6 +152,10 @@ export default function CatalogueActes() {
       libelle: acte.libelle,
       idGroupe: acte.idGroupe ?? '',
       prixDefaut: String(acte.prixDefaut),
+      coefficient: acte.coefficient != null ? String(acte.coefficient) : '',
+      lettreCle: acte.lettreCle ?? '',
+      remboursable: acte.remboursable ?? true,
+      tauxRemboursement: acte.tauxRemboursement != null ? String(acte.tauxRemboursement) : '',
       description: acte.description ?? '',
       actif: acte.actif,
     });
@@ -161,6 +173,10 @@ export default function CatalogueActes() {
       libelle: acteForm.libelle.trim(),
       idGroupe: Number(acteForm.idGroupe),
       prixDefaut: parseFloat(acteForm.prixDefaut) || 0,
+      coefficient: acteForm.coefficient ? parseFloat(acteForm.coefficient) : null,
+      lettreCle: acteForm.lettreCle || null,
+      remboursable: acteForm.remboursable,
+      tauxRemboursement: acteForm.tauxRemboursement ? parseFloat(acteForm.tauxRemboursement) : null,
       description: acteForm.description || null,
       actif: acteForm.actif,
     };
@@ -317,7 +333,7 @@ export default function CatalogueActes() {
       )}
 
       {loading ? (
-        <SkeletonTable columns={6} rows={8} />
+        <SkeletonTable columns={9} rows={8} />
       ) : actes.length === 0 ? (
         <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm ring-1 ring-slate-200">
           Aucun acte dans le catalogue.
@@ -332,6 +348,8 @@ export default function CatalogueActes() {
                 <Th>Catégorie</Th>
                 <Th>Groupe</Th>
                 <Th align="right">Prix défaut</Th>
+                <Th align="center">Cotation</Th>
+                <Th align="center">Remb.</Th>
                 <Th align="center">Actif</Th>
                 <Th align="center">Actions</Th>
               </tr>
@@ -346,6 +364,16 @@ export default function CatalogueActes() {
                   </Td>
                   <Td className="whitespace-nowrap text-gray-600">{acte.groupeLibelle ?? '—'}</Td>
                   <Td className="whitespace-nowrap text-right">{Number(acte.prixDefaut).toFixed(2)} $</Td>
+                  <Td className="whitespace-nowrap text-center text-gray-600">
+                    {acte.lettreCle || acte.coefficient != null
+                      ? `${acte.lettreCle ?? ''}${acte.lettreCle && acte.coefficient != null ? ' × ' : ''}${acte.coefficient != null ? Number(acte.coefficient).toFixed(2) : ''}`
+                      : '—'}
+                  </Td>
+                  <Td className="text-center">
+                    {acte.remboursable
+                      ? <span className="text-green-600">{acte.tauxRemboursement != null ? `${acte.tauxRemboursement}%` : 'Oui'}</span>
+                      : <span className="text-gray-400">Non</span>}
+                  </Td>
                   <Td className="text-center">
                     {acte.actif ? <span className="text-green-600">Oui</span> : <span className="text-red-600">Non</span>}
                   </Td>
@@ -433,6 +461,50 @@ export default function CatalogueActes() {
               Actif
             </label>
           </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Cotation / remboursement
+            </p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <FormInput
+                label="Coefficient"
+                type="number"
+                step="0.01"
+                min={0}
+                value={acteForm.coefficient}
+                onChange={(e) => setActeForm({ ...acteForm, coefficient: e.target.value })}
+                placeholder="ex. 2.00"
+              />
+              <FormInput
+                label="Lettre clé / code"
+                type="text"
+                value={acteForm.lettreCle}
+                onChange={(e) => setActeForm({ ...acteForm, lettreCle: e.target.value })}
+                placeholder="ex. C, CS, B"
+              />
+              <FormInput
+                label="Taux remboursement (%)"
+                type="number"
+                step="0.01"
+                min={0}
+                max={100}
+                value={acteForm.tauxRemboursement}
+                onChange={(e) => setActeForm({ ...acteForm, tauxRemboursement: e.target.value })}
+                placeholder="ex. 70"
+              />
+            </div>
+            <label className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={acteForm.remboursable}
+                onChange={(e) => setActeForm({ ...acteForm, remboursable: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              Acte remboursable
+            </label>
+          </div>
+
           <FormTextarea
             label="Description"
             value={acteForm.description}

@@ -38,7 +38,7 @@ public final class RolePermissions {
                     SPECIALITES_VOIR, SPECIALITES_GERER,
                     PHARMACIE_VOIR,
                     URGENCES_VOIR, URGENCES_GERER,
-                    FACTURATION_VOIR, CATALOGUE_VOIR,
+                    CATALOGUE_VOIR,
                     NOTIFICATIONS_VOIR),
             Role.SECRETAIRE, EnumSet.of(
                     DASHBOARD_VOIR,
@@ -65,6 +65,12 @@ public final class RolePermissions {
                     SOINS_VOIR, SOINS_GERER,
                     URGENCES_VOIR, URGENCES_GERER,
                     NOTIFICATIONS_VOIR),
+            Role.LABORANTIN, EnumSet.of(
+                    DASHBOARD_VOIR,
+                    PATIENTS_VOIR,
+                    EXAMENS_VOIR, EXAMENS_RESULTAT,
+                    CATEGORIES_EXAMEN_VOIR,
+                    NOTIFICATIONS_VOIR),
             Role.PHARMACIEN, EnumSet.of(
                     DASHBOARD_VOIR,
                     PATIENTS_VOIR,
@@ -75,7 +81,13 @@ public final class RolePermissions {
                     MEDECINS_VOIR,
                     PERSONNEL_VOIR, PERSONNEL_GERER,
                     NOTIFICATIONS_VOIR),
-            Role.PATIENT, EnumSet.of(DASHBOARD_VOIR)
+            Role.PATIENT, EnumSet.of(
+                    MON_ESPACE_VOIR,
+                    MES_RENDEZ_VOUS_VOIR, MES_RENDEZ_VOUS_DEMANDER, MES_RENDEZ_VOUS_ANNULER,
+                    MES_EXAMENS_VOIR,
+                    MES_ORDONNANCES_VOIR,
+                    MES_FACTURES_VOIR, MES_FACTURES_PAYER,
+                    MON_DOSSIER_VOIR)
     );
 
     public static Set<PermissionCode> pour(Role role) {

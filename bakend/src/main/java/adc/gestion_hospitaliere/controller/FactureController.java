@@ -16,7 +16,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @RestController
@@ -41,8 +43,11 @@ public class FactureController {
 
     // AVANT /{id} pour ne pas être capturé par la variable de chemin
     @GetMapping("/statistiques")
-    public ResponseEntity<FactureStatsDto> getStatistiques() {
-        return ResponseEntity.ok(factureService.getStatistiques());
+    public ResponseEntity<FactureStatsDto> getStatistiques(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false, defaultValue = "month") String granularite) {
+        return ResponseEntity.ok(factureService.getStatistiques(dateDebut, dateFin, granularite));
     }
 
     @GetMapping("/elements/{idPatient}")
@@ -50,10 +55,13 @@ public class FactureController {
             @PathVariable Integer idPatient,
             @RequestParam(required = false) Integer idConsultation,
             @RequestParam(required = false) Integer idHospitalisation,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "100") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<ElementFacturableDto> page = factureService.getElementsFacturables(idPatient, idConsultation, idHospitalisation, pageable);
+        Page<ElementFacturableDto> page = factureService.getElementsFacturables(
+                idPatient, idConsultation, idHospitalisation, dateDebut, dateFin, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

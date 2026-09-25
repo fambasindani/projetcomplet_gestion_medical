@@ -14,6 +14,7 @@ export interface AuthResponseDto {
   email: string;
   role: UserRole;
   medecinId?: number | null;
+  patientId?: number | null;
   token: string;
   refreshToken: string;
   expiresIn: number;
@@ -27,5 +28,6 @@ export interface User {
   email: string;
   role: UserRole;
   medecinId?: number | null;
+  patientId?: number | null;
   permissions?: string[];
 }

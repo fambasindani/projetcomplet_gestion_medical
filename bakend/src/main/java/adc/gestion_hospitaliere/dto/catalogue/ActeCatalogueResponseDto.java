@@ -21,6 +21,10 @@ public class ActeCatalogueResponseDto {
     private String groupeLibelle;
     private CategorieActeMedical categorie;
     private BigDecimal prixDefaut;
+    private BigDecimal coefficient;
+    private String lettreCle;
+    private Boolean remboursable;
+    private BigDecimal tauxRemboursement;
     private String description;
     private Boolean actif;
     private LocalDateTime dateCreation;

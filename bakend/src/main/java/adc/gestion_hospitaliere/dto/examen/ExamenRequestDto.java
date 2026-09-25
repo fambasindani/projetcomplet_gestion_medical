@@ -8,11 +8,16 @@ import java.time.LocalDateTime;
 
 @Data
 public class ExamenRequestDto {
+    // Ces champs ne sont obligatoires qu'à la CRÉATION.
+    // En mise à jour (PUT), l'update est partiel : le formulaire de résultat
+    // n'envoie que les champs de résultat, sans patient/médecin/catégorie.
+    public interface Creation {}
+
     private Integer idPrescription;
-    @NotNull private Integer idPatient;
-    @NotNull private Integer idMedecinPrescripteur;
+    @NotNull(groups = Creation.class) private Integer idPatient;
+    @NotNull(groups = Creation.class) private Integer idMedecinPrescripteur;
     private String typeExamen;
-    @NotNull private Integer idCategorieExamen;   // ← clé étrangère vers CategorieExamen
+    @NotNull(groups = Creation.class) private Integer idCategorieExamen;   // ← clé étrangère vers CategorieExamen
     private Integer idActeCatalogue;              // ← acte précis du référentiel (actes_catalogue)
     private LocalDateTime datePrescription;
     private LocalDateTime datePlanification;

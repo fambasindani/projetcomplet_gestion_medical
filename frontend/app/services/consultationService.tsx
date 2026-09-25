@@ -31,8 +31,18 @@ export const consultationService = {
     await api.delete(`/consultations/${id}`);
   },
 
-  async getStats(): Promise<ConsultationStatsData> {
-    const response = await api.get('/consultations/statistiques');
+  async getStats(params?: {
+    dateDebut?: string | null;
+    dateFin?: string | null;
+    granularite?: 'day' | 'month' | 'year';
+  }): Promise<ConsultationStatsData> {
+    const response = await api.get('/consultations/statistiques', {
+      params: {
+        dateDebut: params?.dateDebut || undefined,
+        dateFin: params?.dateFin || undefined,
+        granularite: params?.granularite || undefined,
+      },
+    });
     const data = response.data || {};
     return {
       totalConsultations: data.total ?? 0,

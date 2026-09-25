@@ -87,6 +87,11 @@ public class Medecin {
     @Column(name = "date_creation", nullable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 
+    @PrePersist
+    void prePersist() {
+        if (dateCreation == null) dateCreation = LocalDateTime.now();
+    }
+
     // Relations (navigation properties – optionnelles pour JPA)
     @OneToMany(mappedBy = "medecin")
     private List<RendezVous> rendezVous = new ArrayList<>();

@@ -24,6 +24,7 @@ public enum PermissionCode {
 
     EXAMENS_VOIR,
     EXAMENS_GERER,
+    EXAMENS_RESULTAT,
     CATEGORIES_EXAMEN_VOIR,
     CATEGORIES_EXAMEN_GERER,
 
@@ -60,5 +61,16 @@ public enum PermissionCode {
 
     NOTIFICATIONS_VOIR,
 
-    UTILISATEURS_GERER
+    UTILISATEURS_GERER,
+
+    // ===== Portail patient (accès à son propre dossier uniquement) =====
+    MON_ESPACE_VOIR,
+    MES_RENDEZ_VOUS_VOIR,
+    MES_RENDEZ_VOUS_DEMANDER,
+    MES_RENDEZ_VOUS_ANNULER,
+    MES_EXAMENS_VOIR,
+    MES_ORDONNANCES_VOIR,
+    MES_FACTURES_VOIR,
+    MES_FACTURES_PAYER,
+    MON_DOSSIER_VOIR
 }

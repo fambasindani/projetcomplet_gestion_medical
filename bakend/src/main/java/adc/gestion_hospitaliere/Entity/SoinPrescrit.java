@@ -50,6 +50,12 @@ public class SoinPrescrit {
     @Column(name = "date_prescription", updatable = false)
     private LocalDateTime datePrescription = LocalDateTime.now();
 
+    @PrePersist
+    void prePersist() {
+        if (datePrescription == null) datePrescription = LocalDateTime.now();
+        if (statut == null) statut = StatutSoin.Prescrit;
+    }
+
     // Relations optionnelles
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_prescription", insertable = false, updatable = false)

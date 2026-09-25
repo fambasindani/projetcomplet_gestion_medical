@@ -9,6 +9,7 @@ import adc.gestion_hospitaliere.service.CurrentUserService;
 import adc.gestion_hospitaliere.service.ExamenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,15 +50,17 @@ public class ExamenController {
 
     // POST /api/examens
     @PostMapping
-    public ResponseEntity<ExamenResponseDto> create(@Valid @RequestBody ExamenRequestDto dto) {
+    public ResponseEntity<ExamenResponseDto> create(
+            @Validated(ExamenRequestDto.Creation.class) @RequestBody ExamenRequestDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
 
     // PUT /api/examens/{id}
+    // Mise à jour partielle : pas de validation des champs obligatoires de création.
     @PutMapping("/{id}")
     public ResponseEntity<ExamenResponseDto> update(
             @PathVariable Integer id,
-            @Valid @RequestBody ExamenRequestDto dto) {
+            @RequestBody ExamenRequestDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
@@ -83,7 +86,8 @@ public class ExamenController {
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<List<ExamenResponseDto>> createBatch(@Valid @RequestBody ExamensBatchRequest request) {
+    public ResponseEntity<List<ExamenResponseDto>> createBatch(
+            @Validated(ExamenRequestDto.Creation.class) @RequestBody ExamensBatchRequest request) {
         List<ExamenResponseDto> results = new ArrayList<>();
         for (ExamenRequestDto dto : request.getExamens()) {
             results.add(service.create(dto));   // ← correction ici

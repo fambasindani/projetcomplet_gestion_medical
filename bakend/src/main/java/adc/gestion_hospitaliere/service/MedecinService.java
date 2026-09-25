@@ -360,6 +360,21 @@ public class MedecinService {
                 })
                 .collect(Collectors.toList());
 
+        // Tous les rendez-vous (passés + à venir), pour l'onglet Rendez-vous
+        List<Map<String, Object>> tousLesRendezVous = rendezVousRepository.findAllByMedecin(id).stream()
+                .map(rdv -> {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("idRdv", rdv.getIdRdv());
+                    item.put("dateRdv", rdv.getDateRdv());
+                    item.put("statut", rdv.getStatut() != null ? rdv.getStatut().name() : null);
+                    Patient patient = rdv.getPatient();
+                    item.put("patient", patient != null
+                            ? patient.getNom() + " " + patient.getPrenom()
+                            : "Inconnu");
+                    return item;
+                })
+                .collect(Collectors.toList());
+
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("totalRendezVous", totalRendezVous);
         stats.put("rendezVousAVenir", (long) rendezVousAVenir.size());
@@ -387,6 +402,7 @@ public class MedecinService {
         result.put("informationsProfessionnelles", infosPro);
         result.put("statistiques", stats);
         result.put("rendezVousAVenir", rendezVousAVenir);
+        result.put("tousLesRendezVous", tousLesRendezVous);
         result.put("dernieresConsultations", dernieresConsultations);
         result.put("activiteParMois", List.of());
 

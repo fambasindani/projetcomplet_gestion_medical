@@ -37,4 +37,10 @@ public class GroupeActe {
 
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
+
+    @PrePersist
+    void prePersist() {
+        if (dateCreation == null) dateCreation = LocalDateTime.now();
+        if (actif == null) actif = true;
+    }
 }
