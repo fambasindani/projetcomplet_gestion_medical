@@ -61,7 +61,8 @@ public class SecurityConfig {
         // En développement, on autorise tout port localhost (3000, 3001, ...).
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:[*]",
-                "http://127.0.0.1:[*]"
+                "http://127.0.0.1:[*]",
+                "http://10.23.10.117:[*]"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
