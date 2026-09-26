@@ -1,0 +1,60 @@
+name: CI/CD Hopital
+
+# Se déclenche à chaque push sur main, et manuellement depuis l'onglet Actions.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # ===================== BACKEND =====================
+  backend:
+    name: Backend (compile + image Docker)
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier Java
+        run: java -version
+
+      - name: Compiler le backend (Maven)
+        working-directory: bakend
+        shell: cmd
+        run: mvnw.cmd -B -DskipTests clean compile
+
+      - name: Construire l'image Docker backend
+        run: docker compose build backend
+
+  # ===================== FRONTEND =====================
+  frontend:
+    name: Frontend (types + image Docker)
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer les dépendances
+        working-directory: frontend
+        shell: cmd
+        run: npm ci
+
+      - name: Vérifier les types (TypeScript)
+        working-directory: frontend
+        shell: cmd
+        run: npx tsc --noEmit
+
+      - name: Construire l'image Docker frontend
+        run: docker compose build frontend
+
+  # ===================== DÉPLOIEMENT =====================
+  deploy:
+    name: Déploiement
+    runs-on: self-hosted
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: (Re)démarrer les conteneurs
+        run: docker compose up -d
+
+      - name: État des conteneurs
+        run: docker ps

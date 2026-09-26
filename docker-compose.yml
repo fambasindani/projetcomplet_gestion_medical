@@ -1,0 +1,60 @@
+services:
+  # ===== Backend Spring Boot =====
+  # Utilise le SQL Server local de la machine (host.docker.internal).
+  # Pour utiliser un SQL Server conteneurisé à la place, décommentez le service
+  # `sqlserver` ci-dessous et remplacez DB_URL par :
+  #   jdbc:sqlserver://sqlserver:1433;databaseName=GestionHospitaliereDB;encrypt=true;trustServerCertificate=true
+  backend:
+    build:
+      context: ./bakend
+      dockerfile: Dockerfile
+    container_name: hopital-backend
+    environment:
+      DB_URL: "jdbc:sqlserver://host.docker.internal:1433;databaseName=GestionHospitaliereDB;encrypt=true;trustServerCertificate=true"
+      DB_USERNAME: sa
+      DB_PASSWORD: "0898596501"
+      JWT_SECRET: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "7035:7035"
+    networks:
+      - hopital
+
+  # ===== Frontend Next.js =====
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "http://localhost:7035/api"
+    container_name: hopital-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:7035/api"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - hopital
+
+  # ===== SQL Server conteneurisé (optionnel) =====
+  # sqlserver:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: hopital-sqlserver
+  #   environment:
+  #     ACCEPT_EULA: "Y"
+  #     MSSQL_SA_PASSWORD: "0898596501"
+  #   ports:
+  #     - "1433:1433"
+  #   volumes:
+  #     - sqlserver_data:/var/opt/mssql
+  #   networks:
+  #     - hopital
+
+networks:
+  hopital:
+    driver: bridge
+
+# volumes:
+#   sqlserver_data:

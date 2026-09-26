@@ -1,3 +1,5 @@
 
 bakend/uploads/
 
+.env
+!.env.example

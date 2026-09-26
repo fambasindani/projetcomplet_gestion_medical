@@ -1,0 +1,9 @@
+target/
+uploads/
+.mvn/
+mvnw
+mvnw.cmd
+*.iml
+.idea/
+.git/
+*.log
