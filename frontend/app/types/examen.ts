@@ -16,6 +16,8 @@ export interface CategorieExamen {
     actif: boolean;
     idGroupeCatalogue?: number | null;
     groupeCatalogueLibelle?: string | null;
+    idLaboratoire?: number | null;
+    laboratoireNom?: string | null;
     dateCreation: string;
   }
 
@@ -37,6 +39,8 @@ export interface Examen {
   datePlanification?: string;
   dateRealisation?: string;
   laboratoire?: string;
+  idLaboratoire?: number | null;
+  nomLaboratoire?: string | null;
   technicien?: string;
   resultat?: string;
   interpretation?: string;
@@ -62,6 +66,7 @@ export interface ExamenRequest {
   datePlanification?: string;
   dateRealisation?: string;
   laboratoire?: string;
+  idLaboratoire?: number | null;
   technicien?: string;
   resultat?: string;
   interpretation?: string;
@@ -71,4 +76,30 @@ export interface ExamenRequest {
   conclusion?: string;
   statut?: StatutExamen;
   confidentialite?: ConfidentialiteExamen;
+}
+
+
+export interface PersonnelAffecte {
+  idPersonnel: number;
+  nom: string;
+  fonction?: string;
+}
+
+export interface Laboratoire {
+  idLaboratoire: number;
+  nom: string;
+  type?: string | null;
+  responsable?: string | null;
+  accreditation?: string | null;
+  actif: boolean;
+  dateCreation?: string;
+  personnel?: PersonnelAffecte[];
+}
+
+export interface LaboratoireRequest {
+  nom: string;
+  type?: string | null;
+  responsable?: string | null;
+  accreditation?: string | null;
+  actif?: boolean;
 }

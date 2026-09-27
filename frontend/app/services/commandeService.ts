@@ -42,6 +42,29 @@ export const commandeService = {
     return res.data;
   },
 
+  async changerStatut(id: number, statut: StatutCommandeFournisseur): Promise<CommandeFournisseur> {
+    const res = await api.patch(`/commandes-fournisseurs/${id}/statut`, null, { params: { statut } });
+    return res.data;
+  },
+
+  async receptionner(
+    id: number,
+    data: {
+      complete?: boolean;
+      lignes: {
+        idDetailCommande: number;
+        quantiteRecue: number;
+        numeroLot?: string;
+        datePeremption?: string;
+        emplacementStockage?: string;
+        prixVenteUnitaire?: number;
+      }[];
+    },
+  ): Promise<CommandeFournisseur> {
+    const res = await api.post<CommandeFournisseur>(`/commandes-fournisseurs/${id}/reception`, data);
+    return res.data;
+  },
+
   async delete(id: number): Promise<void> {
     await api.delete(`/commandes-fournisseurs/${id}`);
   }

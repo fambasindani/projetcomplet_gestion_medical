@@ -21,6 +21,7 @@ public class CurrentUserService {
 
     private final UserRepository userRepository;
     private final MedecinRepository medecinRepository;
+    private final adc.gestion_hospitaliere.Repository.PersonnelLaboratoireRepository personnelLaboratoireRepository;
 
     public String emailCourant() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -108,5 +109,60 @@ public class CurrentUserService {
                     "Votre compte n'est pas relié à un dossier patient");
         }
         return id;
+    }
+
+    // ==================== SCOPING PAR SERVICE / LABORATOIRE ====================
+
+    /** Service (texte) du personnel lié au compte connecté, ou null. */
+    public String serviceCourant() {
+        User u = utilisateurCourant();
+        if (u == null || u.getPersonnel() == null) return null;
+        String service = u.getPersonnel().getService();
+        return (service != null && !service.isBlank()) ? service.trim() : null;
+    }
+
+    /**
+     * Laboratoire du laborantin connecté : son service (qui correspond à une
+     * catégorie d'examen). En France, un technicien voit les examens de son
+     * plateau technique, pas seulement les siens.
+     */
+    public String laboratoireCourant() {
+        if (roleCourant() != Role.LABORANTIN) return null;
+        return serviceCourant();
+    }
+
+    /**
+     * Filtre à appliquer aux listes d'examens pour un laborantin :
+     * - null  => pas laborantin : voit tout ;
+     * - >= 0  => id du laboratoire : ne voit que les examens de son plateau ;
+     * - -1    => laborantin non rattaché : ne voit rien.
+     */
+    public Integer filtreLaboratoireId() {
+        if (roleCourant() != Role.LABORANTIN) return null;
+        Integer id = laboratoireIdCourant();
+        return id != null ? id : -1;
+    }
+
+    /** Id du laboratoire rattaché au personnel connecté, ou null. */
+    public Integer laboratoireIdCourant() {
+        Integer personnelId = personnelIdCourant();
+        if (personnelId == null) return null;
+        return personnelLaboratoireRepository.findFirstByIdPersonnel(personnelId)
+                .map(adc.gestion_hospitaliere.Entity.PersonnelLaboratoire::getIdLaboratoire)
+                .orElse(null);
+    }
+
+    /** Service de l'infirmier connecté (scope des soins et hospitalisations). */
+    public String serviceInfirmierCourant() {
+        if (roleCourant() != Role.INFIRMIER) return null;
+        return serviceCourant();
+    }
+
+    public boolean estLaborantin() {
+        return roleCourant() == Role.LABORANTIN;
+    }
+
+    public boolean estInfirmier() {
+        return roleCourant() == Role.INFIRMIER;
     }
 }

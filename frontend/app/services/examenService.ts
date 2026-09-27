@@ -5,9 +5,29 @@ import { ExamenRequest, Examen } from '../types/examen';
 
 
 
+export interface ExamenFiltres {
+  pageIndex?: number;
+  pageSize?: number;
+  statut?: string;
+  idCategorie?: number | null;
+  term?: string;
+}
+
 export const examenService = {
   async getAll(pageIndex = 1, pageSize = 10): Promise<PagedResult<Examen>> {
     const res = await api.get('/examens', { params: { pageIndex, pageSize } });
+    return res.data;
+  },
+  async search(filtres: ExamenFiltres = {}): Promise<PagedResult<Examen>> {
+    const res = await api.get('/examens', {
+      params: {
+        pageIndex: filtres.pageIndex ?? 1,
+        pageSize: filtres.pageSize ?? 10,
+        statut: filtres.statut || undefined,
+        idCategorie: filtres.idCategorie ?? undefined,
+        term: filtres.term || undefined,
+      },
+    });
     return res.data;
   },
   async getById(id: number): Promise<Examen> {

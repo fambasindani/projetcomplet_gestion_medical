@@ -12,9 +12,9 @@ export const personnelService = {
     return res.data;
   },
 
-  async search(keyword: string, pageIndex = 1, pageSize = 10, fonction?: string): Promise<PagedResult<PersonnelResponse>> {
+  async search(keyword: string, pageIndex = 1, pageSize = 10, fonction?: string, genre?: string): Promise<PagedResult<PersonnelResponse>> {
     const res = await api.get('/personnel/search', {
-      params: { keyword, pageIndex, pageSize, fonction },
+      params: { keyword: keyword || undefined, pageIndex, pageSize, fonction: fonction || undefined, genre: genre || undefined },
     });
     return res.data;
   },

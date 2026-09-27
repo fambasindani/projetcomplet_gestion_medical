@@ -62,26 +62,33 @@ public class NotificationService {
 
     // ---------- LECTURE ----------
 
-    public Page<NotificationResponseDto> getAll(Boolean lue, Pageable pageable) {
+    public Page<NotificationResponseDto> getAll(Boolean lue, String typeNotification, Pageable pageable) {
+        TypeNotification type = parseType(typeNotification);
         if (estAdmin()) {
-            Page<Notification> page = (lue != null)
-                    ? notificationRepository.findByLue(lue, pageable)
-                    : notificationRepository.findAllByOrderByDateCreationDesc(pageable);
-            return page.map(this::toDto);
+            return notificationRepository.findAdmin(lue, type, pageable).map(this::toDto);
         }
         Role role = roleCourant();
         Long userId = userIdCourant();
         if (Boolean.FALSE.equals(lue)) {
-            return notificationRepository.findNonLuesPourUtilisateur(role, userId, pageable).map(this::toDto);
+            return notificationRepository.findNonLuesPourUtilisateur(type, role, userId, pageable).map(this::toDto);
         }
-        return notificationRepository.findPourUtilisateur(role, userId, pageable).map(this::toDto);
+        return notificationRepository.findPourUtilisateur(type, role, userId, pageable).map(this::toDto);
+    }
+
+    private static TypeNotification parseType(String typeNotification) {
+        if (typeNotification == null || typeNotification.isBlank()) return null;
+        try {
+            return TypeNotification.valueOf(typeNotification);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public Page<NotificationResponseDto> getNonLues(Pageable pageable) {
         if (estAdmin()) {
             return notificationRepository.findByLue(false, pageable).map(this::toDto);
         }
-        return notificationRepository.findNonLuesPourUtilisateur(roleCourant(), userIdCourant(), pageable).map(this::toDto);
+        return notificationRepository.findNonLuesPourUtilisateur(null, roleCourant(), userIdCourant(), pageable).map(this::toDto);
     }
 
     public long countNonLues() {

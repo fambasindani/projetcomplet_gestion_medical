@@ -33,12 +33,13 @@ export interface NotificationCreate {
 }
 
 export const notificationService = {
-  async getAll(params?: PaginationParams & { lue?: boolean }): Promise<PagedResult<Notification>> {
+  async getAll(params?: PaginationParams & { lue?: boolean; typeNotification?: string }): Promise<PagedResult<Notification>> {
     const response = await api.get<PagedResult<Notification>>('/notifications', {
       params: {
         pageIndex: params?.pageIndex ?? 1,
         pageSize: params?.pageSize ?? 10,
         lue: params?.lue,
+        typeNotification: params?.typeNotification || undefined,
       },
     });
     return response.data;

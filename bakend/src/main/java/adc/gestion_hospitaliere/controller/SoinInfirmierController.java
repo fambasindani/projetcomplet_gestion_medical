@@ -34,10 +34,12 @@ public class SoinInfirmierController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        // Un infirmier ne voit que les soins qu'il a réalisés.
-        Integer force = currentUserService.filtreInfirmierId();
-        return ResponseEntity.ok(service.search(typeSoin, idHospitalisation,
-                force != null ? force : idInfirmier, dateStart, dateEnd, pageable));
+        // Modele francais : un infirmier voit les soins de son service.
+        String serviceInfirmier = currentUserService.serviceInfirmierCourant();
+        if (serviceInfirmier != null) {
+            return ResponseEntity.ok(service.searchByService(serviceInfirmier, pageable));
+        }
+        return ResponseEntity.ok(service.search(typeSoin, idHospitalisation, idInfirmier, dateStart, dateEnd, pageable));
     }
 
     @GetMapping("/hospitalisation/{hospitalisationId}")

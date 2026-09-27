@@ -31,7 +31,11 @@ public class SpecialiteService {
     private final ChambreRepository chambreRepository;
 
     public Page<SpecialiteResponseDto> getAllSpecialites(Pageable pageable) {
-        return specialiteRepository.findAll(pageable)
+        return getAllSpecialites(pageable, null);
+    }
+
+    public Page<SpecialiteResponseDto> getAllSpecialites(Pageable pageable, Boolean actif) {
+        return specialiteRepository.search(actif, pageable)
                 .map(this::convertToResponseDto);
     }
 

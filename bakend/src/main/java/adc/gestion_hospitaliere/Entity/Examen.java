@@ -62,6 +62,14 @@ public class Examen {
     @JoinColumn(name = "id_categorie_examen", nullable = false)
     private CategorieExamen categorie;
 
+    // --- Relation vers le laboratoire (entité physique) ---
+    @Column(name = "id_laboratoire")
+    private Integer idLaboratoire;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_laboratoire", insertable = false, updatable = false)
+    private Laboratoire laboratoireRef;
+
     // --- Autres champs ---
 
     @Column(name = "type_examen", nullable = false, length = 100)

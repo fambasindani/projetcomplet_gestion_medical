@@ -14,6 +14,16 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Inte
     Page<Consultation> findByIdMedecin(Integer idMedecin, Pageable pageable);
     List<Consultation> findByPatient_IdPatient(Integer patientId);
 
+    @Query("SELECT c FROM Consultation c LEFT JOIN c.patient p LEFT JOIN c.medecin m WHERE " +
+            "(:idMedecin IS NULL OR c.idMedecin = :idMedecin) AND " +
+            "(:term IS NULL OR LOWER(p.nom) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            "  OR LOWER(p.prenom) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            "  OR LOWER(m.nom) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            "  OR LOWER(m.prenom) LIKE LOWER(CONCAT('%', :term, '%')))")
+    Page<Consultation> searchConsultations(@Param("idMedecin") Integer idMedecin,
+                                           @Param("term") String term,
+                                           Pageable pageable);
+
     long countByDateConsultationBetween(LocalDateTime start, LocalDateTime end);
 
     long countByIdMedecin(Integer idMedecin);

@@ -9,6 +9,7 @@ export interface CategorieExamenRequest {
   description?: string;
   actif?: boolean;
   idGroupeCatalogue?: number | null;
+  idLaboratoire?: number | null;
 }
 
 export const categorieExamenService = {

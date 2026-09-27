@@ -95,6 +95,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/specialites/**").hasAuthority("SPECIALITES_GERER")
 
                         // ===== MEDECINS =====
+                        // Liste légère pour les formulaires (délivrance, etc.) : AVANT la règle générale.
+                        .requestMatchers(HttpMethod.GET, "/api/medecins/liste-simple")
+                        .hasAnyAuthority("MEDECINS_VOIR", "PHARMACIE_VOIR", "HOSPITALISATIONS_VOIR", "SOINS_VOIR")
                         .requestMatchers(HttpMethod.GET, "/api/medecins/**").hasAuthority("MEDECINS_VOIR")
                         .requestMatchers("/api/medecins/**").hasAuthority("MEDECINS_GERER")
 
@@ -162,6 +165,9 @@ public class SecurityConfig {
                         // ===== EXAMENS / CATEGORIES EXAMEN =====
                         .requestMatchers(HttpMethod.GET, "/api/categories-examen/**").hasAuthority("CATEGORIES_EXAMEN_VOIR")
                         .requestMatchers("/api/categories-examen/**").hasAuthority("CATEGORIES_EXAMEN_GERER")
+                        .requestMatchers(HttpMethod.GET, "/api/laboratoires/**")
+                        .hasAnyAuthority("EXAMENS_VOIR", "CATEGORIES_EXAMEN_VOIR", "CATEGORIES_EXAMEN_GERER")
+                        .requestMatchers("/api/laboratoires/**").hasAuthority("CATEGORIES_EXAMEN_GERER")
                         .requestMatchers(HttpMethod.GET, "/api/examens/**").hasAuthority("EXAMENS_VOIR")
                         .requestMatchers(HttpMethod.POST, "/api/examens/**").hasAuthority("EXAMENS_GERER")
                         .requestMatchers(HttpMethod.PUT, "/api/examens/**").hasAnyAuthority("EXAMENS_GERER", "EXAMENS_RESULTAT")

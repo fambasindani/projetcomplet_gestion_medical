@@ -26,6 +26,11 @@ public class CategorieExamenService {
         return repository.findAll(pageable).map(this::toDto);
     }
 
+    public Page<CategorieExamenResponseDto> search(Boolean actif, String term, Pageable pageable) {
+        String t = (term == null || term.isBlank()) ? null : term.trim();
+        return repository.search(actif, t, pageable).map(this::toDto);
+    }
+
     public List<CategorieExamenResponseDto> getAllList() {
         return repository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
@@ -63,6 +68,7 @@ public class CategorieExamenService {
         entity.setDescription(dto.getDescription());
         if (dto.getActif() != null) entity.setActif(dto.getActif());
         entity.setIdGroupeCatalogue(dto.getIdGroupeCatalogue());
+        entity.setIdLaboratoire(dto.getIdLaboratoire());
         return toDto(repository.save(entity));
     }
 
@@ -83,6 +89,8 @@ public class CategorieExamenService {
                 .actif(entity.getActif())
                 .idGroupeCatalogue(entity.getIdGroupeCatalogue())
                 .groupeCatalogueLibelle(entity.getGroupeCatalogue() != null ? entity.getGroupeCatalogue().getLibelle() : null)
+                .idLaboratoire(entity.getIdLaboratoire())
+                .laboratoireNom(entity.getLaboratoire() != null ? entity.getLaboratoire().getNom() : null)
                 .dateCreation(entity.getDateCreation())
                 .build();
     }

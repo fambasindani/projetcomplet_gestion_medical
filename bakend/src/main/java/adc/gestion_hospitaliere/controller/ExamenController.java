@@ -29,16 +29,23 @@ public class ExamenController {
 
     // ---------- CRUD ----------
 
-    // GET /api/examens?page=1&size=10
+    // GET /api/examens?pageIndex=1&pageSize=10&statut=&idCategorie=&term=
     @GetMapping
     public ResponseEntity<PagedResponse<ExamenResponseDto>> getAll(
+            @RequestParam(required = false) StatutExamen statut,
+            @RequestParam(required = false) Integer idCategorie,
+            @RequestParam(required = false) String term,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Integer filtre = currentUserService.filtreMedecinId();
-        Page<ExamenResponseDto> page = (filtre != null)
-                ? service.getAllForMedecin(filtre, pageable)
-                : service.getAll(pageable);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Integer filtreMedecin = currentUserService.filtreMedecinId();
+        Integer filtreLabo = currentUserService.filtreLaboratoireId();
+        // -1 => non rattaché (laborantin) : aucun examen
+        if (filtreLabo != null && filtreLabo < 0) {
+            return ResponseEntity.ok(PagedResponse.of(Page.empty(pageable)));
+        }
+        Page<ExamenResponseDto> page = service.searchExamens(
+                filtreMedecin, filtreLabo, statut, idCategorie, term, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

@@ -42,6 +42,13 @@ public class CategorieExamen {
     @JoinColumn(name = "id_groupe_catalogue", insertable = false, updatable = false)
     private GroupeActe groupeCatalogue;
 
+    @Column(name = "id_laboratoire")
+    private Integer idLaboratoire;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_laboratoire", insertable = false, updatable = false)
+    private Laboratoire laboratoire;
+
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 

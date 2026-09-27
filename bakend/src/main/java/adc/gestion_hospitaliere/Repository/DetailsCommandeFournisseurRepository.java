@@ -14,4 +14,6 @@ public interface DetailsCommandeFournisseurRepository extends JpaRepository<Deta
 
     @Transactional
     void deleteByIdCommande(Integer idCommande);
+
+    java.util.List<DetailsCommandeFournisseur> findByIdCommande(Integer idCommande);
 }

@@ -14,5 +14,7 @@ public class CategorieExamenResponseDto {
     private Boolean actif;
     private Integer idGroupeCatalogue;
     private String groupeCatalogueLibelle;
+    private Integer idLaboratoire;
+    private String laboratoireNom;
     private LocalDateTime dateCreation;
 }

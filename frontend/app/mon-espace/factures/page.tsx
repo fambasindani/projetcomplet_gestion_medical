@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FaFileInvoiceDollar, FaWallet, FaHourglassHalf } from 'react-icons/fa';
 import { patientPortalService, type MaFacture } from '@/app/services/patientPortalService';
+import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import PageHeader from '@/app/ui/PageHeader';
+import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 
 const STATUT: Record<string, { bg: string; color: string; label: string }> = {
@@ -17,20 +19,26 @@ const STATUT: Record<string, { bg: string; color: string; label: string }> = {
 
 export default function MesFacturesPage() {
   const [factures, setFactures] = useState<MaFacture[]>([]);
+  const [pagedData, setPagedData] = useState<PagedResult<MaFacture> | null>(null);
+  const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       try {
-        setFactures(await patientPortalService.getFactures());
+        const data = await patientPortalService.getFactures(pagination.pageIndex, pagination.pageSize);
+        setPagedData(data);
+        setFactures(data.items);
       } catch (e) {
         toast.error(extractErrorMessage(e));
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.pageIndex]);
 
   const totalRestant = factures.reduce((a, f) => a + (f.montantRestant ?? 0), 0);
   const totalPaye = factures.reduce((a, f) => a + (f.montantPaye ?? 0), 0);
@@ -40,7 +48,7 @@ export default function MesFacturesPage() {
       <PageHeader title="Mes factures" subtitle="Suivi de vos factures et de vos paiements" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Kpi label="Factures" value={String(factures.length)} icon={FaFileInvoiceDollar} color="#6366f1" />
+        <Kpi label="Factures" value={String(pagedData?.totalCount ?? factures.length)} icon={FaFileInvoiceDollar} color="#6366f1" />
         <Kpi label="Total payé" value={`${totalPaye.toFixed(2)} $`} icon={FaWallet} color="#10b981" />
         <Kpi label="Reste à payer" value={`${totalRestant.toFixed(2)} $`} icon={FaHourglassHalf} color="#ef4444" />
       </div>
@@ -116,6 +124,17 @@ export default function MesFacturesPage() {
               </div>
             );
           })}
+        </div>
+      )}
+      {pagedData && pagedData.totalPages > 1 && (
+        <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+          <Pagination
+            pageIndex={pagedData.pageIndex}
+            totalPages={pagedData.totalPages}
+            totalCount={pagedData.totalCount}
+            pageSize={pagedData.pageSize}
+            onPageChange={(page) => setPagination((prev) => ({ ...prev, pageIndex: page }))}
+          />
         </div>
       )}
     </div>

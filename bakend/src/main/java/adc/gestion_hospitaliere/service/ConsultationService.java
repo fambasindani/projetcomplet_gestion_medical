@@ -56,6 +56,12 @@ public class ConsultationService {
         return page.map(this::convertToDto);
     }
 
+    /** Recherche paginée avec scoping médecin + terme (patient/médecin). */
+    public Page<ConsultationResponseDto> searchConsultations(Integer idMedecin, String term, Pageable pageable) {
+        String t = (term == null || term.isBlank()) ? null : term.trim();
+        return consultationRepository.searchConsultations(idMedecin, t, pageable).map(this::convertToDto);
+    }
+
     public ConsultationResponseDto getConsultation(Integer id) {
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Consultation non trouvée"));

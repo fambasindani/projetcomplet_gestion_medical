@@ -9,11 +9,12 @@ import type { Medecin } from "../types/medecin";
 import type { Chambre } from "../types/chambre";
 
 export const specialiteService = {
-  async getAll(params?: PaginationParams): Promise<PagedResult<Specialite>> {
+  async getAll(params?: PaginationParams, actif?: boolean): Promise<PagedResult<Specialite>> {
     const response = await api.get<PagedResult<Specialite>>("/specialites", {
       params: {
         pageIndex: params?.pageIndex ?? 1,
         pageSize: params?.pageSize ?? 10,
+        actif,
       },
     });
     return response.data;

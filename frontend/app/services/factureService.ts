@@ -4,6 +4,7 @@ import type {
   Facture,
   FactureCreate,
   FactureStats,
+  Paiement,
   PaiementCreate,
   StatutFacture,
 } from '../types/facture';
@@ -125,6 +126,29 @@ export const factureService = {
 
   async ajouterPaiement(id: number, data: PaiementCreate): Promise<Facture> {
     const response = await api.post<Facture>(`/factures/${id}/paiements`, data);
+    return response.data;
+  },
+
+  async getPaiements(filtres?: {
+    pageIndex?: number;
+    pageSize?: number;
+    modePaiement?: string;
+    statut?: string;
+    term?: string;
+    dateStart?: string | null;
+    dateEnd?: string | null;
+  }): Promise<PagedResult<Paiement>> {
+    const response = await api.get<PagedResult<Paiement>>('/factures/paiements', {
+      params: {
+        pageIndex: filtres?.pageIndex ?? 1,
+        pageSize: filtres?.pageSize ?? 10,
+        modePaiement: filtres?.modePaiement || undefined,
+        statut: filtres?.statut || undefined,
+        term: filtres?.term || undefined,
+        dateStart: toIsoStartOfDay(filtres?.dateStart ?? undefined),
+        dateEnd: toIsoEndOfDay(filtres?.dateEnd ?? undefined),
+      },
+    });
     return response.data;
   },
 };

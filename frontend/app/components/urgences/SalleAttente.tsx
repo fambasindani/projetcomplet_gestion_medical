@@ -36,8 +36,8 @@ export default function SalleAttente() {
 
   const loadData = useCallback(async () => {
     try {
-      const list = await urgenceService.getSalleAttente();
-      setItems(list);
+      const page = await urgenceService.getSalleAttente(1, 100);
+      setItems(page.items);
     } catch (error) {
       toast.error(extractErrorMessage(error));
     } finally {

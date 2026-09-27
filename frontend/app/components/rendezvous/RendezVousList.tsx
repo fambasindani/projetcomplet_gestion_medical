@@ -71,33 +71,12 @@ export default function RendezVousList() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      let data;
-      if (filterStatut) {
-        data = await rendezvousService.getByStatut(
-          filterStatut as StatutRendezVous,
-          pagination.pageIndex,
-          pagination.pageSize
-        );
-      } else {
-        data = await rendezvousService.getAll(
-          pagination.pageIndex,
-          pagination.pageSize
-        );
-      }
-      if (searchPatient) {
-        const term = searchPatient.toLowerCase();
-        const filtered = data.items.filter(
-          (rdv: RendezVous) =>
-            rdv.patientNom?.toLowerCase().includes(term) ||
-            rdv.patientPrenom?.toLowerCase().includes(term)
-        );
-        data = {
-          ...data,
-          items: filtered,
-          totalCount: filtered.length,
-          totalPages: Math.ceil(filtered.length / pagination.pageSize),
-        };
-      }
+      const data = await rendezvousService.search({
+        statut: (filterStatut as StatutRendezVous) || undefined,
+        term: searchPatient || undefined,
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize,
+      });
       setPagedData(data);
     } catch (error) {
       toast.error('Erreur lors du chargement');
@@ -190,7 +169,10 @@ export default function RendezVousList() {
           <FilterPanel>
             <FilterSelect
               value={filterStatut}
-              onChange={(e) => setFilterStatut(e.target.value)}
+              onChange={(e) => {
+                setFilterStatut(e.target.value);
+                setPagination((prev) => ({ ...prev, pageIndex: 1 }));
+              }}
             >
               <option value="">Tous les statuts</option>
               {Object.values(StatutRendezVous).map((statut) => (

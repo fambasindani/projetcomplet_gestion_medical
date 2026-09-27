@@ -59,19 +59,24 @@ const MedecinsList: React.FC = () => {
     setImageErrors(new Set());
     try {
       let data: PagedResult<Medecin>;
-      if (selectedSpecialite) {
-        data = await medecinService.getBySpecialite(selectedSpecialite, paginationParams);
-      } else if (selectedDisponibilite !== null) {
-        data = await medecinService.getAll(paginationParams);
-        if (selectedDisponibilite) {
-          data.items = data.items.filter(m => m.disponibilite === selectedDisponibilite);
-          data.totalCount = data.items.length;
-          data.totalPages = Math.ceil(data.totalCount / paginationParams.pageSize);
+      if (searchTerm) {
+        data = await medecinService.search(searchTerm, {
+          ...paginationParams,
+          disponibilite: selectedDisponibilite || undefined,
+        });
+        if (selectedSpecialite) {
+          data = { ...data, items: data.items.filter(m => m.idSpecialite === selectedSpecialite) };
         }
-      } else if (searchTerm) {
-        data = await medecinService.search(searchTerm, paginationParams);
+      } else if (selectedSpecialite) {
+        data = await medecinService.getBySpecialite(selectedSpecialite, paginationParams);
+        if (selectedDisponibilite) {
+          data = { ...data, items: data.items.filter(m => m.disponibilite === selectedDisponibilite) };
+        }
       } else {
-        data = await medecinService.getAll(paginationParams);
+        data = await medecinService.getAll({
+          ...paginationParams,
+          disponibilite: selectedDisponibilite || undefined,
+        });
       }
       setPagedData(data);
     } catch (error) {
@@ -218,7 +223,7 @@ const MedecinsList: React.FC = () => {
             </form>
             <FilterSelect
               value={selectedSpecialite ?? ''}
-              onChange={(e) => setSelectedSpecialite(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) => { setSelectedSpecialite(e.target.value ? Number(e.target.value) : null); setPaginationParams(prev => ({ ...prev, pageIndex: 1 })); }}
             >
               <option value="">Toutes spécialités</option>
               {specialites.map(spec => (
@@ -227,7 +232,7 @@ const MedecinsList: React.FC = () => {
             </FilterSelect>
             <FilterSelect
               value={selectedDisponibilite ?? ''}
-              onChange={(e) => setSelectedDisponibilite(e.target.value ? e.target.value : null)}
+              onChange={(e) => { setSelectedDisponibilite(e.target.value ? e.target.value : null); setPaginationParams(prev => ({ ...prev, pageIndex: 1 })); }}
             >
               <option value="">Toutes disponibilités</option>
               <option value="Disponible">Disponible</option>

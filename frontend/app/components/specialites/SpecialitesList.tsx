@@ -46,10 +46,7 @@ const SpecialitesList: React.FC = () => {
               data = await specialiteService.getActives(paginationParams);
               break;
             case 'inactives':
-              data = await specialiteService.getAll(paginationParams);
-              data.items = data.items.filter((s) => !s.actif);
-              data.totalCount = data.items.length;
-              data.totalPages = Math.ceil(data.totalCount / paginationParams.pageSize);
+              data = await specialiteService.getAll(paginationParams, false);
               break;
             case 'avec-medecins':
               data = await specialiteService.getAvecMedecins(paginationParams);
@@ -140,8 +137,14 @@ const SpecialitesList: React.FC = () => {
 
       {/* Filters */}
       <SpecialitesFilters
-        onSearch={setSearchTerm}
-        onFilterChange={setCurrentFilter}
+        onSearch={(term) => {
+          setSearchTerm(term);
+          setPaginationParams((prev) => ({ ...prev, pageIndex: 1 }));
+        }}
+        onFilterChange={(filter) => {
+          setCurrentFilter(filter);
+          setPaginationParams((prev) => ({ ...prev, pageIndex: 1 }));
+        }}
         onSortChange={() => {}}
         totalCount={pagedData?.totalCount || 0}
         activeFilter={currentFilter}

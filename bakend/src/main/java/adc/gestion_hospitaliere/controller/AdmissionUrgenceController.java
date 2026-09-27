@@ -41,8 +41,11 @@ public class AdmissionUrgenceController {
     }
 
     @GetMapping("/salle-attente")
-    public ResponseEntity<List<AdmissionUrgenceResponseDto>> getSalleAttente() {
-        return ResponseEntity.ok(service.getSalleAttente());
+    public ResponseEntity<PagedResponse<AdmissionUrgenceResponseDto>> getSalleAttente(
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        return ResponseEntity.ok(PagedResponse.of(service.getSalleAttente(pageable)));
     }
 
     @GetMapping("/{id}")

@@ -71,9 +71,6 @@ const menuItems: MenuItem[] = [
     permission: 'PATIENTS_VOIR',
     children: [
       { path: '/patients', name: 'Patients', icon: FaUserInjured },
-  /*     { path: '/patients/dossiers', name: 'Dossiers médicaux', icon: FaClipboardList }, */
-      { path: '/patients/hospitalisations', name: 'Hospitalisations', icon: FaProcedures },
-     /*  { path: '/patients/constantes', name: 'Constantes', icon: FaHeartbeat }, */
     ]
   },
 
@@ -132,7 +129,7 @@ const menuItems: MenuItem[] = [
     path: '/examens-module',
     name: 'Examens',
     icon: FaMicroscope,
-    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'LABORANTIN'],
     permission: 'EXAMENS_VOIR',
     children: [
       // { path: '/examens/radiologie', name: 'Radiologie', icon: FaXRay },
@@ -165,13 +162,12 @@ const menuItems: MenuItem[] = [
     path: '/hospitalisation-module',
     name: 'Hospitalisation',
     icon: FaHospital,
-    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'INFIRMIER'],
     permission: 'HOSPITALISATIONS_VOIR',
     children: [
-      // { path: '/hospitalisations/admissions', name: 'Admissions', icon: FaProcedures },
-      { path: '/hospitalisations/chambres', name: 'Chambres', icon: FaBed },
-      { path: '/hospitalisations/soins', name: 'Soins infirmiers', icon: FaUserNurse },
-     /*  { path: '/hospitalisations/constantes', name: 'Constantes', icon: FaHeartbeat }, */
+      { path: '/patients/hospitalisations', name: 'Admissions & séjours', icon: FaProcedures, permission: 'HOSPITALISATIONS_VOIR' },
+      { path: '/hospitalisations/chambres', name: 'Chambres', icon: FaBed, permission: 'CHAMBRES_VOIR' },
+      { path: '/hospitalisations/soins', name: 'Soins infirmiers', icon: FaUserNurse, permission: 'SOINS_VOIR' },
     ]
   },
 
@@ -215,6 +211,7 @@ const menuItems: MenuItem[] = [
       { path: '/settings/utilisateurs', name: 'Utilisateurs', icon: FaUsers },
       { path: '/settings/roles', name: 'Rôles & permissions', icon: FaClipboardCheck },
       { path: '/settings/categories-examen', name: "Catégories d'examen", icon: FaListAlt },
+      { path: '/settings/laboratoires', name: 'Laboratoires', icon: FaFlask },
     ]
   },
 ];
@@ -317,7 +314,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={handleLinkClick} />
       )}
       <aside className={sidebarClasses}>
-        <div className={`flex h-16 items-center border-b border-slate-800 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`flex h-16 shrink-0 items-center border-b border-slate-800 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
               <FaHospital className="text-lg text-white" />
@@ -334,7 +331,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
           </button>
         </div>
 
-        <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-3">
+        <nav className="mt-4 min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
           {visibleMenuItems.map((item) => (
             <div key={item.path} className="mb-1">
               {item.children ? (
@@ -410,7 +407,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         </nav>
 
         {!isCollapsed && (
-          <div className="border-t border-slate-800 p-4 text-center">
+          <div className="shrink-0 border-t border-slate-800 p-4 text-center">
             <p className="text-xs text-slate-500">Version 1.0.0</p>
             <div className="mt-2 flex items-center justify-center gap-2 text-xs text-slate-400">
               <span className="relative flex h-2 w-2">

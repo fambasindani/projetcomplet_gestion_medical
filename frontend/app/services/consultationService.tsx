@@ -7,6 +7,12 @@ export const consultationService = {
     const response = await api.get('/consultations', { params: { pageIndex, pageSize } });
     return response.data;
   },
+  async search(term: string, pageIndex = 1, pageSize = 10): Promise<PagedResult<Consultation>> {
+    const response = await api.get('/consultations', {
+      params: { term: term || undefined, pageIndex, pageSize },
+    });
+    return response.data;
+  },
   async getByPatient(patientId: number, pageIndex = 1, pageSize = 10): Promise<PagedResult<Consultation>> {
     const response = await api.get(`/consultations/patient/${patientId}`, { params: { pageIndex, pageSize } });
     return response.data;

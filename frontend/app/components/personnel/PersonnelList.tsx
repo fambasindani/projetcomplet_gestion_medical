@@ -37,23 +37,15 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
   const fetchData = useCallback(async (page: number, keyword = '') => {
     setLoading(true);
     try {
-      // Si une fonction est imposée (ex. Infirmiers), on filtre côté serveur.
-      const res = fonctionFixe
-        ? await personnelService.search(keyword, page, pagination.pageSize, fonctionFixe)
-        : (keyword || selectedGenre || selectedFonction
-            ? await personnelService.search(keyword, page, pagination.pageSize)
-            : await personnelService.getAll(page, pagination.pageSize));
-
-      // Filtrage supplémentaire côté front si nécessaire
-      let items = res.items;
-      if (!fonctionFixe && selectedGenre) {
-        items = items.filter(p => p.genre === selectedGenre);
-      }
-      if (!fonctionFixe && selectedFonction) {
-        items = items.filter(p => p.fonction?.toLowerCase().includes(selectedFonction.toLowerCase()));
-      }
-
-      setPersonnel(items);
+      // Filtres côté serveur (pagination exacte).
+      const res = await personnelService.search(
+        keyword,
+        page,
+        pagination.pageSize,
+        fonctionFixe ?? (selectedFonction || undefined),
+        selectedGenre || undefined
+      );
+      setPersonnel(res.items);
       setPagination({
         pageIndex: res.pageIndex,
         pageSize: res.pageSize,
@@ -181,7 +173,7 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
             </form>
             <FilterSelect
               value={selectedGenre || ''}
-              onChange={(e) => setSelectedGenre(e.target.value || null)}
+              onChange={(e) => { setSelectedGenre(e.target.value || null); setPagination(prev => ({ ...prev, pageIndex: 1 })); }}
             >
               <option value="">Tous genres</option>
               <option value="M">Masculin</option>
@@ -190,7 +182,7 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
             {!fonctionFixe && (
               <FilterSelect
                 value={selectedFonction || ''}
-                onChange={(e) => setSelectedFonction(e.target.value || null)}
+                onChange={(e) => { setSelectedFonction(e.target.value || null); setPagination(prev => ({ ...prev, pageIndex: 1 })); }}
               >
                 <option value="">Toutes fonctions</option>
                 {fonctions.map(f => (

@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { FaPlus, FaEdit, FaTrash, FaSave, FaLink } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSave, FaLink, FaFlask } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
-import type { CategorieExamen } from '@/app/types/examen';
+import type { CategorieExamen, Laboratoire } from '@/app/types/examen';
+import { laboratoireService } from '@/app/services/laboratoireService';
 import { acteCatalogueService, type GroupeActe } from '@/app/services/acteCatalogueService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { FormInput } from '@/app/components/common/FormInput';
@@ -14,6 +15,7 @@ import { FormTextarea } from '@/app/components/common/FormTextarea';
 import PageHeader from '@/app/ui/PageHeader';
 import Button, { IconButton } from '@/app/ui/Button';
 import Modal from '@/app/ui/Modal';
+import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 
@@ -22,6 +24,7 @@ interface FormState {
   libelle: string;
   description: string;
   idGroupeCatalogue: number | '';
+  idLaboratoire: number | '';
   actif: boolean;
 }
 
@@ -30,6 +33,7 @@ const emptyForm = (): FormState => ({
   libelle: '',
   description: '',
   idGroupeCatalogue: '',
+  idLaboratoire: '',
   actif: true,
 });
 
@@ -37,7 +41,10 @@ export default function CategoriesExamenList() {
   const confirm = useConfirm();
   const [categories, setCategories] = useState<CategorieExamen[]>([]);
   const [groupes, setGroupes] = useState<GroupeActe[]>([]);
+  const [laboratoires, setLaboratoires] = useState<Laboratoire[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
+  const [pagedMeta, setPagedMeta] = useState({ pageIndex: 1, pageSize: 10, totalCount: 0, totalPages: 0 });
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<CategorieExamen | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
@@ -46,18 +53,26 @@ export default function CategoriesExamenList() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [cats, grps] = await Promise.all([
-        categorieExamenService.getAllList(),
+      const [cats, grps, labs] = await Promise.all([
+        categorieExamenService.getAll(paginationParams.pageIndex, paginationParams.pageSize),
         acteCatalogueService.getGroupesAdmin('Examen'),
+        laboratoireService.getAll(false),
       ]);
-      setCategories(cats);
+      setCategories(cats.items);
+      setPagedMeta({
+        pageIndex: cats.pageIndex,
+        pageSize: cats.pageSize,
+        totalCount: cats.totalCount,
+        totalPages: cats.totalPages,
+      });
       setGroupes(grps.filter((g) => g.actif !== false));
+      setLaboratoires(labs);
     } catch (error) {
       toast.error(extractErrorMessage(error));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [paginationParams.pageIndex, paginationParams.pageSize]);
 
   useEffect(() => {
     void load();
@@ -76,6 +91,7 @@ export default function CategoriesExamenList() {
       libelle: c.libelle,
       description: c.description ?? '',
       idGroupeCatalogue: c.idGroupeCatalogue ?? '',
+      idLaboratoire: c.idLaboratoire ?? '',
       actif: c.actif,
     });
     setShowModal(true);
@@ -93,6 +109,7 @@ export default function CategoriesExamenList() {
       description: form.description || undefined,
       actif: form.actif,
       idGroupeCatalogue: form.idGroupeCatalogue === '' ? null : Number(form.idGroupeCatalogue),
+      idLaboratoire: form.idLaboratoire === '' ? null : Number(form.idLaboratoire),
     };
     setSaving(true);
     try {
@@ -143,7 +160,7 @@ export default function CategoriesExamenList() {
       />
 
       {loading ? (
-        <SkeletonTable columns={5} rows={8} />
+        <SkeletonTable columns={6} rows={8} />
       ) : categories.length === 0 ? (
         <p className="rounded-2xl bg-white p-8 text-center text-sm text-gray-400 shadow-sm ring-1 ring-slate-200">
           Aucune catégorie d&apos;examen.
@@ -156,6 +173,7 @@ export default function CategoriesExamenList() {
                 <Th>Code</Th>
                 <Th>Libellé</Th>
                 <Th>Groupe du catalogue</Th>
+                <Th>Laboratoire</Th>
                 <Th align="center">Actif</Th>
                 <Th align="center">Actions</Th>
               </tr>
@@ -169,6 +187,15 @@ export default function CategoriesExamenList() {
                     {c.groupeCatalogueLibelle ? (
                       <span className="inline-flex items-center gap-1.5 text-emerald-700">
                         <FaLink className="text-xs" /> {c.groupeCatalogueLibelle}
+                      </span>
+                    ) : (
+                      <span className="text-amber-600">Non relié</span>
+                    )}
+                  </Td>
+                  <Td className="whitespace-nowrap text-gray-600">
+                    {c.laboratoireNom ? (
+                      <span className="inline-flex items-center gap-1.5 text-indigo-700">
+                        <FaFlask className="text-xs" /> {c.laboratoireNom}
                       </span>
                     ) : (
                       <span className="text-amber-600">Non relié</span>
@@ -191,6 +218,15 @@ export default function CategoriesExamenList() {
               ))}
             </TBody>
           </Table>
+          {pagedMeta.totalPages > 1 && (
+            <Pagination
+              pageIndex={pagedMeta.pageIndex}
+              totalPages={pagedMeta.totalPages}
+              totalCount={pagedMeta.totalCount}
+              pageSize={pagedMeta.pageSize}
+              onPageChange={(page) => setPaginationParams((prev) => ({ ...prev, pageIndex: page }))}
+            />
+          )}
         </TableContainer>
       )}
 
@@ -226,6 +262,19 @@ export default function CategoriesExamenList() {
           />
           <p className="text-xs text-slate-500">
             Les examens proposés dans « Prescription d&apos;examens » seront ceux de ce groupe.
+          </p>
+          <FormSelect
+            label="Laboratoire / plateau technique (modèle France)"
+            value={form.idLaboratoire}
+            onChange={(e) => setForm({ ...form, idLaboratoire: e.target.value ? Number(e.target.value) : '' })}
+            options={[
+              { value: '', label: '-- Aucun --' },
+              ...laboratoires.map((l) => ({ value: l.idLaboratoire, label: l.nom })),
+            ]}
+          />
+          <p className="text-xs text-slate-500">
+            Les examens de cette catégorie sont traités par ce laboratoire. Un technicien (laborantin)
+            ne voit que les examens de son laboratoire.
           </p>
           <FormTextarea
             label="Description"

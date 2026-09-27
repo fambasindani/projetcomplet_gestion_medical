@@ -86,8 +86,9 @@ public class RendezVousService {
     }
 
     public Page<RendezVousResponseDto> search(StatutRendezVous statut, LocalDateTime start, LocalDateTime end,
-                                              Integer idMedecin, Integer idPatient, Pageable pageable) {
-        return rendezVousRepository.search(statut, start, end, idMedecin, idPatient, pageable)
+                                              Integer idMedecin, Integer idPatient, String term, Pageable pageable) {
+        String terme = (term != null && !term.isBlank()) ? term.trim() : null;
+        return rendezVousRepository.search(statut, start, end, idMedecin, idPatient, terme, pageable)
                 .map(this::toResponseDto);
     }
 

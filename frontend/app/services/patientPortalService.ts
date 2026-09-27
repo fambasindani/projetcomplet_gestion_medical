@@ -1,4 +1,5 @@
 import api from './api';
+import type { PagedResult } from '../types/pagination';
 
 export interface MonRdv {
   idRdv: number;
@@ -88,8 +89,10 @@ export const patientPortalService = {
     const res = await api.get<MedecinPortail[]>('/patient-portail/medecins');
     return res.data;
   },
-  async getRendezVous(): Promise<MonRdv[]> {
-    const res = await api.get<MonRdv[]>('/patient-portail/rendez-vous');
+  async getRendezVous(pageIndex = 1, pageSize = 10): Promise<PagedResult<MonRdv>> {
+    const res = await api.get<PagedResult<MonRdv>>('/patient-portail/rendez-vous', {
+      params: { pageIndex, pageSize },
+    });
     return res.data;
   },
   async demanderRendezVous(data: { dateRdv: string; idMedecin: number; motif?: string }): Promise<MonRdv> {
@@ -100,20 +103,26 @@ export const patientPortalService = {
     const res = await api.patch<MonRdv>(`/patient-portail/rendez-vous/${id}/annuler`, {});
     return res.data;
   },
-  async getExamens(): Promise<MonExamen[]> {
-    const res = await api.get<MonExamen[]>('/patient-portail/examens');
+  async getExamens(pageIndex = 1, pageSize = 10): Promise<PagedResult<MonExamen>> {
+    const res = await api.get<PagedResult<MonExamen>>('/patient-portail/examens', {
+      params: { pageIndex, pageSize },
+    });
     return res.data;
   },
-  async getOrdonnances(): Promise<MonOrdonnance[]> {
-    const res = await api.get<MonOrdonnance[]>('/patient-portail/ordonnances');
+  async getOrdonnances(pageIndex = 1, pageSize = 10): Promise<PagedResult<MonOrdonnance>> {
+    const res = await api.get<PagedResult<MonOrdonnance>>('/patient-portail/ordonnances', {
+      params: { pageIndex, pageSize },
+    });
     return res.data;
   },
   async getConsultations(): Promise<MaConsultation[]> {
     const res = await api.get<MaConsultation[]>('/patient-portail/consultations');
     return res.data;
   },
-  async getFactures(): Promise<MaFacture[]> {
-    const res = await api.get<MaFacture[]>('/patient-portail/factures');
+  async getFactures(pageIndex = 1, pageSize = 10): Promise<PagedResult<MaFacture>> {
+    const res = await api.get<PagedResult<MaFacture>>('/patient-portail/factures', {
+      params: { pageIndex, pageSize },
+    });
     return res.data;
   },
 };

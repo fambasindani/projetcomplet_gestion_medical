@@ -92,6 +92,23 @@ public class FactureController {
         return ResponseEntity.ok(factureService.ajouterPaiement(id, dto));
     }
 
+    // GET /api/factures/paiements : liste paginée et filtrée des paiements
+    @GetMapping("/paiements")
+    public ResponseEntity<PagedResponse<PaiementResponseDto>> getPaiements(
+            @RequestParam(required = false) adc.gestion_hospitaliere.Enums.ModePaiement modePaiement,
+            @RequestParam(required = false) adc.gestion_hospitaliere.Enums.StatutPaiement statut,
+            @RequestParam(required = false) Integer encaissePar,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateEnd,
+            @RequestParam(required = false) String term,
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Page<PaiementResponseDto> page = factureService.searchPaiements(
+                modePaiement, statut, encaissePar, dateStart, dateEnd, term, pageable);
+        return ResponseEntity.ok(PagedResponse.of(page));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFacture(@PathVariable Integer id) {
         factureService.deleteFacture(id);

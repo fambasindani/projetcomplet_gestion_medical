@@ -71,12 +71,12 @@ const NotificationsList: React.FC = () => {
     setLoading(true);
     try {
       const lue = filterLue === '' ? undefined : filterLue === 'true';
-      const data = await notificationService.getAll({ ...paginationParams, lue });
-      let items = data.items;
-      if (filterType) {
-        items = items.filter((n) => n.typeNotification === filterType);
-      }
-      setPagedData({ ...data, items, totalCount: items.length, totalPages: Math.ceil(items.length / paginationParams.pageSize) });
+      const data = await notificationService.getAll({
+        ...paginationParams,
+        lue,
+        typeNotification: filterType || undefined,
+      });
+      setPagedData(data);
     } catch {
       toast.error('Erreur lors du chargement des notifications');
     } finally {

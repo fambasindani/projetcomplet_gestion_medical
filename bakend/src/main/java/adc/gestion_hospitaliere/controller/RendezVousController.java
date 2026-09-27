@@ -26,14 +26,13 @@ public class RendezVousController {
 
     @GetMapping
     public ResponseEntity<PagedResponse<RendezVousResponseDto>> getAll(
+            @RequestParam(required = false) String term,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
         // Un médecin ne voit que ses propres rendez-vous (rien s'il n'est pas rattaché) ; les autres voient tout.
         Integer filtre = currentUserService.filtreMedecinId();
-        Page<RendezVousResponseDto> page = (filtre != null)
-                ? rendezVousService.search(null, null, null, filtre, null, pageable)
-                : rendezVousService.getAll(pageable);
+        Page<RendezVousResponseDto> page = rendezVousService.search(null, null, null, filtre, null, term, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 
@@ -60,13 +59,14 @@ public class RendezVousController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
             @RequestParam(required = false) Integer idMedecin,
             @RequestParam(required = false) Integer idPatient,
+            @RequestParam(required = false) String term,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
         // Force le filtre sur le médecin connecté.
         Integer force = currentUserService.filtreMedecinId();
         Page<RendezVousResponseDto> page = rendezVousService.search(
-                statut, start, end, force != null ? force : idMedecin, idPatient, pageable);
+                statut, start, end, force != null ? force : idMedecin, idPatient, term, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

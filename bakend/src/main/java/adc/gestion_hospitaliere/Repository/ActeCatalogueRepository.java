@@ -16,6 +16,20 @@ public interface ActeCatalogueRepository extends JpaRepository<ActeCatalogue, In
 
     List<ActeCatalogue> findByIdGroupe(Integer idGroupe);
 
+    @Query("SELECT a FROM ActeCatalogue a LEFT JOIN a.groupe g WHERE " +
+            "(:inclureInactifs = true OR a.actif = true) AND " +
+            "(:categorie IS NULL OR g.categorie = :categorie) AND " +
+            "(:idGroupe IS NULL OR a.idGroupe = :idGroupe) AND " +
+            "(:term IS NULL OR LOWER(a.libelle) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            "  OR LOWER(a.code) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            "  OR LOWER(g.libelle) LIKE LOWER(CONCAT('%', :term, '%')))")
+    org.springframework.data.domain.Page<ActeCatalogue> searchPage(
+            @Param("inclureInactifs") boolean inclureInactifs,
+            @Param("categorie") CategorieActeMedical categorie,
+            @Param("idGroupe") Integer idGroupe,
+            @Param("term") String term,
+            org.springframework.data.domain.Pageable pageable);
+
     boolean existsByCode(String code);
 
     boolean existsByCodeAndIdActeCatalogueNot(String code, Integer idActeCatalogue);

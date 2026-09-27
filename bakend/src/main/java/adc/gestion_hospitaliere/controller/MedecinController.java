@@ -2,6 +2,7 @@ package adc.gestion_hospitaliere.controller;
 
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.medcin.*;
+import adc.gestion_hospitaliere.Enums.Disponibilite;
 import adc.gestion_hospitaliere.service.MedecinService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,18 @@ public class MedecinController {
 
     @GetMapping
     public ResponseEntity<PagedResponse<MedecinResponseDto>> getAllMedecins(
+            @RequestParam(required = false) Disponibilite disponibilite,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<MedecinResponseDto> page = medecinService.getAllMedecins(pageable);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Page<MedecinResponseDto> page = medecinService.getAllMedecins(disponibilite, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
+    }
+
+    /** Liste légère (id, nom, prénom) pour les formulaires qui doivent choisir un médecin. */
+    @GetMapping("/liste-simple")
+    public ResponseEntity<java.util.List<Map<String, Object>>> getListeSimple() {
+        return ResponseEntity.ok(medecinService.getListeSimple());
     }
 
     @GetMapping("/{id}")
@@ -71,10 +79,11 @@ public class MedecinController {
     @GetMapping("/recherche/{term}")
     public ResponseEntity<PagedResponse<MedecinResponseDto>> rechercherMedecins(
             @PathVariable String term,
+            @RequestParam(required = false) Disponibilite disponibilite,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<MedecinResponseDto> page = medecinService.searchMedecins(term, pageable);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Page<MedecinResponseDto> page = medecinService.searchMedecins(term, disponibilite, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

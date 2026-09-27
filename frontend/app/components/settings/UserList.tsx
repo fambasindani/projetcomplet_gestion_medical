@@ -45,32 +45,14 @@ export default function UserList() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await userService.getAll(pageIndex, pageSize);
-
-      // Filtrage côté front
-      let items = res.items;
-      if (selectedRole) {
-        items = items.filter((u: User) => u.role === selectedRole);
-      }
-      if (selectedActive !== null) {
-        const isActive = selectedActive === 'true';
-        items = items.filter((u: User) => u.actif === isActive);
-      }
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        items = items.filter((u: User) =>
-          u.nom.toLowerCase().includes(term) ||
-          u.prenom.toLowerCase().includes(term) ||
-          u.email.toLowerCase().includes(term)
-        );
-      }
-
-      setData({
-        ...res,
-        items: items,
-        totalCount: items.length,
-        totalPages: Math.ceil(items.length / pageSize),
+      const res = await userService.search({
+        pageIndex,
+        pageSize,
+        term: searchTerm || undefined,
+        role: selectedRole || undefined,
+        actif: selectedActive === null ? undefined : selectedActive === 'true',
       });
+      setData(res);
     } catch {
       toast.error('Erreur de chargement');
     } finally {

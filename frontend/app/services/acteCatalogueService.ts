@@ -1,6 +1,7 @@
 // app/services/acteCatalogueService.ts
 import api from './api';
 import type { CategorieActeMedical } from '../types/facture';
+import type { PagedResult } from '../types/pagination';
 
 export interface GroupeActe {
   idGroupe: number;
@@ -74,6 +75,27 @@ export const acteCatalogueService = {
         categorie: categorie || undefined,
         idGroupe: idGroupe || undefined,
         search: search || undefined,
+      },
+    });
+    return response.data;
+  },
+
+  // Admin paginé (serveur)
+  async searchAdminPage(
+    categorie?: CategorieActeMedical,
+    idGroupe?: number,
+    search?: string,
+    pageIndex = 1,
+    pageSize = 10,
+  ): Promise<PagedResult<ActeCatalogue>> {
+    const response = await api.get<PagedResult<ActeCatalogue>>('/actes-catalogue/admin/page', {
+      params: {
+        categorie: categorie || undefined,
+        idGroupe: idGroupe || undefined,
+        search: search || undefined,
+        inclureInactifs: true,
+        pageIndex,
+        pageSize,
       },
     });
     return response.data;

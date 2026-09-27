@@ -49,6 +49,21 @@ public class ActeCatalogueController {
         return ResponseEntity.ok(catalogueService.searchAdmin(categorie, idGroupe, search));
     }
 
+    // Version paginée (admin catalogue)
+    @GetMapping("/admin/page")
+    public ResponseEntity<adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse<ActeCatalogueResponseDto>> searchAdminPage(
+            @RequestParam(required = false) CategorieActeMedical categorie,
+            @RequestParam(required = false) Integer idGroupe,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "true") boolean inclureInactifs,
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        return ResponseEntity.ok(adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse.of(
+                catalogueService.searchPage(categorie, idGroupe, search, inclureInactifs, pageable)));
+    }
+
     @GetMapping("/groupes/admin")
     public ResponseEntity<List<GroupeActeResponseDto>> listerGroupes(
             @RequestParam(required = false) CategorieActeMedical categorie) {

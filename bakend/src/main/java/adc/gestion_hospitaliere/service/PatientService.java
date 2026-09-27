@@ -7,6 +7,9 @@ import adc.gestion_hospitaliere.Enums.Genre;
 import adc.gestion_hospitaliere.Enums.GroupeSanguin;
 import adc.gestion_hospitaliere.Enums.SituationFamiliale;
 import adc.gestion_hospitaliere.Repository.PatientRepository;
+import adc.gestion_hospitaliere.Repository.RendezVousRepository;
+import adc.gestion_hospitaliere.Repository.ConsultationRepository;
+import adc.gestion_hospitaliere.Repository.HospitalisationRepository;
 import adc.gestion_hospitaliere.dto.patient.PatientRequestDto;
 import adc.gestion_hospitaliere.dto.patient.PatientResponseDto;
 import adc.gestion_hospitaliere.dto.patient.PatientUpdateDto;
@@ -25,6 +28,9 @@ import java.util.stream.Collectors;
 public class PatientService {
 
     private final PatientRepository patientRepository;
+    private final RendezVousRepository rendezVousRepository;
+    private final ConsultationRepository consultationRepository;
+    private final HospitalisationRepository hospitalisationRepository;
 
     public Page<PatientResponseDto> getAllPatients(Pageable pageable) {
         return patientRepository.findAll(pageable)
@@ -159,9 +165,34 @@ public class PatientService {
                 .orElseThrow(() -> new ResourceNotFoundException("Patient non trouvé"));
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("informationsPersonnelles", convertToResponseDto(patient));
-        details.put("rendezVous", List.of()); // à compléter si relations existent
-        details.put("consultations", List.of());
-        details.put("hospitalisations", List.of());
+        details.put("rendezVous", rendezVousRepository.findByIdPatient(id, org.springframework.data.domain.PageRequest.of(0, 100))
+                .getContent().stream().map(rdv -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("idRdv", rdv.getIdRdv());
+                    m.put("dateRdv", rdv.getDateRdv());
+                    m.put("statut", rdv.getStatut() != null ? rdv.getStatut().name() : null);
+                    m.put("motif", rdv.getMotif());
+                    m.put("medecinNom", rdv.getMedecin() != null ? "Dr. " + rdv.getMedecin().getPrenom() + " " + rdv.getMedecin().getNom() : null);
+                    return m;
+                }).collect(Collectors.toList()));
+        details.put("consultations", consultationRepository.findByPatient_IdPatient(id).stream().map(c -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("idConsultation", c.getIdConsultation());
+            m.put("dateConsultation", c.getDateConsultation());
+            m.put("motifConsultation", c.getMotifConsultation());
+            m.put("diagnostic", c.getDiagnostic());
+            m.put("medecinNom", c.getMedecin() != null ? "Dr. " + c.getMedecin().getPrenom() + " " + c.getMedecin().getNom() : null);
+            return m;
+        }).collect(Collectors.toList()));
+        details.put("hospitalisations", hospitalisationRepository.findByPatientId(id).stream().map(h -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("idHospitalisation", h.getIdHospitalisation());
+            m.put("dateAdmission", h.getDateAdmission());
+            m.put("dateSortie", h.getDateSortie());
+            m.put("statut", h.getStatut() != null ? h.getStatut().name() : null);
+            m.put("motifAdmission", h.getMotifAdmission());
+            return m;
+        }).collect(Collectors.toList()));
         return details;
     }
 

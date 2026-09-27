@@ -28,6 +28,15 @@ const statutColors: Record<StatutCommandeFournisseur, string> = {
   Annulee: 'bg-red-100 text-red-800'
 };
 
+const statutLabels: Record<StatutCommandeFournisseur, string> = {
+  En_attente: 'En attente',
+  Confirmee: 'Confirmée',
+  Expediee: 'Expédiée',
+  Recue_partiellement: 'Reçue partiellement',
+  Recue_completement: 'Reçue complètement',
+  Annulee: 'Annulée',
+};
+
 export default function CommandesList() {
   const router = useRouter();
   const confirm = useConfirm();
@@ -88,6 +97,19 @@ export default function CommandesList() {
       await commandeService.delete(cmd.idCommande);
       toast.success('Commande supprimée');
       fetchData();
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    }
+  };
+
+  const handleStatutChange = async (cmd: CommandeFournisseur, statut: StatutCommandeFournisseur) => {
+    try {
+      const maj = await commandeService.changerStatut(cmd.idCommande, statut);
+      setPagedData((prev) => ({
+        ...prev,
+        items: prev.items.map((c) => (c.idCommande === cmd.idCommande ? maj : c)),
+      }));
+      toast.success('Statut mis à jour');
     } catch (error) {
       toast.error(extractErrorMessage(error));
     }
@@ -163,9 +185,15 @@ export default function CommandesList() {
                     {new Date(cmd.dateCommande).toLocaleDateString()}
                   </Td>
                   <Td className="whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statutColors[cmd.statut]}`}>
-                      {cmd.statut}
-                    </span>
+                    <select
+                      value={cmd.statut}
+                      onChange={(e) => handleStatutChange(cmd, e.target.value as StatutCommandeFournisseur)}
+                      className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-semibold ${statutColors[cmd.statut]}`}
+                    >
+                      {Object.values(StatutCommandeFournisseur).map((s) => (
+                        <option key={s} value={s}>{statutLabels[s]}</option>
+                      ))}
+                    </select>
                   </Td>
                   <Td className="whitespace-nowrap text-gray-900">
                     {cmd.montantTotal ? `$${cmd.montantTotal.toFixed(2)}` : '-'}

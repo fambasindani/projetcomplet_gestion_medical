@@ -24,10 +24,11 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<PagedResponse<NotificationResponseDto>> getAll(
             @RequestParam(required = false) Boolean lue,
+            @RequestParam(required = false) String typeNotification,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<NotificationResponseDto> page = notificationService.getAll(lue, pageable);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Page<NotificationResponseDto> page = notificationService.getAll(lue, typeNotification, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

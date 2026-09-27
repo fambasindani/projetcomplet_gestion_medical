@@ -49,11 +49,16 @@ const PatientDetails: React.FC = () => {
       title="Fiche patient"
       onBack={() => router.push('/patients')}
       actions={
-        hasPermission('PATIENTS_MODIFIER') ? (
-          <Button icon={<FaEdit />} onClick={() => router.push(`/patients/${params.id}/modifier`)}>
-            Modifier
+        <>
+          <Button variant="secondary" icon={<FaFileAlt />} onClick={() => router.push(`/patients/${params.id}/dossier-medical`)}>
+            Dossier médical
           </Button>
-        ) : undefined
+          {hasPermission('PATIENTS_MODIFIER') && (
+            <Button icon={<FaEdit />} onClick={() => router.push(`/patients/${params.id}/modifier`)}>
+              Modifier
+            </Button>
+          )}
+        </>
       }
       maxWidth="max-w-6xl"
     >

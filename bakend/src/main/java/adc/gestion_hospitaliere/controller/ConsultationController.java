@@ -28,14 +28,13 @@ public class ConsultationController {
 
     @GetMapping
     public ResponseEntity<PagedResponse<ConsultationResponseDto>> getAllConsultations(
+            @RequestParam(required = false) String term,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
         // Un médecin ne voit que ses consultations (rien s'il n'est pas rattaché) ; les autres rôles voient tout.
         Integer filtre = currentUserService.filtreMedecinId();
-        Page<ConsultationResponseDto> page = (filtre != null)
-                ? consultationService.getConsultationsByMedecin(filtre, pageable)
-                : consultationService.getAllConsultations(pageable);
+        Page<ConsultationResponseDto> page = consultationService.searchConsultations(filtre, term, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

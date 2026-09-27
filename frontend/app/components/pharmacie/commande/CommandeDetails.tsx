@@ -7,7 +7,7 @@ import { fr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import {
   FaBuilding, FaDollarSign, FaClipboardList,
-  FaCheckCircle, FaTimesCircle, FaTruck, FaEdit
+  FaCheckCircle, FaTimesCircle, FaTruck, FaEdit, FaBoxOpen
 } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
@@ -80,7 +80,12 @@ export default function CommandeDetails() {
       onBack={() => router.back()}
       actions={
         <>
-          <Button icon={<FaEdit />} onClick={() => router.push(`/pharmacie/commandes/${id}/modifier`)}>
+          {commande.statut !== 'Annulee' && commande.statut !== 'Recue_completement' && (
+            <Button icon={<FaBoxOpen />} onClick={() => router.push(`/pharmacie/commandes/${id}/reception`)}>
+              Réceptionner
+            </Button>
+          )}
+          <Button variant="secondary" icon={<FaEdit />} onClick={() => router.push(`/pharmacie/commandes/${id}/modifier`)}>
             Modifier
           </Button>
           <Button variant="danger" onClick={handleDelete}>

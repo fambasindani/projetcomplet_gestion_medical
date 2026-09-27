@@ -30,12 +30,15 @@ public interface MedecinRepository extends JpaRepository<Medecin, Integer> {
     // Par spécialité
     Page<Medecin> findByIdSpecialite(Integer specialiteId, Pageable pageable);
 
-    // Recherche textuelle
+    // Recherche textuelle + disponibilité optionnelle
     @Query("SELECT m FROM Medecin m LEFT JOIN FETCH m.specialite WHERE " +
+            "(:disponibilite IS NULL OR m.disponibilite = :disponibilite) AND (" +
             "LOWER(m.matricule) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
             "LOWER(m.nom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
-            "LOWER(m.prenom) LIKE LOWER(CONCAT('%', :term, '%'))")
-    Page<Medecin> searchByTerm(@Param("term") String term, Pageable pageable);
+            "LOWER(m.prenom) LIKE LOWER(CONCAT('%', :term, '%')))")
+    Page<Medecin> searchByTerm(@Param("term") String term,
+                               @Param("disponibilite") Disponibilite disponibilite,
+                               Pageable pageable);
 
     // Statistiques
     long countByDateCreationAfter(LocalDateTime date);

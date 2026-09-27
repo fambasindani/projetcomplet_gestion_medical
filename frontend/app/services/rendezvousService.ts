@@ -53,8 +53,31 @@ const formatDateObjectForBackend = (date: Date): string => {
 };
 
 export const rendezvousService = {
-  async getAll(pageIndex = 1, pageSize = 10): Promise<PagedResult<RendezVous>> {
-    const res = await api.get<PagedResult<RendezVous>>('/rendezvous', { params: { pageIndex, pageSize } });
+  async getAll(pageIndex = 1, pageSize = 10, term?: string): Promise<PagedResult<RendezVous>> {
+    const res = await api.get<PagedResult<RendezVous>>('/rendezvous', {
+      params: { pageIndex, pageSize, term: term || undefined },
+    });
+    return res.data;
+  },
+
+  async search(params: {
+    statut?: StatutRendezVous;
+    idMedecin?: number;
+    idPatient?: number;
+    term?: string;
+    pageIndex?: number;
+    pageSize?: number;
+  } = {}): Promise<PagedResult<RendezVous>> {
+    const res = await api.get<PagedResult<RendezVous>>('/rendezvous/search', {
+      params: {
+        statut: params.statut || undefined,
+        idMedecin: params.idMedecin,
+        idPatient: params.idPatient,
+        term: params.term || undefined,
+        pageIndex: params.pageIndex ?? 1,
+        pageSize: params.pageSize ?? 10,
+      },
+    });
     return res.data;
   },
 

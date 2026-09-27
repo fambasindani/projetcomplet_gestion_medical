@@ -30,8 +30,8 @@ export const urgenceService = {
     return res.data;
   },
 
-  async getSalleAttente(): Promise<AdmissionUrgence[]> {
-    const res = await api.get('/urgences/admissions/salle-attente');
+  async getSalleAttente(pageIndex = 1, pageSize = 100): Promise<PagedResult<AdmissionUrgence>> {
+    const res = await api.get('/urgences/admissions/salle-attente', { params: { pageIndex, pageSize } });
     return res.data;
   },
 

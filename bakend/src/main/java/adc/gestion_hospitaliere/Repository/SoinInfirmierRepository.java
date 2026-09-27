@@ -26,4 +26,11 @@ public interface SoinInfirmierRepository extends JpaRepository<SoinInfirmier, In
                                @Param("dateStart") LocalDateTime dateStart,
                                @Param("dateEnd") LocalDateTime dateEnd,
                                Pageable pageable);
+
+    // Soins d'un service = ceux des hospitalisations dont le medecin
+    // responsable appartient a la specialite (service) donnee.
+    @Query("SELECT s FROM SoinInfirmier s JOIN Hospitalisation h ON h.idHospitalisation = s.idHospitalisation "
+            + "JOIN Medecin m ON m.idMedecin = h.idMedecinResponsable "
+            + "WHERE m.specialite IS NOT NULL AND LOWER(m.specialite.nomSpecialite) = LOWER(:service)")
+    Page<SoinInfirmier> findByService(@Param("service") String service, Pageable pageable);
 }

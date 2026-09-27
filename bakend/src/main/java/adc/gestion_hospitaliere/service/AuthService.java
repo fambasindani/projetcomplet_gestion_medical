@@ -50,6 +50,19 @@ public class AuthService {
         return userRepository.findAll(pageable);
     }
 
+    public Page<User> searchUsers(String term, String role, Boolean actif, Pageable pageable) {
+        String terme = (term != null && !term.isBlank()) ? term.trim() : null;
+        Role roleEnum = null;
+        if (role != null && !role.isBlank()) {
+            try {
+                roleEnum = Role.valueOf(role);
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException("Rôle invalide");
+            }
+        }
+        return userRepository.search(terme, roleEnum, actif, pageable);
+    }
+
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));

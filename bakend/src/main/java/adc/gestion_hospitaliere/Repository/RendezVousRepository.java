@@ -30,17 +30,24 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Integer>
     boolean existsByIdMedecinAndDateRdvBetween(Integer idMedecin, LocalDateTime start, LocalDateTime end);
     long countByDateRdvBetween(LocalDateTime start, LocalDateTime end);
 
-    @Query("SELECT r FROM RendezVous r WHERE " +
-            "(:statut IS NULL OR r.statut = :statut) AND " +
+    @Query("SELECT r FROM RendezVous r " +
+            "LEFT JOIN r.patient p " +
+            "LEFT JOIN r.medecin m " +
+            "WHERE (:statut IS NULL OR r.statut = :statut) AND " +
             "(:start IS NULL OR r.dateRdv >= :start) AND " +
             "(:end IS NULL OR r.dateRdv <= :end) AND " +
             "(:idMedecin IS NULL OR r.idMedecin = :idMedecin) AND " +
-            "(:idPatient IS NULL OR r.idPatient = :idPatient)")
+            "(:idPatient IS NULL OR r.idPatient = :idPatient) AND " +
+            "(:term IS NULL OR LOWER(p.nom) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            " OR LOWER(p.prenom) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            " OR LOWER(m.nom) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            " OR LOWER(m.prenom) LIKE LOWER(CONCAT('%', :term, '%')))")
     Page<RendezVous> search(@Param("statut") StatutRendezVous statut,
                             @Param("start") LocalDateTime start,
                             @Param("end") LocalDateTime end,
                             @Param("idMedecin") Integer idMedecin,
                             @Param("idPatient") Integer idPatient,
+                            @Param("term") String term,
                             Pageable pageable);
 
 

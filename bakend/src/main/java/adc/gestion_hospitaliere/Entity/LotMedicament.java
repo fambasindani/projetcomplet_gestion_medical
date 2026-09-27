@@ -93,4 +93,11 @@ public class LotMedicament {
 
     @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RetourMedicament> retours = new ArrayList<>();
+
+    @jakarta.persistence.PrePersist
+    void prePersist() {
+        if (controleQualite == null) controleQualite = false;
+        if (statut == null) statut = StatutLot.Disponible;
+        if (quantiteRestante == null) quantiteRestante = quantiteInitial;
+    }
 }

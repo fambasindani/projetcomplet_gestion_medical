@@ -25,7 +25,7 @@ public class PlanningService {
                                                               LocalDateTime end,
                                                               StatutRendezVous statut,
                                                               Pageable pageable) {
-        Page<RendezVous> page = rendezVousRepository.search(statut, start, end, medecinId, null, pageable);
+        Page<RendezVous> page = rendezVousRepository.search(statut, start, end, medecinId, null, null, pageable);
         return page.map(this::convertToDto);
     }
 

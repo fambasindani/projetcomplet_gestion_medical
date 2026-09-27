@@ -34,25 +34,12 @@ const ConsultationList: React.FC = () => {
   const fetchConsultations = useCallback(async () => {
     setLoading(true);
     try {
-      let data: PagedResult<Consultation>;
-      if (searchTerm.trim()) {
-        // Recherche simple : récupère toutes les consultations (max 100) et filtre côté client
-        const all = await consultationService.getAll(1, 100);
-        const filteredItems = all.items.filter(
-          (c) =>
-            c.patientNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.patientPrenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.medecinNom.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        data = {
-          ...all,
-          items: filteredItems,
-          totalCount: filteredItems.length,
-          totalPages: Math.ceil(filteredItems.length / paginationParams.pageSize),
-        };
-      } else {
-        data = await consultationService.getAll(paginationParams.pageIndex, paginationParams.pageSize);
-      }
+      // Recherche paginée côté serveur (résultats complets, compteurs exacts).
+      const data = await consultationService.search(
+        searchTerm,
+        paginationParams.pageIndex,
+        paginationParams.pageSize
+      );
       setPagedData(data);
     } catch (error) {
       console.error(error);

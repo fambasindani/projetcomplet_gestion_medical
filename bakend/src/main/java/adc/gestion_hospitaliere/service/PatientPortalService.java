@@ -25,6 +25,8 @@ import adc.gestion_hospitaliere.Repository.RendezVousRepository;
 import adc.gestion_hospitaliere.exception.BusinessException;
 import adc.gestion_hospitaliere.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -136,6 +138,12 @@ public class PatientPortalService {
                 .collect(Collectors.toList());
     }
 
+    /** Version paginée : rendez-vous du patient connecté. */
+    public Page<Map<String, Object>> getMesRendezVous(Pageable pageable) {
+        Integer idPatient = pid();
+        return rendezVousRepository.findByIdPatient(idPatient, pageable).map(this::toRdvDto);
+    }
+
     @Transactional
     public Map<String, Object> demanderRendezVous(LocalDateTime dateRdv, Integer idMedecin, String motif) {
         Integer idPatient = pid();
@@ -204,6 +212,14 @@ public class PatientPortalService {
                 .collect(Collectors.toList());
     }
 
+    /** Version paginée : examens réalisés/validés du patient connecté. */
+    public Page<Map<String, Object>> getMesExamens(Pageable pageable) {
+        Integer idPatient = pid();
+        return examenRepository.findByPatientAndStatuts(idPatient,
+                        List.of(StatutExamen.Réalisé, StatutExamen.Validé), pageable)
+                .map(this::toExamenDto);
+    }
+
     private Map<String, Object> toExamenDto(Examen e) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("idExamen", e.getIdExamen());
@@ -229,6 +245,12 @@ public class PatientPortalService {
                 .sorted((a, b) -> b.getDatePrescription().compareTo(a.getDatePrescription()))
                 .map(this::toPrescriptionDto)
                 .collect(Collectors.toList());
+    }
+
+    /** Version paginée : ordonnances du patient connecté. */
+    public Page<Map<String, Object>> getMesOrdonnances(Pageable pageable) {
+        Integer idPatient = pid();
+        return prescriptionRepository.findByIdPatient(idPatient, pageable).map(this::toPrescriptionDto);
     }
 
     private Map<String, Object> toPrescriptionDto(Prescription p) {
@@ -274,6 +296,13 @@ public class PatientPortalService {
                 .sorted((a, b) -> b.getDateEmission().compareTo(a.getDateEmission()))
                 .map(this::toFactureDto)
                 .collect(Collectors.toList());
+    }
+
+    /** Version paginée : factures du patient connecté. */
+    public Page<Map<String, Object>> getMesFactures(Pageable pageable) {
+        Integer idPatient = pid();
+        return factureRepository.findByIdPatientOrderByDateEmissionDesc(idPatient, pageable)
+                .map(this::toFactureDto);
     }
 
     private Map<String, Object> toFactureDto(Facture f) {

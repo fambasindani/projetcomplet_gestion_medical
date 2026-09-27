@@ -12,4 +12,5 @@ public class CategorieExamenRequestDto {
     private String description;
     private Boolean actif;
     private Integer idGroupeCatalogue;
+    private Integer idLaboratoire;
 }

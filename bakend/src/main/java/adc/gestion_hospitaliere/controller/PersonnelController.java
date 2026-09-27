@@ -4,6 +4,7 @@ import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.personnel.PersonnelRequestDto;
 import adc.gestion_hospitaliere.dto.personnel.PersonnelResponseDto;
 import adc.gestion_hospitaliere.dto.personnel.PersonnelUpdateDto;
+import adc.gestion_hospitaliere.Enums.Genre;
 import adc.gestion_hospitaliere.service.PersonnelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +37,11 @@ public class PersonnelController {
     public ResponseEntity<PagedResponse<PersonnelResponseDto>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String fonction,
+            @RequestParam(required = false) Genre genre,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
-        return ResponseEntity.ok(personnelService.searchPersonnels(keyword, fonction, pageable));
+        return ResponseEntity.ok(personnelService.searchPersonnels(keyword, fonction, genre, pageable));
     }
 
     private Pageable buildPageable(int pageIndex, int pageSize, String[] sort) {

@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface FactureRepository extends JpaRepository<Facture, Integer> {
+
+    Page<Facture> findByIdPatientOrderByDateEmissionDesc(Integer idPatient, Pageable pageable);
     boolean existsByNumeroFacture(String numeroFacture);
 
     @Query("SELECT COUNT(d) > 0 FROM DetailFacture d " +

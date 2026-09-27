@@ -6,14 +6,16 @@ import { toast } from 'react-hot-toast';
 import { FaSave, FaArrowLeft, FaPlus, FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { examenService } from '@/app/services/examenService';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
+import { laboratoireService } from '@/app/services/laboratoireService';
 import { acteCatalogueService, type GroupeActe } from '@/app/services/acteCatalogueService';
 import ActeAutocomplete from '@/app/components/facturation/ActeAutocomplete';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { MedecinSearchSelect } from '@/app/components/common/MedecinSearchSelect';
+import { PersonnelSearchSelect } from '@/app/components/common/PersonnelSearchSelect';
 import { FormInput } from '../common/FormInput';
 import { FormSelect } from '../common/FormSelect';
 import { FormTextarea } from '../common/FormTextarea';
-import { CategorieExamen, StatutExamen, ConfidentialiteExamen } from '@/app/types/examen';
+import { CategorieExamen, Laboratoire, StatutExamen, ConfidentialiteExamen } from '@/app/types/examen';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import PageShell from '@/app/ui/PageShell';
 import FormSection from '@/app/ui/FormSection';
@@ -28,6 +30,7 @@ interface ExamenLigne {
   datePlanification: string;
   dateRealisation: string;
   laboratoire: string;
+  idLaboratoire: number | null;
   technicien: string;
   resultat: string;
   interpretation: string;
@@ -51,6 +54,7 @@ export default function NouveauBatchExamens() {
   const router = useRouter();
   const [categories, setCategories] = useState<CategorieExamen[]>([]);
   const [groupesCatalogue, setGroupesCatalogue] = useState<GroupeActe[]>([]);
+  const [laboratoires, setLaboratoires] = useState<Laboratoire[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResultFields, setShowResultFields] = useState(false);
   const [form, setForm] = useState({
@@ -68,6 +72,7 @@ export default function NouveauBatchExamens() {
     datePlanification: '',
     dateRealisation: '',
     laboratoire: '',
+    idLaboratoire: null,
     technicien: '',
     resultat: '',
     interpretation: '',
@@ -84,6 +89,7 @@ export default function NouveauBatchExamens() {
       .getGroupesAdmin('Examen')
       .then((g) => setGroupesCatalogue(g.filter((x) => x.actif !== false)))
       .catch(console.error);
+    laboratoireService.getAll().then(setLaboratoires).catch(console.error);
   }, []);
 
   // Un seul niveau : le groupe du catalogue (ex. « Agent pathogène »).
@@ -127,6 +133,7 @@ export default function NouveauBatchExamens() {
       datePlanification: '',
       dateRealisation: '',
       laboratoire: '',
+      idLaboratoire: null,
       technicien: '',
       resultat: '',
       interpretation: '',
@@ -279,15 +286,26 @@ const handleSubmit = async (e: React.FormEvent) => {
                 value={currentLigne.dateRealisation}
                 onChange={e => setCurrentLigne({...currentLigne, dateRealisation: e.target.value})}
               />
-              <FormInput
+              <FormSelect
                 label="Laboratoire"
-                value={currentLigne.laboratoire}
-                onChange={e => setCurrentLigne({...currentLigne, laboratoire: e.target.value})}
+                value={currentLigne.idLaboratoire ?? ''}
+                onChange={e => {
+                  const id = e.target.value ? Number(e.target.value) : null;
+                  const lab = laboratoires.find(l => l.idLaboratoire === id);
+                  setCurrentLigne({ ...currentLigne, idLaboratoire: id, laboratoire: lab?.nom ?? '' });
+                }}
+                options={[
+                  { value: '', label: '-- Aucun --' },
+                  ...laboratoires.map(l => ({ value: l.idLaboratoire, label: l.nom })),
+                ]}
               />
-              <FormInput
-                label="Technicien"
-                value={currentLigne.technicien}
-                onChange={e => setCurrentLigne({...currentLigne, technicien: e.target.value})}
+              <PersonnelSearchSelect
+                label="Technicien de laboratoire"
+                value={null}
+                onChange={(_id, nom, prenom) => {
+                  const nomComplet = [prenom, nom].filter(Boolean).join(' ');
+                  setCurrentLigne({ ...currentLigne, technicien: nomComplet });
+                }}
               />
             </div>
 

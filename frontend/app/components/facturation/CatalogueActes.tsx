@@ -75,6 +75,7 @@ export default function CatalogueActes() {
   const [idGroupe, setIdGroupe] = useState<number | ''>('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [pagedMeta, setPagedMeta] = useState({ totalCount: 0, totalPages: 0 });
   const pageSize = 10;
 
   // Modal acte
@@ -98,29 +99,40 @@ export default function CatalogueActes() {
     }
   }, []);
 
-  const loadActes = useCallback(async () => {
+  const loadActes = useCallback(async (targetPage = page) => {
     setLoading(true);
     try {
-      setActes(await acteCatalogueService.searchAdmin(
+      const res = await acteCatalogueService.searchAdminPage(
         categorie || undefined,
         idGroupe !== '' ? Number(idGroupe) : undefined,
         search || undefined,
-      ));
-      setPage(1);
+        targetPage,
+        pageSize,
+      );
+      setActes(res.items);
+      setPagedMeta({ totalCount: res.totalCount, totalPages: res.totalPages });
     } catch (error) {
       toast.error(extractErrorMessage(error));
     } finally {
       setLoading(false);
     }
-  }, [categorie, idGroupe, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categorie, idGroupe, search, pageSize]);
 
   useEffect(() => {
     void loadGroupes();
   }, [loadGroupes]);
 
   useEffect(() => {
-    void loadActes();
-  }, [loadActes]);
+    setPage(1);
+    void loadActes(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categorie, idGroupe, search]);
+
+  useEffect(() => {
+    void loadActes(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const groupesFiltres = useMemo(
     () => allGroupes.filter((g) => !categorie || g.categorie === categorie),
@@ -131,9 +143,6 @@ export default function CatalogueActes() {
     () => allGroupes.filter((g) => g.categorie === formCategorie && g.actif !== false),
     [allGroupes, formCategorie]
   );
-
-  const totalPages = Math.max(1, Math.ceil(actes.length / pageSize));
-  const actesPage = actes.slice((page - 1) * pageSize, page * pageSize);
 
   // ---------- ACTES ----------
 
@@ -190,7 +199,7 @@ export default function CatalogueActes() {
         toast.success('Acte créé');
       }
       setShowActeModal(false);
-      await loadActes();
+      await loadActes(page);
     } catch (error) {
       toast.error(extractErrorMessage(error));
     } finally {
@@ -210,7 +219,7 @@ export default function CatalogueActes() {
     try {
       await acteCatalogueService.deleteActe(acte.idActeCatalogue);
       toast.success('Acte supprimé');
-      await loadActes();
+      await loadActes(page);
     } catch (error) {
       toast.error(extractErrorMessage(error));
     }
@@ -355,7 +364,7 @@ export default function CatalogueActes() {
               </tr>
             </THead>
             <TBody>
-              {actesPage.map((acte) => (
+              {actes.map((acte) => (
                 <Tr key={acte.idActeCatalogue}>
                   <Td className="whitespace-nowrap font-mono text-xs">{acte.code}</Td>
                   <Td className="font-medium">{acte.libelle}</Td>
@@ -391,8 +400,8 @@ export default function CatalogueActes() {
               ))}
             </TBody>
           </Table>
-          {totalPages > 1 && (
-            <Pagination pageIndex={page} totalPages={totalPages} totalCount={actes.length} pageSize={pageSize} onPageChange={setPage} />
+          {pagedMeta.totalPages > 1 && (
+            <Pagination pageIndex={page} totalPages={pagedMeta.totalPages} totalCount={pagedMeta.totalCount} pageSize={pageSize} onPageChange={setPage} />
           )}
         </TableContainer>
       )}

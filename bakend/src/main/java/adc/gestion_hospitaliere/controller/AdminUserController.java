@@ -3,6 +3,7 @@ import adc.gestion_hospitaliere.exception.BusinessException;
 
 
 import adc.gestion_hospitaliere.Entity.User;
+import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.auth.UserCreateDto;
 import adc.gestion_hospitaliere.dto.auth.UserResponseDto;
 import adc.gestion_hospitaliere.dto.auth.UserUpdateDto;
@@ -26,12 +27,15 @@ public class AdminUserController {
 
     // Liste paginée
     @GetMapping
-    public ResponseEntity<Page<UserResponseDto>> getAllUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<UserResponseDto> pageResult = authService.getAllUsers(pageable).map(this::toDto);
-        return ResponseEntity.ok(pageResult);
+    public ResponseEntity<PagedResponse<UserResponseDto>> getAllUsers(
+            @RequestParam(required = false) String term,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) Boolean actif,
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Page<UserResponseDto> pageResult = authService.searchUsers(term, role, actif, pageable).map(this::toDto);
+        return ResponseEntity.ok(PagedResponse.of(pageResult));
     }
 
     // Détail d'un utilisateur

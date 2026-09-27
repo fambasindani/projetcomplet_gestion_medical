@@ -1,7 +1,10 @@
 package adc.gestion_hospitaliere.controller;
 
+import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.service.PatientPortalService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +39,11 @@ public class PatientPortalController {
 
     @GetMapping("/rendez-vous")
     @PreAuthorize("hasAuthority('MES_RENDEZ_VOUS_VOIR')")
-    public ResponseEntity<List<Map<String, Object>>> getMesRendezVous() {
-        return ResponseEntity.ok(service.getMesRendezVous());
+    public ResponseEntity<PagedResponse<Map<String, Object>>> getMesRendezVous(
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        return ResponseEntity.ok(PagedResponse.of(service.getMesRendezVous(pageable)));
     }
 
     @PostMapping("/rendez-vous")
@@ -55,14 +61,20 @@ public class PatientPortalController {
 
     @GetMapping("/examens")
     @PreAuthorize("hasAuthority('MES_EXAMENS_VOIR')")
-    public ResponseEntity<List<Map<String, Object>>> getMesExamens() {
-        return ResponseEntity.ok(service.getMesExamens());
+    public ResponseEntity<PagedResponse<Map<String, Object>>> getMesExamens(
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        return ResponseEntity.ok(PagedResponse.of(service.getMesExamens(pageable)));
     }
 
     @GetMapping("/ordonnances")
     @PreAuthorize("hasAuthority('MES_ORDONNANCES_VOIR')")
-    public ResponseEntity<List<Map<String, Object>>> getMesOrdonnances() {
-        return ResponseEntity.ok(service.getMesOrdonnances());
+    public ResponseEntity<PagedResponse<Map<String, Object>>> getMesOrdonnances(
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        return ResponseEntity.ok(PagedResponse.of(service.getMesOrdonnances(pageable)));
     }
 
     @GetMapping("/consultations")
@@ -73,8 +85,11 @@ public class PatientPortalController {
 
     @GetMapping("/factures")
     @PreAuthorize("hasAuthority('MES_FACTURES_VOIR')")
-    public ResponseEntity<List<Map<String, Object>>> getMesFactures() {
-        return ResponseEntity.ok(service.getMesFactures());
+    public ResponseEntity<PagedResponse<Map<String, Object>>> getMesFactures(
+            @RequestParam(defaultValue = "1") int pageIndex,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        return ResponseEntity.ok(PagedResponse.of(service.getMesFactures(pageable)));
     }
 
     public static class DemandeRdvRequest {

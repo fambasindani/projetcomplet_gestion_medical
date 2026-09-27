@@ -26,6 +26,7 @@ public class CommandeFournisseurService {
     private final MedicamentRepository medicamentRepository;
     private final PersonnelRepository personnelRepository;
     private final DetailsCommandeFournisseurRepository detailsRepository;
+    private final LotMedicamentRepository lotMedicamentRepository;
 
     private String generateNumeroCommande() {
         String prefix = "CMD-";
@@ -140,6 +141,91 @@ public class CommandeFournisseurService {
     }
 
     @Transactional
+    public CommandeFournisseurResponseDto changerStatut(Integer id, StatutCommandeFournisseur statut) {
+        CommandeFournisseur cmd = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée"));
+        if (statut == null) {
+            throw new adc.gestion_hospitaliere.exception.BusinessException("Le statut est requis");
+        }
+        cmd.setStatut(statut);
+        return toResponseDto(commandeRepository.save(cmd));
+    }
+
+    /**
+     * Réceptionne une commande : enregistre les quantités reçues par ligne et
+     * crée les lots correspondants (numero de lot, péremption, emplacement).
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public CommandeFournisseurResponseDto receptionner(
+            Integer id,
+            adc.gestion_hospitaliere.dto.commande.ReceptionCommandeRequestDto dto) {
+        CommandeFournisseur cmd = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée"));
+        if (cmd.getStatut() == StatutCommandeFournisseur.Annulee) {
+            throw new adc.gestion_hospitaliere.exception.BusinessException(
+                    "Impossible de réceptionner une commande annulée");
+        }
+        java.util.List<adc.gestion_hospitaliere.Entity.DetailsCommandeFournisseur> details =
+                detailsRepository.findByIdCommande(id);
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        boolean totalementRecue = true;
+
+        for (adc.gestion_hospitaliere.Entity.DetailsCommandeFournisseur d : details) {
+            adc.gestion_hospitaliere.dto.commande.ReceptionCommandeRequestDto.LigneReception ligne = null;
+            if (dto != null && dto.getLignes() != null) {
+                ligne = dto.getLignes().stream()
+                        .filter(l -> d.getIdDetailCommande().equals(l.getIdDetailCommande()))
+                        .findFirst().orElse(null);
+            }
+            int qteRecue = ligne != null && ligne.getQuantiteRecue() != null
+                    ? ligne.getQuantiteRecue()
+                    : (d.getQuantiteCommandee() != null ? d.getQuantiteCommandee() : 0);
+            d.setQuantiteRecue(qteRecue);
+            detailsRepository.save(d);
+
+            if (qteRecue < (d.getQuantiteCommandee() != null ? d.getQuantiteCommandee() : 0)) {
+                totalementRecue = false;
+            }
+            if (qteRecue <= 0) continue;
+
+            // Evite les doublons : un lot par ligne de commande.
+            String numeroLot = ligne != null && ligne.getNumeroLot() != null && !ligne.getNumeroLot().isBlank()
+                    ? ligne.getNumeroLot()
+                    : "CMD-" + cmd.getNumeroCommande() + "-D" + d.getIdDetailCommande();
+            boolean existe = lotMedicamentRepository.findByIdMedicament(d.getIdMedicament()).stream()
+                    .anyMatch(l -> numeroLot.equals(l.getNumeroLot()));
+            if (existe) continue;
+
+            java.time.LocalDateTime peremption = ligne != null && ligne.getDatePeremption() != null
+                    ? ligne.getDatePeremption()
+                    : now.plusYears(2);
+
+            adc.gestion_hospitaliere.Entity.LotMedicament lot = adc.gestion_hospitaliere.Entity.LotMedicament.builder()
+                    .idMedicament(d.getIdMedicament())
+                    .numeroLot(numeroLot)
+                    .idFournisseur(cmd.getIdFournisseur())
+                    .datePeremption(peremption)
+                    .quantiteInitial(qteRecue)
+                    .quantiteRestante(qteRecue)
+                    .prixAchatUnitaire(d.getPrixUnitaire())
+                    .prixVenteUnitaire(ligne != null ? ligne.getPrixVenteUnitaire() : null)
+                    .emplacementStockage(ligne != null ? ligne.getEmplacementStockage() : null)
+                    .dateReception(now)
+                    .bonCommande(cmd.getNumeroCommande())
+                    .statut(adc.gestion_hospitaliere.Enums.StatutLot.Disponible)
+                    .build();
+            lotMedicamentRepository.save(lot);
+        }
+
+        cmd.setStatut(totalementRecue
+                ? StatutCommandeFournisseur.Recue_completement
+                : StatutCommandeFournisseur.Recue_partiellement);
+        cmd.setPaiementEffectue(cmd.getPaiementEffectue());
+        return toResponseDto(commandeRepository.save(cmd));
+    }
+
+    @Transactional
     public void delete(Integer id) {
         detailsRepository.deleteByIdCommande(id);
         commandeRepository.deleteById(id);
@@ -184,3 +270,4 @@ public class CommandeFournisseurService {
                 .build();
     }
 }
+

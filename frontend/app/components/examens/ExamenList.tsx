@@ -16,6 +16,7 @@ import { FilterPanel, FilterSelect, FilterInput } from '@/app/ui/FilterControls'
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { examenService } from '@/app/services/examenService';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
+import { useAuth } from '@/app/contexts/AuthContext';
 import type { Examen, CategorieExamen } from '@/app/types/examen';
 import type { PagedResult } from '@/app/types/pagination';
 
@@ -41,6 +42,9 @@ const statutColors: Record<string, string> = {
 export default function ExamenList() {
     const router = useRouter();
     const confirm = useConfirm();
+    const { hasPermission } = useAuth();
+    const peutGerer = hasPermission('EXAMENS_GERER');
+    const peutResultat = hasPermission('EXAMENS_GERER') || hasPermission('EXAMENS_RESULTAT');
     const [pagedData, setPagedData] = useState<PagedResult<Examen> | null>(null);
     const [categories, setCategories] = useState<CategorieExamen[]>([]);
     const [loading, setLoading] = useState(true);
@@ -54,33 +58,15 @@ export default function ExamenList() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            // Ici on pourrait faire une recherche avancée, mais pour l'instant on utilise getAll
-            // Le backend n'a pas encore de search avancé, on filtre côté front
-            const data = await examenService.getAll(paginationParams.pageIndex, paginationParams.pageSize);
-
-            // Filtrage côté front (le backend n'a pas de search avancé)
-            let filteredItems = data.items;
-            if (searchTerm) {
-                const term = searchTerm.toLowerCase();
-                filteredItems = filteredItems.filter(e =>
-                    e.numeroExamen.toLowerCase().includes(term) ||
-                    e.patientNom?.toLowerCase().includes(term) ||
-                    e.typeExamen?.toLowerCase().includes(term) ||
-                    e.medecinNom?.toLowerCase().includes(term)
-                );
-            }
-            if (selectedStatut) {
-                filteredItems = filteredItems.filter(e => e.statut === selectedStatut);
-            }
-            if (selectedCategorie) {
-                filteredItems = filteredItems.filter(e => e.idCategorieExamen === selectedCategorie);
-            }
-            setPagedData({
-                ...data,
-                items: filteredItems,
-                totalCount: filteredItems.length,
-                totalPages: Math.ceil(filteredItems.length / paginationParams.pageSize),
+            // Recherche et filtres côté serveur (pagination exacte).
+            const data = await examenService.search({
+                pageIndex: paginationParams.pageIndex,
+                pageSize: paginationParams.pageSize,
+                statut: selectedStatut || undefined,
+                idCategorie: selectedCategorie,
+                term: searchTerm || undefined,
             });
+            setPagedData(data);
         } catch (error) {
             toast.error('Erreur lors du chargement des examens');
             console.error(error);
@@ -164,9 +150,11 @@ export default function ExamenList() {
                         <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
                             Filtres
                         </Button>
-                        <Button icon={<FaPlus />} onClick={handleAdd}>
-                            Nouvel examen
-                        </Button>
+                        {peutGerer && (
+                            <Button icon={<FaPlus />} onClick={handleAdd}>
+                                Nouvel examen
+                            </Button>
+                        )}
                     </>
                 }
             />
@@ -185,14 +173,20 @@ export default function ExamenList() {
                                 <FaSearch />
                             </button>
                         </form>
-                        <FilterSelect value={selectedStatut} onChange={(e) => setSelectedStatut(e.target.value)}>
+                        <FilterSelect value={selectedStatut} onChange={(e) => {
+                            setSelectedStatut(e.target.value);
+                            setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
+                        }}>
                             {statutOptions.map(opt => (
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                         </FilterSelect>
                         <FilterSelect
                             value={selectedCategorie ?? ''}
-                            onChange={(e) => setSelectedCategorie(e.target.value ? Number(e.target.value) : null)}
+                            onChange={(e) => {
+                                setSelectedCategorie(e.target.value ? Number(e.target.value) : null);
+                                setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
+                            }}
                         >
                             <option value="">Toutes catégories</option>
                             {categories.map(c => (
@@ -279,13 +273,15 @@ export default function ExamenList() {
                                             >
                                                 <FaEye size={14} />
                                             </IconButton>
-                                            <IconButton
-                                                color="blue"
-                                                title="Modifier"
-                                                onClick={() => handleEdit(examen)}
-                                            >
-                                                <FaEdit size={14} />
-                                            </IconButton>
+                                            {peutResultat && (
+                                                <IconButton
+                                                    color="blue"
+                                                    title={peutGerer ? 'Modifier' : 'Saisir le résultat'}
+                                                    onClick={() => handleEdit(examen)}
+                                                >
+                                                    <FaEdit size={14} />
+                                                </IconButton>
+                                            )}
                                             <IconButton
                                                 color="green"
                                                 title={examen.idPrescription
@@ -301,13 +297,15 @@ export default function ExamenList() {
                                             >
                                                 <FaPrint size={14} />
                                             </IconButton>
-                                            <IconButton
-                                                color="red"
-                                                title="Supprimer"
-                                                onClick={() => handleDelete(examen)}
-                                            >
-                                                <FaTrash size={14} />
-                                            </IconButton>
+                                            {peutGerer && (
+                                                <IconButton
+                                                    color="red"
+                                                    title="Supprimer"
+                                                    onClick={() => handleDelete(examen)}
+                                                >
+                                                    <FaTrash size={14} />
+                                                </IconButton>
+                                            )}
                                         </div>
                                     </Td>
                                 </Tr>

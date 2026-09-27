@@ -10,8 +10,9 @@ export enum StatutCommandeFournisseur {
 }
 
 export interface DetailCommande {
-  idMedicament: number;
-  medicamentNom?: string;
+    idDetailCommande?: number;
+    idMedicament: number;
+    medicamentNom?: string;
   quantiteCommandee: number;
   quantiteRecue?: number;
   prixUnitaire: number;

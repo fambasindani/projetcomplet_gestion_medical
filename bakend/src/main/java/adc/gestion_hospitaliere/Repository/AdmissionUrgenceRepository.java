@@ -26,6 +26,12 @@ public interface AdmissionUrgenceRepository extends JpaRepository<AdmissionUrgen
             "WHEN 'Semi_urgente' THEN 2 ELSE 3 END ASC, a.dateArrivee ASC")
     List<AdmissionUrgence> findSalleAttente(@Param("statut") StatutAdmissionUrgence statut);
 
+    @Query(value = "SELECT a FROM AdmissionUrgence a WHERE a.statut = :statut ORDER BY " +
+            "CASE a.gravite WHEN 'Critique' THEN 0 WHEN 'Urgente' THEN 1 " +
+            "WHEN 'Semi_urgente' THEN 2 ELSE 3 END ASC, a.dateArrivee ASC",
+            countQuery = "SELECT COUNT(a) FROM AdmissionUrgence a WHERE a.statut = :statut")
+    Page<AdmissionUrgence> findSalleAttente(@Param("statut") StatutAdmissionUrgence statut, Pageable pageable);
+
     @Query("SELECT a FROM AdmissionUrgence a WHERE " +
             "(:statut IS NULL OR a.statut = :statut) AND " +
             "(:gravite IS NULL OR a.gravite = :gravite) AND " +

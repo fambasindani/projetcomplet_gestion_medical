@@ -68,6 +68,9 @@ export interface DetailFacture {
 export interface Paiement {
   idPaiement: number;
   idFacture: number;
+  numeroFacture?: string | null;
+  patientNom?: string | null;
+  patientPrenom?: string | null;
   datePaiement: string;
   montant: number;
   modePaiement: ModePaiement;

@@ -58,6 +58,12 @@ public class AdmissionUrgenceService {
                 .toList();
     }
 
+    public org.springframework.data.domain.Page<AdmissionUrgenceResponseDto> getSalleAttente(Pageable pageable) {
+        return admissionUrgenceRepository
+                .findSalleAttente(StatutAdmissionUrgence.En_attente, pageable)
+                .map(this::toResponseDto);
+    }
+
     public AdmissionUrgenceResponseDto getById(Integer id) {
         AdmissionUrgence a = admissionUrgenceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Admission aux urgences non trouvée"));

@@ -19,13 +19,19 @@ export default function MonEspacePage() {
     (async () => {
       try {
         const [rdv, examens, ordonnances, factures] = await Promise.all([
-          patientPortalService.getRendezVous(),
-          patientPortalService.getExamens(),
-          patientPortalService.getOrdonnances(),
-          patientPortalService.getFactures(),
+          patientPortalService.getRendezVous(1, 1),
+          patientPortalService.getExamens(1, 1),
+          patientPortalService.getOrdonnances(1, 1),
+          patientPortalService.getFactures(1, 100),
         ]);
-        const restant = factures.reduce((a, f) => a + (f.montantRestant ?? 0), 0);
-        setCounts({ rdv: rdv.length, examens: examens.length, ordonnances: ordonnances.length, factures: factures.length, restant });
+        const restant = factures.items.reduce((a, f) => a + (f.montantRestant ?? 0), 0);
+        setCounts({
+          rdv: rdv.totalCount,
+          examens: examens.totalCount,
+          ordonnances: ordonnances.totalCount,
+          factures: factures.totalCount,
+          restant,
+        });
       } catch {
         setCounts({ rdv: 0, examens: 0, ordonnances: 0, factures: 0, restant: 0 });
       } finally {

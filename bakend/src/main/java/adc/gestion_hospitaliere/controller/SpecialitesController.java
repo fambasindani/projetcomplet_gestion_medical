@@ -24,10 +24,11 @@ public class SpecialitesController {
 
     @GetMapping
     public ResponseEntity<PagedResponse<SpecialiteResponseDto>> getAllSpecialites(
+            @RequestParam(required = false) Boolean actif,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<SpecialiteResponseDto> page = specialiteService.getAllSpecialites(pageable);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Page<SpecialiteResponseDto> page = specialiteService.getAllSpecialites(pageable, actif);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

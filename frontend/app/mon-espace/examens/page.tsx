@@ -6,14 +6,18 @@ import { FaFlask, FaCheckCircle, FaFilePdf } from 'react-icons/fa';
 import { pdf } from '@react-pdf/renderer';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { patientPortalService, type MonExamen } from '@/app/services/patientPortalService';
+import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import ExamensPDF from '@/app/components/examens/ExamensPDF';
 import PageHeader from '@/app/ui/PageHeader';
+import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 
 export default function MesExamensPage() {
   const { user } = useAuth();
   const [examens, setExamens] = useState<MonExamen[]>([]);
+  const [pagedData, setPagedData] = useState<PagedResult<MonExamen> | null>(null);
+  const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<number | null>(null);
   const [pdfLoading, setPdfLoading] = useState<number | null>(null);
@@ -61,9 +65,11 @@ export default function MesExamensPage() {
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       try {
-        const data = await patientPortalService.getExamens();
-        setExamens(Array.isArray(data) ? data : []);
+        const data = await patientPortalService.getExamens(pagination.pageIndex, pagination.pageSize);
+        setPagedData(data);
+        setExamens(data.items);
       } catch (e) {
         toast.error(extractErrorMessage(e));
         setExamens([]);
@@ -71,7 +77,8 @@ export default function MesExamensPage() {
         setLoading(false);
       }
     })();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.pageIndex]);
 
   return (
     <div className="space-y-5">
@@ -128,6 +135,17 @@ export default function MesExamensPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+      {pagedData && pagedData.totalPages > 1 && (
+        <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+          <Pagination
+            pageIndex={pagedData.pageIndex}
+            totalPages={pagedData.totalPages}
+            totalCount={pagedData.totalCount}
+            pageSize={pagedData.pageSize}
+            onPageChange={(page) => setPagination((prev) => ({ ...prev, pageIndex: page }))}
+          />
         </div>
       )}
     </div>

@@ -30,6 +30,7 @@ public class ExamenService {
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
     private final ActeCatalogueRepository acteCatalogueRepository;
+    private final LaboratoireRepository laboratoireRepository;
 
     // --- CRUD ---
 
@@ -45,6 +46,25 @@ public class ExamenService {
 
     public Page<ExamenResponseDto> getAllForMedecin(Integer medecinId, Pageable pageable) {
         return examenRepository.findByIdMedecinPrescripteur(medecinId, pageable).map(this::toDto);
+    }
+
+    /** Examens d'un laboratoire (categorie) : scoping du laborantin. */
+    public Page<ExamenResponseDto> getAllForLaboratoire(String libelleCategorie, Pageable pageable) {
+        return examenRepository.findByCategorieLibelle(libelleCategorie, pageable).map(this::toDto);
+    }
+
+    /** Examens d'un laboratoire par son id (entité laboratoires). */
+    public Page<ExamenResponseDto> getAllForLaboratoireId(Integer idLaboratoire, Pageable pageable) {
+        return examenRepository.findByIdLaboratoire(idLaboratoire, pageable).map(this::toDto);
+    }
+
+    /** Recherche paginée avec filtres + scoping (médecin / laboratoire). */
+    public Page<ExamenResponseDto> searchExamens(Integer idMedecin, Integer idLaboratoire,
+                                                 StatutExamen statut, Integer idCategorie,
+                                                 String term, Pageable pageable) {
+        String t = (term == null || term.isBlank()) ? null : term.trim();
+        return examenRepository.searchExamens(idMedecin, idLaboratoire, statut, idCategorie, t, pageable)
+                .map(this::toDto);
     }
 
     public ExamenResponseDto getById(Integer id) {
@@ -90,6 +110,7 @@ public class ExamenService {
                 .datePlanification(dto.getDatePlanification())
                 .dateRealisation(dto.getDateRealisation())
                 .laboratoire(dto.getLaboratoire())
+                .idLaboratoire(dto.getIdLaboratoire() != null ? dto.getIdLaboratoire() : categorie.getIdLaboratoire())
                 .technicien(dto.getTechnicien())
                 .resultat(dto.getResultat())
                 .interpretation(dto.getInterpretation())
@@ -118,6 +139,9 @@ public class ExamenService {
             CategorieExamen categorie = categorieExamenRepository.findById(dto.getIdCategorieExamen())
                     .orElseThrow(() -> new ResourceNotFoundException("Catégorie non trouvée"));
             examen.setCategorie(categorie);
+            if (dto.getIdLaboratoire() == null) {
+                examen.setIdLaboratoire(categorie.getIdLaboratoire());
+            }
         }
         if (dto.getIdActeCatalogue() != null) {
             acteCatalogueRepository.findById(dto.getIdActeCatalogue())
@@ -129,6 +153,7 @@ public class ExamenService {
         if (dto.getDatePlanification() != null) examen.setDatePlanification(dto.getDatePlanification());
         if (dto.getDateRealisation() != null) examen.setDateRealisation(dto.getDateRealisation());
         if (dto.getLaboratoire() != null) examen.setLaboratoire(dto.getLaboratoire());
+        if (dto.getIdLaboratoire() != null) examen.setIdLaboratoire(dto.getIdLaboratoire());
         if (dto.getTechnicien() != null) examen.setTechnicien(dto.getTechnicien());
         if (dto.getResultat() != null) examen.setResultat(dto.getResultat());
         if (dto.getInterpretation() != null) examen.setInterpretation(dto.getInterpretation());
@@ -200,6 +225,11 @@ public class ExamenService {
                 .datePlanification(examen.getDatePlanification())
                 .dateRealisation(examen.getDateRealisation())
                 .laboratoire(examen.getLaboratoire())
+                .idLaboratoire(examen.getIdLaboratoire())
+                .nomLaboratoire(examen.getIdLaboratoire() != null
+                        ? laboratoireRepository.findById(examen.getIdLaboratoire())
+                            .map(Laboratoire::getNom).orElse(null)
+                        : null)
                 .technicien(examen.getTechnicien())
                 .resultat(examen.getResultat())
                 .interpretation(examen.getInterpretation())

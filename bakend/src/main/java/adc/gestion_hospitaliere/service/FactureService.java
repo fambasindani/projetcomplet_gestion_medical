@@ -900,6 +900,20 @@ public class FactureService {
                 .build();
     }
 
+    /** Liste paginée et filtrée des paiements (toutes factures confondues). */
+    public Page<PaiementResponseDto> searchPaiements(ModePaiement modePaiement,
+                                                     StatutPaiement statut,
+                                                     Integer encaissePar,
+                                                     LocalDateTime dateStart,
+                                                     LocalDateTime dateEnd,
+                                                     String term,
+                                                     Pageable pageable) {
+        String t = (term == null || term.isBlank()) ? null : term.trim();
+        return paiementRepository
+                .searchPaiements(modePaiement, statut, encaissePar, dateStart, dateEnd, t, pageable)
+                .map(this::toPaiementResponseDto);
+    }
+
     private PaiementResponseDto toPaiementResponseDto(Paiement paiement) {
         String encaisseurNom = null;
         if (paiement.getEncaisseur() != null) {

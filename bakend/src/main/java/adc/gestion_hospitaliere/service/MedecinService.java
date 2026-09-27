@@ -40,9 +40,25 @@ public class MedecinService {
     private final ConsultationRepository consultationRepository;
 
     // ---------- GET all ----------
-    public Page<MedecinResponseDto> getAllMedecins(Pageable pageable) {
-        return medecinRepository.findAll(pageable)
+    public Page<MedecinResponseDto> getAllMedecins(Disponibilite disponibilite, Pageable pageable) {
+        if (disponibilite == null) {
+            return medecinRepository.findAll(pageable)
+                    .map(this::convertToResponseDto);
+        }
+        return medecinRepository.findByDisponibilite(disponibilite, pageable)
                 .map(this::convertToResponseDto);
+    }
+
+    /** Liste légère (id, nom, prénom, spécialité) pour les formulaires. */
+    public java.util.List<java.util.Map<String, Object>> getListeSimple() {
+        return medecinRepository.findAll().stream().map(m -> {
+            java.util.Map<String, Object> item = new java.util.LinkedHashMap<>();
+            item.put("idMedecin", m.getIdMedecin());
+            item.put("nom", m.getNom());
+            item.put("prenom", m.getPrenom());
+            item.put("specialite", m.getSpecialite() != null ? m.getSpecialite().getNomSpecialite() : null);
+            return item;
+        }).collect(java.util.stream.Collectors.toList());
     }
 
     // ---------- GET by id ----------
@@ -168,8 +184,8 @@ public class MedecinService {
     }
 
     // ---------- RECHERCHE ----------
-    public Page<MedecinResponseDto> searchMedecins(String term, Pageable pageable) {
-        return medecinRepository.searchByTerm(term, pageable)
+    public Page<MedecinResponseDto> searchMedecins(String term, Disponibilite disponibilite, Pageable pageable) {
+        return medecinRepository.searchByTerm(term, disponibilite, pageable)
                 .map(this::convertToResponseDto);
     }
 

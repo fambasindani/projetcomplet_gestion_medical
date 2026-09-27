@@ -4,6 +4,7 @@ import adc.gestion_hospitaliere.exception.BusinessException;
 
 
 import adc.gestion_hospitaliere.Entity.Personnel;
+import adc.gestion_hospitaliere.Enums.Genre;
 import adc.gestion_hospitaliere.Repository.PersonnelRepository;
 import adc.gestion_hospitaliere.dto.ResponseApi.PagedResponse;
 import adc.gestion_hospitaliere.dto.personnel.PersonnelRequestDto;
@@ -61,22 +62,16 @@ public class PersonnelService {
         return PagedResponse.of(page);
     }
 
-    public PagedResponse<PersonnelResponseDto> searchPersonnels(String keyword, Pageable pageable) {
-        return searchPersonnels(keyword, null, pageable);
-    }
-
-    public PagedResponse<PersonnelResponseDto> searchPersonnels(String keyword, String fonction, Pageable pageable) {
-        String term = keyword == null ? "" : keyword;
-        if (fonction != null && !fonction.isBlank()) {
-            Page<PersonnelResponseDto> page = personnelRepository
-                    .searchByFonctionAndKeyword(fonction, term, pageable)
-                    .map(this::convertToResponseDto);
-            return PagedResponse.of(page);
-        }
-        if (term.isBlank()) {
+    public PagedResponse<PersonnelResponseDto> searchPersonnels(String keyword, String fonction, Genre genre, Pageable pageable) {
+        boolean hasFonction = fonction != null && !fonction.isBlank();
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        if (!hasFonction && !hasKeyword && genre == null) {
             return getAllPersonnels(pageable);
         }
-        return PagedResponse.of(personnelRepository.searchByKeyword(term, pageable).map(this::convertToResponseDto));
+        Page<PersonnelResponseDto> page = personnelRepository
+                .search(hasKeyword ? keyword : null, hasFonction ? fonction : null, genre, pageable)
+                .map(this::convertToResponseDto);
+        return PagedResponse.of(page);
     }
 
     public PersonnelResponseDto getPersonnelById(Integer id) {

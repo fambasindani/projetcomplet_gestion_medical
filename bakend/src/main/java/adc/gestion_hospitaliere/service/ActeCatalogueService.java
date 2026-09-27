@@ -89,6 +89,16 @@ public class ActeCatalogueService {
         return searchInterne(categorie, idGroupe, search, true);
     }
 
+    /** Version paginée serveur (admin catalogue) : filtres + recherche. */
+    public org.springframework.data.domain.Page<ActeCatalogueResponseDto> searchPage(
+            CategorieActeMedical categorie, Integer idGroupe, String search, boolean inclureInactifs,
+            org.springframework.data.domain.Pageable pageable) {
+        String t = normalize(search);
+        String term = (t == null || t.isEmpty()) ? null : t;
+        return catalogueRepository.searchPage(inclureInactifs, categorie, idGroupe, term, pageable)
+                .map(this::toDto);
+    }
+
     private List<ActeCatalogueResponseDto> searchInterne(CategorieActeMedical categorie, Integer idGroupe,
                                                         String search, boolean inclureInactifs) {
         String normalizedSearch = normalize(search);

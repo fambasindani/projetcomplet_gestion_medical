@@ -25,24 +25,19 @@ public interface PersonnelRepository extends JpaRepository<Personnel, Integer> {
     // Recherche par service
     Page<Personnel> findByServiceContainingIgnoreCase(String service, Pageable pageable);
 
-    // Recherche textuelle (nom, prénom, matricule)
+    // Recherche combinée : mot-clé (nom, prénom, matricule, fonction) + fonction + genre, tous optionnels.
     @Query("SELECT p FROM Personnel p WHERE " +
-            "LOWER(p.matricule) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
-            "LOWER(p.nom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
-            "LOWER(p.prenom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
-            "LOWER(p.fonction) LIKE LOWER(CONCAT('%', :term, '%'))")
-    Page<Personnel> searchByKeyword(@Param("term") String term, Pageable pageable);
-
-    // Recherche par fonction + mot-clé (nom, prénom, matricule)
-    @Query("SELECT p FROM Personnel p WHERE " +
-            "LOWER(p.fonction) LIKE LOWER(CONCAT('%', :fonction, '%')) AND (" +
-            ":term = '' OR " +
-            "LOWER(p.nom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
-            "LOWER(p.prenom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
-            "LOWER(p.matricule) LIKE LOWER(CONCAT('%', :term, '%')))")
-    Page<Personnel> searchByFonctionAndKeyword(@Param("fonction") String fonction,
-                                               @Param("term") String term,
-                                               Pageable pageable);
+            "(:term IS NULL OR :term = '' OR " +
+            " LOWER(p.matricule) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            " LOWER(p.nom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            " LOWER(p.prenom) LIKE LOWER(CONCAT('%', :term, '%')) OR " +
+            " LOWER(p.fonction) LIKE LOWER(CONCAT('%', :term, '%'))) AND " +
+            "(:fonction IS NULL OR :fonction = '' OR LOWER(p.fonction) LIKE LOWER(CONCAT('%', :fonction, '%'))) AND " +
+            "(:genre IS NULL OR p.genre = :genre)")
+    Page<Personnel> search(@Param("term") String term,
+                           @Param("fonction") String fonction,
+                           @Param("genre") Genre genre,
+                           Pageable pageable);
 
     // Statistiques
     long countByFonction(String fonction);

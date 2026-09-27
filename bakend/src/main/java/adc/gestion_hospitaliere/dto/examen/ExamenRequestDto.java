@@ -23,6 +23,7 @@ public class ExamenRequestDto {
     private LocalDateTime datePlanification;
     private LocalDateTime dateRealisation;
     private String laboratoire;
+    private Integer idLaboratoire;
     private String technicien;
     private String resultat;
     private String interpretation;

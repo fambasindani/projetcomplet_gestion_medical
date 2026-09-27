@@ -5,6 +5,8 @@ import { toast } from 'react-hot-toast';
 import { FaCalendarCheck, FaPlus, FaTrash, FaClock } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { patientPortalService, type MonRdv } from '@/app/services/patientPortalService';
+import type { PagedResult } from '@/app/types/pagination';
+import Pagination from '@/app/ui/Pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import PageHeader from '@/app/ui/PageHeader';
 import Card from '@/app/components/common/Card';
@@ -32,16 +34,20 @@ function couleurStatut(s: string) {
 export default function MesRendezVousPage() {
   const confirm = useConfirm();
   const [rdvs, setRdvs] = useState<MonRdv[]>([]);
+  const [pagedData, setPagedData] = useState<PagedResult<MonRdv> | null>(null);
+  const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [medecins, setMedecins] = useState<{ idMedecin: number; nom: string; prenom: string; specialite?: string | null }[]>([]);
   const [form, setForm] = useState({ dateRdv: '', idMedecin: '', motif: '' });
   const [saving, setSaving] = useState(false);
 
-  const load = async () => {
+  const load = async (page = pagination.pageIndex) => {
     setLoading(true);
     try {
-      setRdvs(await patientPortalService.getRendezVous());
+      const data = await patientPortalService.getRendezVous(page, pagination.pageSize);
+      setPagedData(data);
+      setRdvs(data.items);
     } catch (e) {
       toast.error(extractErrorMessage(e));
     } finally {
@@ -49,7 +55,7 @@ export default function MesRendezVousPage() {
     }
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(pagination.pageIndex); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [pagination.pageIndex]);
 
   const openModal = async () => {
     setForm({ dateRdv: '', idMedecin: '', motif: '' });
@@ -158,6 +164,15 @@ export default function MesRendezVousPage() {
               })}
             </tbody>
           </table>
+          {pagedData && pagedData.totalPages > 1 && (
+            <Pagination
+              pageIndex={pagedData.pageIndex}
+              totalPages={pagedData.totalPages}
+              totalCount={pagedData.totalCount}
+              pageSize={pagedData.pageSize}
+              onPageChange={(page) => setPagination((prev) => ({ ...prev, pageIndex: page }))}
+            />
+          )}
         </div>
       )}
 

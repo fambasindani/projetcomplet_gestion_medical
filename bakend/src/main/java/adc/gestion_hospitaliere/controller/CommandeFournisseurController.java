@@ -57,6 +57,20 @@ public class CommandeFournisseurController {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
+    @PatchMapping("/{id}/statut")
+    public ResponseEntity<CommandeFournisseurResponseDto> changerStatut(
+            @PathVariable Integer id,
+            @RequestParam StatutCommandeFournisseur statut) {
+        return ResponseEntity.ok(service.changerStatut(id, statut));
+    }
+
+    @PostMapping("/{id}/reception")
+    public ResponseEntity<CommandeFournisseurResponseDto> receptionner(
+            @PathVariable Integer id,
+            @RequestBody(required = false) adc.gestion_hospitaliere.dto.commande.ReceptionCommandeRequestDto dto) {
+        return ResponseEntity.ok(service.receptionner(id, dto));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         service.delete(id);

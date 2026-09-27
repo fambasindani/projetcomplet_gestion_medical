@@ -21,13 +21,15 @@ public class CategorieExamenController {
 
     private final CategorieExamenService service;
 
-    // GET /api/categories-examen?page=1&size=10
+    // GET /api/categories-examen?pageIndex=1&pageSize=10&term=&actif=
     @GetMapping
     public ResponseEntity<PagedResponse<CategorieExamenResponseDto>> getAll(
+            @RequestParam(required = false) String term,
+            @RequestParam(required = false) Boolean actif,
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
-        Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
-        Page<CategorieExamenResponseDto> page = service.getAll(pageable);
+        Pageable pageable = PageRequest.of(Math.max(pageIndex - 1, 0), pageSize);
+        Page<CategorieExamenResponseDto> page = service.search(actif, term, pageable);
         return ResponseEntity.ok(PagedResponse.of(page));
     }
 

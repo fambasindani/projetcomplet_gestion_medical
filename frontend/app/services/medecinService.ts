@@ -4,9 +4,9 @@ import { PagedResult } from '@/app/types/pagination';
 import { Medecin, MedecinCreate, MedecinDetails, MedecinStats } from '@/app/types/medecin';
 
 export const medecinService = {
-  async getAll(pageIndex: number | { pageIndex?: number; pageSize?: number } = 1, pageSize = 10): Promise<PagedResult<Medecin>> {
+  async getAll(pageIndex: number | { pageIndex?: number; pageSize?: number; disponibilite?: string } = 1, pageSize = 10): Promise<PagedResult<Medecin>> {
     const resolved = typeof pageIndex === 'object'
-      ? { pageIndex: pageIndex.pageIndex ?? 1, pageSize: pageIndex.pageSize ?? 10 }
+      ? { pageIndex: pageIndex.pageIndex ?? 1, pageSize: pageIndex.pageSize ?? 10, disponibilite: pageIndex.disponibilite || undefined }
       : { pageIndex, pageSize };
     const res = await api.get<PagedResult<Medecin>>('/medecins', { params: resolved });
     return res.data;
@@ -18,22 +18,22 @@ export const medecinService = {
   },
 
   async getSimpleList(search = ''): Promise<{ id: number; nom: string; prenom: string }[]> {
-    let res;
-    if (search) {
-      res = await api.get<PagedResult<Medecin>>(`/medecins/recherche/${encodeURIComponent(search)}`, { params: { pageIndex: 1, pageSize: 100 } });
-    } else {
-      res = await api.get<PagedResult<Medecin>>('/medecins', { params: { pageIndex: 1, pageSize: 100 } });
-    }
-    return res.data.items.map(m => ({
-      id: m.idMedecin,
-      nom: m.nom,
-      prenom: m.prenom,
-    }));
+    // Endpoint léger accessible aux rôles qui doivent choisir un prescripteur
+    // (pharmacien, infirmier...) sans avoir accès au module Médecins.
+    const res = await api.get<{ idMedecin: number; nom: string; prenom: string }[]>('/medecins/liste-simple');
+    const items = res.data.map(m => ({ id: m.idMedecin, nom: m.nom, prenom: m.prenom }));
+    if (!search) return items;
+    const term = search.toLowerCase();
+    return items.filter(m => `${m.nom} ${m.prenom}`.toLowerCase().includes(term));
   },
 
-  async search(term: string, params?: { pageIndex?: number; pageSize?: number }): Promise<PagedResult<Medecin>> {
+  async search(term: string, params?: { pageIndex?: number; pageSize?: number; disponibilite?: string }): Promise<PagedResult<Medecin>> {
     const res = await api.get<PagedResult<Medecin>>(`/medecins/recherche/${encodeURIComponent(term)}`, {
-      params: { pageIndex: params?.pageIndex ?? 1, pageSize: params?.pageSize ?? 10 },
+      params: {
+        pageIndex: params?.pageIndex ?? 1,
+        pageSize: params?.pageSize ?? 10,
+        disponibilite: params?.disponibilite || undefined,
+      },
     });
     return res.data;
   },
