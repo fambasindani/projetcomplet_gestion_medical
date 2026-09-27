@@ -22,6 +22,7 @@ interface MenuItem {
   icon: React.ElementType;
   roles?: string[];
   permission?: string;
+  anyPermission?: string[];
   badge?: string;
   badgeColor?: string;
   children?: MenuItem[];
@@ -51,12 +52,12 @@ const menuItems: MenuItem[] = [
     path: '/medecins-module',
     name: 'Médecins',
     icon: FaUserMd,
-    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
-    permission: 'MEDECINS_VOIR',
+    roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'RH'],
+    anyPermission: ['MEDECINS_VOIR', 'PLANNING_GROUPE_VOIR'],
     children: [
-      { path: '/medecins', name: 'Médecins', icon: FaUserMd },
-      { path: '/medecins/planning', name: 'Planning', icon: FaCalendarCheck },
-      { path: '/specialites', name: 'Spécialités', icon: FaStethoscope },
+      { path: '/medecins', name: 'Médecins', icon: FaUserMd, permission: 'MEDECINS_VOIR' },
+      { path: '/medecins/planning', name: 'Planning de groupe', icon: FaCalendarCheck, permission: 'PLANNING_GROUPE_VOIR' },
+      { path: '/specialites', name: 'Spécialités', icon: FaStethoscope, permission: 'SPECIALITES_VOIR' },
     ]
   },
 
@@ -249,17 +250,42 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
   const pathname = usePathname();
   const { user, permissions } = useAuth();
 
-  const visibleMenuItems = menuItems.filter((item) => {
+  const canSee = (item: MenuItem): boolean => {
     // Priorité aux permissions explicites (RBAC) si elles sont fournies par le backend
-    if (item.permission && permissions.length > 0) {
-      return permissions.includes(item.permission);
+    if (permissions.length > 0) {
+      if (item.anyPermission && item.anyPermission.length > 0) {
+        return item.anyPermission.some((p) => permissions.includes(p));
+      }
+      if (item.permission) {
+        return permissions.includes(item.permission);
+      }
     }
     // Repli sur le rôle (anciens jetons sans permissions)
     if (item.roles) {
       return !!user?.role && item.roles.includes(user.role);
     }
     return true;
-  });
+  };
+
+  const visibleMenuItems = menuItems
+    .filter((item) => {
+      // Un module parent est visible si lui-même OU l'un de ses enfants est autorisé.
+      if (item.children && item.children.length > 0 && !item.permission && !item.anyPermission) {
+        const anyChild = item.children.some((c) => canSee(c));
+        if (anyChild) return true;
+      }
+      return canSee(item);
+    })
+    .map((item) => {
+      if (!item.children) return item;
+      // Ne garder que les enfants autorisés (permission/anyPermission/roles).
+      const children = item.children.filter((c) => {
+        if (c.permission || c.anyPermission) return canSee(c);
+        return true;
+      });
+      return { ...item, children };
+    })
+    .filter((item) => !item.children || item.children.length > 0);
 
   const getInitialState = (): SubmenuState => {
     const state: SubmenuState = {};

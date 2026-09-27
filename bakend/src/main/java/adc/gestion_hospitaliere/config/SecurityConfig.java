@@ -114,8 +114,9 @@ public class SecurityConfig {
                         // ===== RENDEZ-VOUS / PLANNING =====
                         .requestMatchers(HttpMethod.GET, "/api/rendezvous/**").hasAuthority("RENDEZ_VOUS_VOIR")
                         .requestMatchers("/api/rendezvous/**").hasAuthority("RENDEZ_VOUS_GERER")
-                        .requestMatchers(HttpMethod.GET, "/api/planning/**").hasAuthority("RENDEZ_VOUS_VOIR")
-                        .requestMatchers("/api/planning/**").hasAuthority("RENDEZ_VOUS_GERER")
+                        .requestMatchers(HttpMethod.GET, "/api/planning/**")
+                        .hasAnyAuthority("RENDEZ_VOUS_VOIR", "PLANNING_GROUPE_VOIR")
+                        .requestMatchers("/api/planning/**").hasAnyAuthority("RENDEZ_VOUS_GERER", "PLANNING_GROUPE_VOIR")
 
                         // ===== CONSULTATIONS =====
                         .requestMatchers(HttpMethod.GET, "/api/consultations/**").hasAuthority("CONSULTATIONS_VOIR")

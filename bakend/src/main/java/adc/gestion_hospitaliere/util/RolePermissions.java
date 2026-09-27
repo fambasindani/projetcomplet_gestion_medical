@@ -80,6 +80,8 @@ public final class RolePermissions {
                     MEDECINS_LISTE_SIMPLE,
                     NOTIFICATIONS_VOIR),
             Role.RH, EnumSet.of(
+                    RENDEZ_VOUS_VOIR,
+                    PLANNING_GROUPE_VOIR,
                     DASHBOARD_VOIR,
                     MEDECINS_VOIR, MEDECINS_LISTE_SIMPLE,
                     PERSONNEL_VOIR, PERSONNEL_GERER,
