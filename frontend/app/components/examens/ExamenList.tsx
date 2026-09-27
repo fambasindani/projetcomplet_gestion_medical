@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { FaFlask, FaPlus, FaEdit, FaTrash, FaSearch, FaFilter, FaEye, FaPrint } from 'react-icons/fa';
+import { FaFlask, FaPlus, FaEdit, FaTrash, FaSearch, FaFilter, FaEye, FaPrint, FaTags } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { format } from 'date-fns';
 import Pagination from '@/app/ui/Pagination';
@@ -296,6 +296,13 @@ export default function ExamenList() {
                                                 }}
                                             >
                                                 <FaPrint size={14} />
+                                            </IconButton>
+                                            <IconButton
+                                                color="gray"
+                                                title="Imprimer l'etiquette (autocollant boite)"
+                                                onClick={() => router.push(`/examens/${examen.idExamen}/etiquette`)}
+                                            >
+                                                <FaTags size={14} />
                                             </IconButton>
                                             {peutGerer && (
                                                 <IconButton
