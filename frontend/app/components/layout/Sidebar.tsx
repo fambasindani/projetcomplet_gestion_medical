@@ -304,7 +304,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
   };
 
   const sidebarWidth = isCollapsed ? 'w-20' : 'w-64';
-  const sidebarClasses = `fixed left-0 top-0 z-40 h-full bg-slate-900 text-white transition-all duration-300 ${sidebarWidth} ${
+  const sidebarClasses = `fixed left-0 top-0 z-40 flex h-full flex-col bg-slate-900 text-white transition-all duration-300 ${sidebarWidth} ${
     isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
   }`;
 
