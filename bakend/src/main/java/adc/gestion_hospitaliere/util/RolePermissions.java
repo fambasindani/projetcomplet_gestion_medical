@@ -50,7 +50,7 @@ public final class RolePermissions {
                     HOSPITALISATIONS_VOIR, HOSPITALISATIONS_GERER,
                     CONSTANTES_VOIR,
                     CHAMBRES_VOIR, CHAMBRES_GERER,
-                    MEDECINS_VOIR, MEDECINS_GERER,
+                    MEDECINS_VOIR, MEDECINS_GERER, MEDECINS_LISTE_SIMPLE,
                     SPECIALITES_VOIR,
                     FACTURATION_VOIR, FACTURATION_GERER,
                     CATALOGUE_VOIR, CATALOGUE_GERER,
@@ -63,6 +63,7 @@ public final class RolePermissions {
                     CONSTANTES_VOIR, CONSTANTES_GERER,
                     CHAMBRES_VOIR,
                     SOINS_VOIR, SOINS_GERER,
+                    MEDECINS_LISTE_SIMPLE,
                     URGENCES_VOIR, URGENCES_GERER,
                     NOTIFICATIONS_VOIR),
             Role.LABORANTIN, EnumSet.of(
@@ -70,15 +71,17 @@ public final class RolePermissions {
                     PATIENTS_VOIR,
                     EXAMENS_VOIR, EXAMENS_RESULTAT,
                     CATEGORIES_EXAMEN_VOIR,
+                    MEDECINS_LISTE_SIMPLE,
                     NOTIFICATIONS_VOIR),
             Role.PHARMACIEN, EnumSet.of(
                     DASHBOARD_VOIR,
                     PATIENTS_VOIR,
                     PHARMACIE_VOIR, PHARMACIE_GERER,
+                    MEDECINS_LISTE_SIMPLE,
                     NOTIFICATIONS_VOIR),
             Role.RH, EnumSet.of(
                     DASHBOARD_VOIR,
-                    MEDECINS_VOIR,
+                    MEDECINS_VOIR, MEDECINS_LISTE_SIMPLE,
                     PERSONNEL_VOIR, PERSONNEL_GERER,
                     NOTIFICATIONS_VOIR),
             Role.PATIENT, EnumSet.of(

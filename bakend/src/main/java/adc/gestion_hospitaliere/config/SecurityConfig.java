@@ -97,7 +97,7 @@ public class SecurityConfig {
                         // ===== MEDECINS =====
                         // Liste légère pour les formulaires (délivrance, etc.) : AVANT la règle générale.
                         .requestMatchers(HttpMethod.GET, "/api/medecins/liste-simple")
-                        .hasAnyAuthority("MEDECINS_VOIR", "PHARMACIE_VOIR", "HOSPITALISATIONS_VOIR", "SOINS_VOIR")
+                        .hasAuthority("MEDECINS_LISTE_SIMPLE")
                         .requestMatchers(HttpMethod.GET, "/api/medecins/**").hasAuthority("MEDECINS_VOIR")
                         .requestMatchers("/api/medecins/**").hasAuthority("MEDECINS_GERER")
 

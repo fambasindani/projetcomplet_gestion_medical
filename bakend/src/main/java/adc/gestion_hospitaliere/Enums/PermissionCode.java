@@ -41,6 +41,7 @@ public enum PermissionCode {
 
     MEDECINS_VOIR,
     MEDECINS_GERER,
+    MEDECINS_LISTE_SIMPLE,
     SPECIALITES_VOIR,
     SPECIALITES_GERER,
 
