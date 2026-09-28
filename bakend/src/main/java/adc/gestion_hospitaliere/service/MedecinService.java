@@ -288,10 +288,8 @@ public class MedecinService {
                 })
                 .collect(Collectors.toList());
 
-        // Top 5 médecins (exemple : par date d'embauche la plus récente, ou par nombre de consultations)
+        // Top 5 médecins par nombre de consultations (les plus actifs).
         List<Map<String, Object>> topMedecins = allMedecins.stream()
-                .sorted(Comparator.comparing(Medecin::getDateCreation, Comparator.nullsLast(Comparator.reverseOrder())))
-                .limit(5)
                 .map(m -> {
                     Map<String, Object> map = new LinkedHashMap<>();
                     map.put("id", m.getIdMedecin());
@@ -300,12 +298,14 @@ public class MedecinService {
                     map.put("matricule", m.getMatricule());
                     map.put("specialite", m.getSpecialite() != null ? m.getSpecialite().getNomSpecialite() : "Non spécifiée");
                     map.put("photo", m.getPhoto());
-                    // Remplacer par m.getConsultations().size() si la relation existe
-                    long nbConsult = 0; // à implémenter
+                    long nbConsult = consultationRepository.countByIdMedecin(m.getIdMedecin());
                     map.put("nombreConsultations", nbConsult);
                     map.put("disponibilite", m.getDisponibilite().name());
                     return map;
                 })
+                .sorted(Comparator.comparingLong(
+                        (Map<String, Object> m) -> ((Number) m.get("nombreConsultations")).longValue()).reversed())
+                .limit(5)
                 .collect(Collectors.toList());
 
         // Résumé
