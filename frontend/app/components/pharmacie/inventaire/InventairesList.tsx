@@ -151,9 +151,9 @@ export default function InventairesList() {
               </tr>
             </THead>
             <TBody>
-              {pagedData.items.map((inv) => (
+              {pagedData.items.map((inv, i) => (
                 <Tr key={inv.idInventaire}>
-                  <Td className="font-semibold text-gray-900">#{inv.idInventaire}</Td>
+                  <Td className="font-semibold text-gray-900">{(pagedData.pageIndex - 1) * pagedData.pageSize + i + 1}</Td>
                   <Td className="text-gray-600">{format(new Date(inv.dateInventaire), 'dd MMM yyyy, HH:mm')}</Td>
                   <Td>{inv.typeInventaire}</Td>
                   <Td>{inv.realisateurNom || '-'}</Td>

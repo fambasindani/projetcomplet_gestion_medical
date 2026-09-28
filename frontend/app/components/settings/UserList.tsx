@@ -207,9 +207,9 @@ export default function UserList() {
               </tr>
             </THead>
             <TBody>
-              {data.items.map((user: User) => (
+              {data.items.map((user: User, i: number) => (
                 <Tr key={user.id} className="cursor-pointer">
-                  <Td className="whitespace-nowrap text-sm text-gray-500">{user.id}</Td>
+                  <Td className="whitespace-nowrap text-sm text-gray-500">{(data.pageIndex - 1) * data.pageSize + i + 1}</Td>
                   <Td className="whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center">
