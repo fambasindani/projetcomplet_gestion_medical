@@ -23,6 +23,7 @@ interface MenuItem {
   roles?: string[];
   permission?: string;
   anyPermission?: string[];
+  rolesOnly?: boolean;
   badge?: string;
   badgeColor?: string;
   children?: MenuItem[];
@@ -35,12 +36,14 @@ const menuItems: MenuItem[] = [
     name: 'Mon espace',
     icon: FaUserInjured,
     roles: ['PATIENT'],
+    rolesOnly: true,
+    permission: 'MON_ESPACE_VOIR',
     children: [
-      { path: '/mon-espace/rendez-vous', name: 'Mes rendez-vous', icon: FaCalendarCheck },
-      { path: '/mon-espace/examens', name: 'Mes résultats', icon: FaFlask },
-      { path: '/mon-espace/ordonnances', name: 'Ordonnances & consultations', icon: FaListAlt },
-      { path: '/mon-espace/factures', name: 'Mes factures', icon: FaFileInvoiceDollar },
-      { path: '/mon-espace/dossier', name: 'Mon dossier', icon: FaClipboardList },
+      { path: '/mon-espace/rendez-vous', permission: 'MES_RENDEZ_VOUS_VOIR', name: 'Mes rendez-vous', icon: FaCalendarCheck },
+      { path: '/mon-espace/examens', permission: 'MES_EXAMENS_VOIR', name: 'Mes résultats', icon: FaFlask },
+      { path: '/mon-espace/ordonnances', permission: 'MES_ORDONNANCES_VOIR', name: 'Ordonnances & consultations', icon: FaListAlt },
+      { path: '/mon-espace/factures', permission: 'MES_FACTURES_VOIR', name: 'Mes factures', icon: FaFileInvoiceDollar },
+      { path: '/mon-espace/dossier', permission: 'MON_DOSSIER_VOIR', name: 'Mon dossier', icon: FaClipboardList },
     ],
   },
 
@@ -87,7 +90,7 @@ const menuItems: MenuItem[] = [
     children: [
       { path: '/rendezvous', name: 'Tous les rendez-vous', icon: FaCalendarCheck },
       { path: '/rendezvous/planning', name: 'Planning journalier', icon: FaClipboardCheck },
-      { path: '/consultations', name: 'Consultations', icon: FaStethoscope },
+      { path: '/consultations', name: 'Consultations', icon: FaStethoscope, permission: 'CONSULTATIONS_VOIR' },
     ]
   },
 
@@ -251,6 +254,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
   const { user, permissions } = useAuth();
 
   const canSee = (item: MenuItem): boolean => {
+    // Certains menus sont strictement reserves a un role (ex. Mon espace = PATIENT),
+    // independamment des permissions : un ADMIN ne doit pas voir l'espace patient.
+    if (item.rolesOnly && item.roles) {
+      return !!user?.role && item.roles.includes(user.role);
+    }
     // Priorité aux permissions explicites (RBAC) si elles sont fournies par le backend
     if (permissions.length > 0) {
       if (item.anyPermission && item.anyPermission.length > 0) {
