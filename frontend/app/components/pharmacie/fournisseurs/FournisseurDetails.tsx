@@ -28,7 +28,7 @@ export default function FournisseurDetails() {
     if (id) {
       fournisseurService.getById(Number(id))
         .then(setFournisseur)
-        .catch(() => toast.error('Erreur de chargement'))
+        .catch(() => console.error('Chargement echoue'))
         .finally(() => setLoading(false));
     }
   }, [id]);

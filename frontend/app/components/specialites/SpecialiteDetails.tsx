@@ -89,7 +89,7 @@ const SpecialiteDetails: React.FC = () => {
         setMedecins(med.items);
         setChambres(chm.items);
       })
-      .catch(() => toast.error('Erreur lors du chargement de la spécialité'))
+      .catch(() => console.error('Chargement echoue'))
       .finally(() => setLoading(false));
   }, [id]);
 

@@ -86,7 +86,7 @@ const PersonnelForm: React.FC<PersonnelFormProps> = ({ initialData, isEditMode, 
         });
         setFetching(false);
       }).catch(() => {
-        toast.error('Erreur chargement');
+        console.error('Chargement echoue');
         router.push('/personnel');
       });
     }

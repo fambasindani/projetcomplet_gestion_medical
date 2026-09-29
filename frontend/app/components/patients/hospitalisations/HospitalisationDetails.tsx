@@ -51,7 +51,7 @@ export default function HospitalisationDetails() {
     if (id) {
       hospitalisationService.getById(Number(id))
         .then(setHospitalisation)
-        .catch(() => toast.error('Erreur lors du chargement'))
+        .catch(() => console.error('Chargement echoue'))
         .finally(() => setLoading(false));
     }
   }, [id]);

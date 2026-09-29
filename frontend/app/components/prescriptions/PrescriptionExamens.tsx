@@ -56,7 +56,7 @@ export default function PrescriptionExamens() {
       setExamens(examensData);
       setPrescription(prescriptionData);
     } catch {
-      toast.error('Erreur de chargement');
+      console.error('Chargement échoué');
     } finally {
       setLoading(false);
     }

@@ -65,7 +65,7 @@ export default function ExamenDetails() {
     examenService
       .getById(Number(id))
       .then(setExamen)
-      .catch(() => toast.error('Erreur de chargement'))
+      .catch(() => console.error('Chargement echoue'))
       .finally(() => setLoading(false));
   }, [id]);
 

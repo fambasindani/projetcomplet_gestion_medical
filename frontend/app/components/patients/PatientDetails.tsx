@@ -29,7 +29,7 @@ const PatientDetails: React.FC = () => {
         setDetails(data);
       } catch (error) {
         console.error(error);
-        toast.error('Erreur lors du chargement des détails');
+        console.error('Chargement echoue');
         router.push('/patients');
       } finally {
         setLoading(false);

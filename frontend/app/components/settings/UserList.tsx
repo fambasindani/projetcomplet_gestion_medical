@@ -56,7 +56,7 @@ export default function UserList() {
       });
       setData(res);
     } catch {
-      toast.error('Erreur de chargement');
+      console.error('Chargement échoué');
     } finally {
       setLoading(false);
     }

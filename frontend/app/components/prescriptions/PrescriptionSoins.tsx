@@ -54,7 +54,7 @@ export default function PrescriptionSoins() {
       setSoins(soinsData);
       setPrescription(prescriptionData);
     } catch {
-      toast.error('Erreur de chargement');
+      console.error('Chargement échoué');
     } finally {
       setLoading(false);
     }

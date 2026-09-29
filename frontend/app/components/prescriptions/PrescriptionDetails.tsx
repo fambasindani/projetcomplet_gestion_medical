@@ -50,7 +50,7 @@ export default function PrescriptionDetails() {
     if (id) {
       prescriptionService.getById(Number(id))
         .then(setPrescription)
-        .catch(() => toast.error('Erreur de chargement'))
+        .catch(() => console.error('Chargement echoue'))
         .finally(() => setLoading(false));
     }
   }, [id]);

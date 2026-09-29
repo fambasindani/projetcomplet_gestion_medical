@@ -19,7 +19,7 @@ const StatsDashboard: React.FC = () => {
         setStats(data);
       } catch (error) {
         console.error('Erreur chargement stats:', error);
-        toast.error('Erreur lors du chargement des statistiques');
+        console.error('Chargement echoue');
       } finally {
         setLoading(false);
       }

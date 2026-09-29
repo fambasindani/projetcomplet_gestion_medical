@@ -81,7 +81,7 @@ export default function RendezVousList() {
       });
       setPagedData(data);
     } catch (error) {
-      toast.error('Erreur lors du chargement');
+      console.error('Chargement échoué');
       console.error(error);
     } finally {
       setLoading(false);

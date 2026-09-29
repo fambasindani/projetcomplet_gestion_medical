@@ -25,7 +25,7 @@ export default function PlanningJournalier() {
         const filtered = data.items.filter(rdv => isSameDay(new Date(rdv.dateRdv), selectedDate));
         setRdvs(filtered);
       } catch {
-        toast.error("Erreur chargement planning");
+        console.error('Chargement echoue');
       } finally {
         setLoading(false);
       }

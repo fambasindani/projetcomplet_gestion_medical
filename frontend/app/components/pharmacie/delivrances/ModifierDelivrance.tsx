@@ -104,7 +104,7 @@ export default function ModifierDelivrance() {
             setSelectedPrescription({ id: data.idPrescriptionMed, numero: data.numeroOrdonnance || '' });
           }
         })
-        .catch(() => toast.error('Erreur de chargement'))
+        .catch(() => console.error('Chargement echoue'))
         .finally(() => setLoading(false));
     }
   }, [id]);

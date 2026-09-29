@@ -55,7 +55,7 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
         totalCount: res.totalCount,
       });
     } catch {
-      toast.error('Erreur lors du chargement');
+      console.error('Chargement échoué');
     } finally {
       setLoading(false);
     }

@@ -94,7 +94,7 @@ const PatientFormPage: React.FC = () => {
           });
         } catch (error) {
           console.error(error);
-          toast.error('Erreur lors du chargement du patient');
+          console.error('Chargement echoue');
           router.push('/patients');
         } finally {
           setInitialLoading(false);

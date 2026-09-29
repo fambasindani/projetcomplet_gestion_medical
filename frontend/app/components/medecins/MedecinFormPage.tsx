@@ -79,7 +79,7 @@ const MedecinFormPage: React.FC = () => {
         setSpecialites(data.items);
       } catch (error) {
         console.error('Erreur chargement spécialités:', error);
-        toast.error('Erreur lors du chargement des spécialités');
+        console.error('Chargement echoue');
       }
     };
 
@@ -112,7 +112,7 @@ const MedecinFormPage: React.FC = () => {
         });
       } catch (error) {
         console.error('Erreur chargement médecin:', error);
-        toast.error('Erreur lors du chargement du médecin');
+        console.error('Chargement echoue');
         router.push('/medecins');
       } finally {
         setInitialLoading(false);

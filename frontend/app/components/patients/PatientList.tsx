@@ -49,7 +49,7 @@ const PatientList: React.FC = () => {
         }
         setPagedData(data);
       } catch (error) {
-        toast.error('Erreur lors du chargement des patients');
+        console.error('Chargement echoue');
         console.error(error);
       } finally {
         setLoading(false);

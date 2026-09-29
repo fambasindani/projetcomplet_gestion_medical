@@ -80,7 +80,7 @@ const NotificationsList: React.FC = () => {
       });
       setPagedData(data);
     } catch {
-      toast.error('Erreur lors du chargement des notifications');
+      console.error('Chargement echoue');
     } finally {
       setLoading(false);
     }

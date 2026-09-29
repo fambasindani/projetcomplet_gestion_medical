@@ -47,7 +47,7 @@ export default function RendezVousDetails() {
     if (id) {
       rendezvousService.getById(Number(id))
         .then((data) => { setRdv(data); setNewStatut(data.statut); })
-        .catch(() => toast.error('Erreur lors du chargement'))
+        .catch(() => console.error('Chargement echoue'))
         .finally(() => setLoading(false));
     }
   }, [id]);

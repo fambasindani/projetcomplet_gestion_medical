@@ -49,7 +49,7 @@ export default function CommandeDetails() {
     if (id) {
       commandeService.getById(Number(id))
         .then(setCommande)
-        .catch(() => toast.error('Erreur de chargement'))
+        .catch(() => console.error('Chargement echoue'))
         .finally(() => setLoading(false));
     }
   }, [id]);

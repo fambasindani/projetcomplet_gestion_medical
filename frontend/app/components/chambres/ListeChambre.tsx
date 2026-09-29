@@ -76,7 +76,7 @@ const ChambreList: React.FC = () => {
         }
         setPagedData(data);
       } catch (error) {
-        toast.error('Erreur lors du chargement des chambres');
+        console.error('Chargement echoue');
         console.error(error);
       } finally {
         setLoading(false);

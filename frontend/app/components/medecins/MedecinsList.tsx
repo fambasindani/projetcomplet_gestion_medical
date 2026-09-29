@@ -82,7 +82,7 @@ const MedecinsList: React.FC = () => {
       }
       setPagedData(data);
     } catch (error) {
-      toast.error('Erreur lors du chargement des médecins');
+      console.error('Chargement echoue');
       console.error(error);
     } finally {
       setLoading(false);

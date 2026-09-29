@@ -27,7 +27,7 @@ export default function InventaireDetails() {
   useEffect(() => {
     inventaireService.getById(Number(id))
       .then(setInventaire)
-      .catch(() => toast.error('Erreur de chargement'))
+      .catch(() => console.error('Chargement echoue'))
       .finally(() => setLoading(false));
   }, [id]);
 

@@ -36,7 +36,7 @@ export default function LotDetails() {
     try {
       const data = await lotService.getById(Number(id));
       setLot(data);
-    } catch { toast.error('Erreur de chargement'); }
+    } catch { console.error('Chargement échoué'); }
     finally { setLoading(false); }
   }, [id]);
 

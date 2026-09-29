@@ -38,7 +38,7 @@ export default function DelivranceDetails() {
     if (id) {
       delivranceService.getById(Number(id))
         .then(setDelivrance)
-        .catch(() => toast.error('Erreur de chargement'))
+        .catch(() => console.error('Chargement echoue'))
         .finally(() => setLoading(false));
     }
   }, [id]);

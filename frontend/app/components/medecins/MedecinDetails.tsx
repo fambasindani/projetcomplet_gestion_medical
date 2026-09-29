@@ -69,7 +69,7 @@ const MedecinDetails: React.FC = () => {
         setMedecin(data);
       } catch (err) {
         console.error(err);
-        toast.error('Erreur lors du chargement du médecin');
+        console.error('Chargement echoue');
         router.push('/medecins');
       } finally {
         setLoading(false);

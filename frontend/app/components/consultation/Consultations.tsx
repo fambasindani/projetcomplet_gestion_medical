@@ -45,7 +45,7 @@ const ConsultationList: React.FC = () => {
       setPagedData(data);
     } catch (error) {
       console.error(error);
-      toast.error('Erreur lors du chargement des consultations');
+      console.error('Chargement echoue');
       setPagedData(null);
     } finally {
       setLoading(false);

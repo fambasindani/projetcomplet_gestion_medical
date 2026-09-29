@@ -28,7 +28,7 @@ export default function SoinInfirmierDetails() {
     soinInfirmierService.getById(Number(id))
       .then(setSoin)
       .catch(() => {
-        toast.error('Erreur de chargement');
+        console.error('Chargement échoué');
         router.push('/hospitalisations/soins');
       })
       .finally(() => setLoading(false));

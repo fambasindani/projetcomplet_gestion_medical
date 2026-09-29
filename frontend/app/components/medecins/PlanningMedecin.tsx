@@ -71,7 +71,7 @@ const PlanningMedecin: React.FC = () => {
       const data = await planningService.getRendezVous(params);
       setPagedData(data);
     } catch (error) {
-      toast.error('Erreur lors du chargement des rendez-vous');
+      console.error('Chargement echoue');
       console.error(error);
     } finally {
       setLoading(false);

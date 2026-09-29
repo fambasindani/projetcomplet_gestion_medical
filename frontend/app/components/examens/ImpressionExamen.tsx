@@ -26,7 +26,7 @@ export default function ImpressionExamen() {
         setExamen(data);
       })
       .catch(() => {
-        toast.error('Erreur de chargement');
+        console.error('Chargement échoué');
         router.push('/examens/liste');
       })
       .finally(() => setLoading(false));
