@@ -55,6 +55,11 @@ public class SoinInfirmierService {
     public Page<SoinInfirmierResponseDto> searchByService(String service, Pageable pageable) {
         return repository.findByService(service, pageable).map(this::toDto);
     }
+
+    /** Soins des hospitalisations rattachees a un service (scoping infirmier par id). */
+    public Page<SoinInfirmierResponseDto> searchByServiceId(Integer idService, Pageable pageable) {
+        return repository.findByHospitalisationIdService(idService, pageable).map(this::toDto);
+    }
     public SoinInfirmierResponseDto getById(Integer id) {
         return toDto(repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Soin non trouvé")));

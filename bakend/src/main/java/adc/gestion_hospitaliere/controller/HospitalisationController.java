@@ -29,9 +29,19 @@ public class HospitalisationController {
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
         // Un médecin ne voit que les hospitalisations dont il est responsable.
-        Integer filtre = currentUserService.filtreMedecinId();
-        return ResponseEntity.ok(PagedResponse.of(
-                filtre != null ? service.getAllForMedecin(filtre, pageable) : service.getAll(pageable)));
+        Integer filtreMedecin = currentUserService.filtreMedecinId();
+        if (filtreMedecin != null) {
+            return ResponseEntity.ok(PagedResponse.of(service.getAllForMedecin(filtreMedecin, pageable)));
+        }
+        // Un infirmier ne voit que les hospitalisations de son service.
+        Integer filtreService = currentUserService.filtreServiceInfirmierId();
+        if (filtreService != null) {
+            if (filtreService == -1) {
+                return ResponseEntity.ok(PagedResponse.of(Page.empty(pageable)));
+            }
+            return ResponseEntity.ok(PagedResponse.of(service.getAllForService(filtreService, pageable)));
+        }
+        return ResponseEntity.ok(PagedResponse.of(service.getAll(pageable)));
     }
 
     @GetMapping("/search")
@@ -43,6 +53,14 @@ public class HospitalisationController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
+        Integer filtreService = currentUserService.filtreServiceInfirmierId();
+        if (filtreService != null) {
+            if (filtreService == -1) {
+                return ResponseEntity.ok(PagedResponse.of(Page.empty(pageable)));
+            }
+            return ResponseEntity.ok(PagedResponse.of(
+                    service.searchForService(statut, idPatient, dateStart, dateEnd, filtreService, pageable)));
+        }
         return ResponseEntity.ok(PagedResponse.of(service.search(statut, idPatient, dateStart, dateEnd, pageable)));
     }
 

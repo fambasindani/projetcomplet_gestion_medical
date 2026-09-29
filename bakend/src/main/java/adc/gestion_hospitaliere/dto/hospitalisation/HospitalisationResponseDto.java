@@ -20,6 +20,8 @@ public class HospitalisationResponseDto {
     private String patientPrenom;
     private Integer idChambre;
     private String chambreNumero;
+    private Integer idService;
+    private String serviceNom;
     private Integer idMedecinResponsable;
     private String medecinNom;
     private String medecinPrenom;

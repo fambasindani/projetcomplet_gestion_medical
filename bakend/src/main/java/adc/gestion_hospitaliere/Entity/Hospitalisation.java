@@ -50,6 +50,14 @@ public class Hospitalisation {
     @JoinColumn(name = "id_medecin_responsable", insertable = false, updatable = false)
     private Medecin medecinResponsable;
 
+    // --- Service (unite fonctionnelle) ou se deroule le sejour ---
+    @Column(name = "id_service")
+    private Integer idService;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_service", insertable = false, updatable = false)
+    private ServiceHospitalier service;
+
     @Column(name = "date_admission", nullable = false)
     private LocalDateTime dateAdmission;
 

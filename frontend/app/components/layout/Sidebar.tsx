@@ -9,7 +9,7 @@ import {
   FaChevronLeft, FaChevronRight, FaHospital, FaAmbulance, FaHeartbeat, FaUsers,
   FaUserMd, FaStethoscope, FaFileMedical, FaAngleDown, FaAngleUp, FaProcedures,
   FaSyringe, FaFileInvoiceDollar, FaClipboardCheck, FaUserNurse, FaBed, FaNotesMedical,
-  FaVial, FaMicroscope, FaXRay, FaHeart, FaBrain, FaEye, FaFlask, FaMoneyBillWave, FaChartBar,
+  FaVial, FaMicroscope, FaXRay, FaHeart, FaBrain, FaEye, FaFlask, FaMoneyBillWave, FaChartBar, FaSitemap,
   FaPrescriptionBottle,
   FaListAlt,
   FaBandAid
@@ -216,6 +216,7 @@ const menuItems: MenuItem[] = [
       { path: '/settings/roles', name: 'Rôles & permissions', icon: FaClipboardCheck },
       { path: '/settings/categories-examen', name: "Catégories d'examen", icon: FaListAlt },
       { path: '/settings/laboratoires', name: 'Laboratoires', icon: FaFlask },
+      { path: '/settings/services', name: 'Services', icon: FaSitemap },
     ]
   },
 ];

@@ -24,6 +24,7 @@ public interface HospitalisationRepository extends JpaRepository<Hospitalisation
 
     Page<Hospitalisation> findByIdPatient(Integer idPatient, Pageable pageable);
     Page<Hospitalisation> findByIdMedecinResponsable(Integer idMedecin, Pageable pageable);
+    Page<Hospitalisation> findByIdService(Integer idService, Pageable pageable);
     Page<Hospitalisation> findByStatut(StatutHospitalisation statut, Pageable pageable);
 
     boolean existsByIdChambreAndStatut(Integer idChambre, StatutHospitalisation statut);
@@ -39,5 +40,17 @@ public interface HospitalisationRepository extends JpaRepository<Hospitalisation
                                  @Param("dateEnd") LocalDateTime dateEnd,
                                  Pageable pageable);
 
+    @Query("SELECT h FROM Hospitalisation h WHERE " +
+            "(:statut IS NULL OR h.statut = :statut) AND " +
+            "(:idPatient IS NULL OR h.idPatient = :idPatient) AND " +
+            "(:idService IS NULL OR h.idService = :idService) AND " +
+            "(:dateStart IS NULL OR h.dateAdmission >= :dateStart) AND " +
+            "(:dateEnd IS NULL OR h.dateAdmission <= :dateEnd)")
+    Page<Hospitalisation> searchIncluantService(@Param("statut") StatutHospitalisation statut,
+                                                @Param("idPatient") Integer idPatient,
+                                                @Param("idService") Integer idService,
+                                                @Param("dateStart") LocalDateTime dateStart,
+                                                @Param("dateEnd") LocalDateTime dateEnd,
+                                                Pageable pageable);
 
 }

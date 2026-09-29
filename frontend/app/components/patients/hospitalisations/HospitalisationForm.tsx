@@ -11,6 +11,7 @@ import { FormTextarea } from '@/app/components/common/FormTextarea';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { MedecinSearchSelect } from '@/app/components/common/MedecinSearchSelect';
 import { chambreService } from '@/app/services/chambreService';
+import { serviceHospitalierService, ServiceHospitalier } from '@/app/services/serviceHospitalierService';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 import { HospitalisationCreate, ModeEntreeHospitalisation, ModeSortieHospitalisation, StatutHospitalisation } from '@/app/types/hospitalisation';
 import { Chambre } from '@/app/types/chambre';
@@ -33,10 +34,12 @@ export default function HospitalisationForm({ initialData, isEditing = false }: 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [chambres, setChambres] = useState<Chambre[]>([]);
+  const [services, setServices] = useState<ServiceHospitalier[]>([]);
   const [formData, setFormData] = useState<Partial<HospitalisationCreate>>(() => initialData ? {
     numeroAdmission: initialData.numeroAdmission || '',
     idPatient: initialData.idPatient,
     idChambre: initialData.idChambre,
+    idService: initialData.idService,
     idMedecinResponsable: initialData.idMedecinResponsable,
     dateAdmission: initialData.dateAdmission ? new Date(initialData.dateAdmission).toISOString().slice(0, 16) : '',
     dateSortie: initialData.dateSortie ? new Date(initialData.dateSortie).toISOString().slice(0, 16) : null,
@@ -56,6 +59,7 @@ export default function HospitalisationForm({ initialData, isEditing = false }: 
     numeroAdmission: '',
     idPatient: null,
     idChambre: null,
+    idService: null,
     idMedecinResponsable: null,
     dateAdmission: new Date().toISOString().slice(0, 16),
     dateSortie: null,
@@ -76,6 +80,7 @@ export default function HospitalisationForm({ initialData, isEditing = false }: 
 
   useEffect(() => {
     chambreService.getAll(1, 1000).then(res => setChambres(res.items)).catch(console.error);
+    serviceHospitalierService.getAll().then(setServices).catch(console.error);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -115,6 +120,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       idPatient: Number(formData.idPatient),
       idMedecinResponsable: Number(formData.idMedecinResponsable),
       idChambre: formData.idChambre ? Number(formData.idChambre) : null,
+      idService: formData.idService ? Number(formData.idService) : null,
     };
     // 🔥 Supprimer le champ s'il est vide (pour que le backend le génère)
     if (dataToSend.numeroAdmission === '') {
@@ -183,6 +189,16 @@ const handleSubmit = async (e: React.FormEvent) => {
                 ))}
               </select>
             </div>
+            <FormSelect
+              label="Service"
+              name="idService"
+              value={formData.idService ?? ''}
+              onChange={handleChange}
+              options={[
+                { value: '', label: 'Aucun' },
+                ...services.map(s => ({ value: s.idService, label: s.nom })),
+              ]}
+            />
             <FormInput
               label="Date d'admission"
               name="dateAdmission"

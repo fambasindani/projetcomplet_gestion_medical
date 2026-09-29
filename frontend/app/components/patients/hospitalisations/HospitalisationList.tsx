@@ -85,7 +85,7 @@ export default function HospitalisationList() {
     fetchData();
   };
 
-  if (loading) return <SkeletonTable columns={7} rows={8} />;
+  if (loading) return <SkeletonTable columns={8} rows={8} />;
 
   return (
     <RequirePermission permission="HOSPITALISATIONS_VOIR">
@@ -137,6 +137,7 @@ export default function HospitalisationList() {
                 <Th>Patient</Th>
                 <Th>Médecin responsable</Th>
                 <Th>Chambre</Th>
+                <Th>Service</Th>
                 <Th>Date admission</Th>
                 <Th>Statut</Th>
                 <Th align="center">Actions</Th>
@@ -149,6 +150,7 @@ export default function HospitalisationList() {
                   <Td>{h.patientNom} {h.patientPrenom}</Td>
                   <Td>{h.medecinNom} {h.medecinPrenom}</Td>
                   <Td>{h.chambreNumero || '-'}</Td>
+                  <Td>{h.serviceNom || '-'}</Td>
                   <Td>{format(new Date(h.dateAdmission), 'dd/MM/yyyy HH:mm')}</Td>
                   <Td><span className={`px-2 py-1 rounded-full text-xs ${statutColors[h.statut]}`}>{h.statut}</span></Td>
                   <Td className="whitespace-nowrap text-center">

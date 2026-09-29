@@ -27,6 +27,8 @@ public class HospitalisationRequestDto {
 
     private Integer idChambre;
 
+    private Integer idService;
+
     @NotNull
     private Integer idMedecinResponsable;
 

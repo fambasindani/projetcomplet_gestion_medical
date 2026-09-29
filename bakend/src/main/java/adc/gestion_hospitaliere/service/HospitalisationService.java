@@ -26,6 +26,7 @@ public class HospitalisationService {
     private final PatientRepository patientRepository;
     private final MedecinRepository medecinRepository;
     private final ChambreRepository chambreRepository;
+    private final ServiceHospitalierRepository serviceHospitalierRepository;
 
     private String generateNumeroAdmission() {
         String prefix = "HOSP-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMdd")) + "-";
@@ -44,10 +45,23 @@ public class HospitalisationService {
         return hospitalisationRepository.findByIdMedecinResponsable(medecinId, pageable).map(this::toResponseDto);
     }
 
+    /** Hospitalisations d'un service (scoping infirmier, modele francais). */
+    public Page<HospitalisationResponseDto> getAllForService(Integer idService, Pageable pageable) {
+        return hospitalisationRepository.findByIdService(idService, pageable).map(this::toResponseDto);
+    }
+
     public Page<HospitalisationResponseDto> search(StatutHospitalisation statut, Integer idPatient,
                                                    LocalDateTime dateStart, LocalDateTime dateEnd,
                                                    Pageable pageable) {
         return hospitalisationRepository.search(statut, idPatient, dateStart, dateEnd, pageable)
+                .map(this::toResponseDto);
+    }
+
+    /** Recherche filtree a l'interieur d'un service (scoping infirmier). */
+    public Page<HospitalisationResponseDto> searchForService(StatutHospitalisation statut, Integer idPatient,
+                                                             LocalDateTime dateStart, LocalDateTime dateEnd,
+                                                             Integer idService, Pageable pageable) {
+        return hospitalisationRepository.searchIncluantService(statut, idPatient, idService, dateStart, dateEnd, pageable)
                 .map(this::toResponseDto);
     }
 
@@ -149,6 +163,7 @@ public class HospitalisationService {
         h.setIdPatient(dto.getIdPatient());
         h.setIdChambre(dto.getIdChambre());
         h.setIdMedecinResponsable(dto.getIdMedecinResponsable());
+        h.setIdService(dto.getIdService());
         h.setDateAdmission(dto.getDateAdmission());
         h.setDateSortie(dto.getDateSortie());
         h.setMotifAdmission(dto.getMotifAdmission());
@@ -180,6 +195,12 @@ public class HospitalisationService {
             medecinNom = h.getMedecinResponsable().getNom();
             medecinPrenom = h.getMedecinResponsable().getPrenom();
         }
+        String serviceNom = null;
+        if (h.getIdService() != null) {
+            serviceNom = serviceHospitalierRepository.findById(h.getIdService())
+                    .map(ServiceHospitalier::getNom)
+                    .orElse(null);
+        }
         return HospitalisationResponseDto.builder()
                 .idHospitalisation(h.getIdHospitalisation())
                 .numeroAdmission(h.getNumeroAdmission())
@@ -188,6 +209,8 @@ public class HospitalisationService {
                 .patientPrenom(patientPrenom)
                 .idChambre(h.getIdChambre())
                 .chambreNumero(chambreNumero)
+                .idService(h.getIdService())
+                .serviceNom(serviceNom)
                 .idMedecinResponsable(h.getIdMedecinResponsable())
                 .medecinNom(medecinNom)
                 .medecinPrenom(medecinPrenom)

@@ -33,4 +33,8 @@ public interface SoinInfirmierRepository extends JpaRepository<SoinInfirmier, In
             + "JOIN Medecin m ON m.idMedecin = h.idMedecinResponsable "
             + "WHERE m.specialite IS NOT NULL AND LOWER(m.specialite.nomSpecialite) = LOWER(:service)")
     Page<SoinInfirmier> findByService(@Param("service") String service, Pageable pageable);
+
+    // Soins d'un service = ceux des hospitalisations rattachees a ce service (id_service).
+    @Query("SELECT s FROM SoinInfirmier s WHERE s.hospitalisation.idService = :idService")
+    Page<SoinInfirmier> findByHospitalisationIdService(@Param("idService") Integer idService, Pageable pageable);
 }

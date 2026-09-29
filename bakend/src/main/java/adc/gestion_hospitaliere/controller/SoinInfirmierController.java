@@ -34,7 +34,15 @@ public class SoinInfirmierController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        // Modele francais : un infirmier voit les soins de son service.
+        // Modele francais : un infirmier voit les soins de son service (via l'id de service).
+        Integer filtreServiceId = currentUserService.filtreServiceInfirmierId();
+        if (filtreServiceId != null) {
+            if (filtreServiceId == -1) {
+                return ResponseEntity.ok(Page.empty(pageable));
+            }
+            return ResponseEntity.ok(service.searchByServiceId(filtreServiceId, pageable));
+        }
+        // Compatibilite : fallback sur l'ancien scoping par texte si present.
         String serviceInfirmier = currentUserService.serviceInfirmierCourant();
         if (serviceInfirmier != null) {
             return ResponseEntity.ok(service.searchByService(serviceInfirmier, pageable));

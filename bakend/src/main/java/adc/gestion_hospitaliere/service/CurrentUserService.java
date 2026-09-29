@@ -4,6 +4,7 @@ import adc.gestion_hospitaliere.Entity.Medecin;
 import adc.gestion_hospitaliere.Entity.User;
 import adc.gestion_hospitaliere.Enums.Role;
 import adc.gestion_hospitaliere.Repository.MedecinRepository;
+import adc.gestion_hospitaliere.Repository.PersonnelServiceRepository;
 import adc.gestion_hospitaliere.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,7 @@ public class CurrentUserService {
     private final UserRepository userRepository;
     private final MedecinRepository medecinRepository;
     private final adc.gestion_hospitaliere.Repository.PersonnelLaboratoireRepository personnelLaboratoireRepository;
+    private final PersonnelServiceRepository personnelServiceRepository;
 
     public String emailCourant() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -156,6 +158,28 @@ public class CurrentUserService {
     public String serviceInfirmierCourant() {
         if (roleCourant() != Role.INFIRMIER) return null;
         return serviceCourant();
+    }
+
+    /** Id du service affecté au personnel connecté (table personnel_service), ou null. */
+    public Integer serviceIdCourant() {
+        Integer personnelId = personnelIdCourant();
+        if (personnelId == null) return null;
+        return personnelServiceRepository.findByIdPersonnel(personnelId).stream()
+                .map(adc.gestion_hospitaliere.Entity.PersonnelService::getIdService)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Filtre à appliquer aux listes pour un infirmier (scoping par service) :
+     * - null  => pas infirmier : voit tout ;
+     * - >= 0  => id du service affecté : ne voit que son service ;
+     * - -1    => infirmier non affecté : ne voit rien.
+     */
+    public Integer filtreServiceInfirmierId() {
+        if (roleCourant() != Role.INFIRMIER) return null;
+        Integer id = serviceIdCourant();
+        return id != null ? id : -1;
     }
 
     public boolean estLaborantin() {

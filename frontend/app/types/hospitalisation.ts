@@ -27,6 +27,8 @@ export interface Hospitalisation {
   patientPrenom: string;
   idChambre: number | null;
   chambreNumero: string | null;
+  idService: number | null;
+  serviceNom: string | null;
   idMedecinResponsable: number;
   medecinNom: string;
   medecinPrenom: string;

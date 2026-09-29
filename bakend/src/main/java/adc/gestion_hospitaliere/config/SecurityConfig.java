@@ -169,6 +169,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/laboratoires/**")
                         .hasAnyAuthority("EXAMENS_VOIR", "CATEGORIES_EXAMEN_VOIR", "CATEGORIES_EXAMEN_GERER")
                         .requestMatchers("/api/laboratoires/**").hasAuthority("CATEGORIES_EXAMEN_GERER")
+
+                        // ===== SERVICES (unites fonctionnelles) =====
+                        .requestMatchers(HttpMethod.GET, "/api/services/**")
+                        .hasAnyAuthority("PERSONNEL_VOIR", "PERSONNEL_GERER", "MEDECINS_VOIR", "HOSPITALISATIONS_VOIR", "SOINS_VOIR")
+                        .requestMatchers("/api/services/**").hasAuthority("PERSONNEL_GERER")
                         .requestMatchers(HttpMethod.GET, "/api/examens/**").hasAuthority("EXAMENS_VOIR")
                         .requestMatchers(HttpMethod.POST, "/api/examens/**").hasAuthority("EXAMENS_GERER")
                         .requestMatchers(HttpMethod.PUT, "/api/examens/**").hasAnyAuthority("EXAMENS_GERER", "EXAMENS_RESULTAT")
