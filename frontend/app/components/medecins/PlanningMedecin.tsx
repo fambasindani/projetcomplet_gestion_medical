@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaCalendarAlt, FaUser, FaStethoscope } from 'react-icons/fa';
 import { PagedResult } from '@/app/types/pagination';
 import Pagination from '@/app/ui/Pagination';

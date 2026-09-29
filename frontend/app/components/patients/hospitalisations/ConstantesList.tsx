@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
@@ -18,6 +18,7 @@ import { constanteService } from '@/app/services/constanteService';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 import { Constante } from '@/app/types/constante';
 import type { PagedResult } from '@/app/types/pagination';
 import type { Hospitalisation } from '@/app/types/hospitalisation';
@@ -26,6 +27,7 @@ export default function ConstantesList() {
   const { id } = useParams();      // maintenant id est défini
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('CONSTANTES_VOIR');
 
   const hospitalisationId = typeof id === 'string' ? parseInt(id, 10) : NaN;
 
@@ -36,6 +38,7 @@ export default function ConstantesList() {
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     if (isNaN(hospitalisationId)) {
       toast.error('ID d\'hospitalisation invalide');
       setLoading(false);
@@ -52,11 +55,10 @@ export default function ConstantesList() {
       setHospitalisation(hosp);
     } catch (error) {
       console.error(error);
-      toast.error('Erreur de chargement');
     } finally {
       setLoading(false);
     }
-  }, [hospitalisationId, pagination.pageIndex, pagination.pageSize]);
+  }, [hospitalisationId, pagination.pageIndex, pagination.pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => {

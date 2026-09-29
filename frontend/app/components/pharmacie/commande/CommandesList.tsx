@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaClipboardList } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
@@ -20,6 +20,7 @@ import { fournisseurService } from '@/app/services/fournisseurService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const statutColors: Record<StatutCommandeFournisseur, string> = {
   En_attente: 'bg-yellow-100 text-yellow-800',
@@ -42,6 +43,7 @@ const statutLabels: Record<StatutCommandeFournisseur, string> = {
 export default function CommandesList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
   const [pagedData, setPagedData] = useState<{
     items: CommandeFournisseur[];
     totalCount: number;
@@ -63,12 +65,14 @@ export default function CommandesList() {
   const [fournisseurs, setFournisseurs] = useState<{ id: number; nom: string }[]>([]);
 
   useEffect(() => {
+    if (!peutVoir) return;
     fournisseurService.getAll(1, 100).then(res => {
       setFournisseurs(res.items.map(f => ({ id: f.idFournisseur, nom: f.nomFournisseur })));
     }).catch(console.error);
   }, []);
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await commandeService.search({
@@ -80,13 +84,13 @@ export default function CommandesList() {
         pageSize: pagination.pageSize
       });
       setPagedData(data);
-    } catch {
-      toast.error('Erreur de chargement');
+    } catch (error) {
+      console.error(error);
       setPagedData(prev => ({ ...prev, items: [], totalCount: 0, totalPages: 0 }));
     } finally {
       setLoading(false);
     }
-  }, [filterStatut, filterFournisseur, dateStart, dateEnd, pagination.pageIndex, pagination.pageSize]);
+  }, [filterStatut, filterFournisseur, dateStart, dateEnd, pagination.pageIndex, pagination.pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();

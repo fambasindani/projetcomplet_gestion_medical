@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaSave, FaArrowLeft } from 'react-icons/fa';
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';

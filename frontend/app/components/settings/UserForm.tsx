@@ -9,7 +9,7 @@ import { FormSelect } from '@/app/components/common/FormSelect';
 import { PersonnelSearchSelect } from '@/app/components/common/PersonnelSearchSelect';
 import { userService } from '@/app/services/userService';
 import { User, UserRole, UserUpdate } from '@/app/types/user';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import PageShell from '@/app/ui/PageShell';

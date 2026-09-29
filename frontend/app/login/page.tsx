@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaHospital, FaEnvelope, FaLock } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import toast from '@/app/utils/toast';
 import axios from 'axios';
 
 interface ApiErrorResponse {

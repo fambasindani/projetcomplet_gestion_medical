@@ -10,7 +10,7 @@ import { FormInput } from '../common/FormInput';
 import { FormTextarea } from '../common/FormTextarea';
 import { FormSelect } from '../common/FormSelect';
 import ActeAutocomplete from '../facturation/ActeAutocomplete';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { SoinInfirmier, SoinInfirmierRequest } from '@/app/types/soin';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

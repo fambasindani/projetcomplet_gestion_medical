@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import {
   FaArrowLeft, FaEdit, FaCalendarAlt, FaUserMd, FaUserInjured,
   FaStethoscope, FaClock, FaTimesCircle

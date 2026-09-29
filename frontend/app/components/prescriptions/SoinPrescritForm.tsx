@@ -7,7 +7,7 @@ import { soinPrescritService } from '@/app/services/soinPrescritService';
 import { personnelService } from '@/app/services/personnelService';
 import { FormSelect } from '../common/FormSelect';
 import { FormInput } from '../common/FormInput';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { StatutSoin, SoinPrescrit } from '@/app/types/soin';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

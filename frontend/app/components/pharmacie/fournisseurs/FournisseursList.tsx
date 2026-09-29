@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaBuilding, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
@@ -19,10 +19,12 @@ import { Fournisseur } from '@/app/types/fournisseur';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 export default function FournisseursList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
   const [pagedData, setPagedData] = useState<{ items: Fournisseur[]; totalCount: number; pageIndex: number; totalPages: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchNom, setSearchNom] = useState('');
@@ -32,6 +34,7 @@ export default function FournisseursList() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await fournisseurService.search({
@@ -41,13 +44,13 @@ export default function FournisseursList() {
         pageSize: pagination.pageSize,
       });
       setPagedData(data);
-    } catch {
-      toast.error('Erreur de chargement');
+    } catch (error) {
+      console.error(error);
       setPagedData({ items: [], totalCount: 0, pageIndex: 1, totalPages: 0 });
     } finally {
       setLoading(false);
     }
-  }, [searchNom, filterActif, pagination.pageIndex, pagination.pageSize]);
+  }, [searchNom, filterActif, pagination.pageIndex, pagination.pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();

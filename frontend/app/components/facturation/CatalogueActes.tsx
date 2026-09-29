@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaFilter, FaSave, FaLayerGroup } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { acteCatalogueService } from '@/app/services/acteCatalogueService';
@@ -21,6 +21,7 @@ import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls'
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const categorieOptions = CategorieActeMedicalValues.map((c): { value: CategorieActeMedical; label: string } => ({
   value: c,
@@ -69,6 +70,7 @@ const emptyGroupeForm = (): GroupeFormState => ({
 
 export default function CatalogueActes() {
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('CATALOGUE_VOIR');
   const [actes, setActes] = useState<ActeCatalogue[]>([]);
   const [allGroupes, setAllGroupes] = useState<GroupeActe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,14 +96,16 @@ export default function CatalogueActes() {
   const [savingGroupe, setSavingGroupe] = useState(false);
 
   const loadGroupes = useCallback(async () => {
+    if (!peutVoir) return;
     try {
       setAllGroupes(await acteCatalogueService.getGroupesAdmin());
     } catch (error) {
-      toast.error(extractErrorMessage(error));
+      console.error(error);
     }
-  }, []);
+  }, [peutVoir]);
 
   const loadActes = useCallback(async (targetPage = page) => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const res = await acteCatalogueService.searchAdminPage(
@@ -114,12 +118,12 @@ export default function CatalogueActes() {
       setActes(res.items);
       setPagedMeta({ totalCount: res.totalCount, totalPages: res.totalPages });
     } catch (error) {
-      toast.error(extractErrorMessage(error));
+      console.error(error);
     } finally {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categorie, idGroupe, search, pageSize]);
+  }, [categorie, idGroupe, search, pageSize, peutVoir]);
 
   useEffect(() => {
     void loadGroupes();

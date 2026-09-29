@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { FaEdit, FaUserMd, FaCalendarAlt, FaHospital, FaCheckCircle } from 'react-icons/fa';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { soinInfirmierService } from '@/app/services/soinInfirmierService';
 import type { SoinInfirmier } from '@/app/types/soin';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

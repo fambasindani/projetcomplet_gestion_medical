@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaUser, FaCheckCircle, FaTable, FaBoxOpen, FaClipboardCheck, FaSyncAlt, FaPrint } from 'react-icons/fa';
 import { inventaireService } from '@/app/services/inventaireService';
 import type { Inventaire, LigneInventaire } from '@/app/types/inventaire';

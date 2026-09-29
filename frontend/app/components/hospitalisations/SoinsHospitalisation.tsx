@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaTrash, FaEdit, FaEye, FaSearch, FaFilter, FaUserNurse } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { soinInfirmierService } from '@/app/services/soinInfirmierService';
@@ -19,11 +19,13 @@ import type { SoinInfirmier } from '@/app/types/soin';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 export default function SoinsInfirmiersList() {
   const router = useRouter();
   const confirm = useConfirm();
   const { user } = useAuth();
+  const { allowed: peutVoir } = usePermission('SOINS_VOIR');
   const estInfirmier = user?.role === 'INFIRMIER';
   const [soins, setSoins] = useState<SoinInfirmier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,7 @@ export default function SoinsInfirmiersList() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10, totalPages: 0, totalCount: 0 });
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const params: Record<string, string | number | undefined> = {
@@ -52,12 +55,11 @@ export default function SoinsInfirmiersList() {
       }));
     } catch (error) {
       console.error('Erreur fetchData:', error);
-      toast.error('Erreur de chargement');
       setSoins([]);
     } finally {
       setLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, searchTerm, typeFilter]);
+  }, [pagination.pageIndex, pagination.pageSize, searchTerm, typeFilter, peutVoir]);
 
   useEffect(() => {
     void (async () => {

@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import {
   FaSave,
   FaPlus,

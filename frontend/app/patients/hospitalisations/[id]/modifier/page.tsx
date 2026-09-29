@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

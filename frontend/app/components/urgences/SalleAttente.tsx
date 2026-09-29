@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { motion } from 'framer-motion';
 import { FaUserInjured, FaCheckCircle, FaTimes, FaStethoscope, FaHospital } from 'react-icons/fa';
 import SkeletonCards from '@/app/ui/SkeletonCards';

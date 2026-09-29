@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { format } from 'date-fns';
 import {
@@ -20,6 +20,7 @@ import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table'
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 import { Hospitalisation, StatutHospitalisation } from '@/app/types/hospitalisation';
 import type { PagedResult } from '@/app/types/pagination';
 
@@ -34,6 +35,7 @@ const statutColors: Record<StatutHospitalisation, string> = {
 export default function HospitalisationList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('HOSPITALISATIONS_VOIR');
 
   const [pagedData, setPagedData] = useState<PagedResult<Hospitalisation> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,7 @@ export default function HospitalisationList() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
   const fetchData = async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       let data;
@@ -57,8 +60,8 @@ export default function HospitalisationList() {
         data = await hospitalisationService.getAll(pagination.pageIndex, pagination.pageSize);
       }
       setPagedData(data);
-    } catch {
-      toast.error('Erreur de chargement');
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +72,7 @@ export default function HospitalisationList() {
       await fetchData();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.pageIndex, pagination.pageSize, filters.statut, filters.idPatient, filters.dateStart, filters.dateEnd]);
+  }, [pagination.pageIndex, pagination.pageSize, filters.statut, filters.idPatient, filters.dateStart, filters.dateEnd, peutVoir]);
 
   const handleDelete = async (h: Hospitalisation) => {
     const ok = await confirm({

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import {
   FaPills, FaFlask, FaClipboardList, FaDollarSign,
   FaBoxes, FaInfoCircle, FaThermometerHalf, FaEdit

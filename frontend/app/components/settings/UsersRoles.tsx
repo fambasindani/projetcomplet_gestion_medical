@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaSpinner, FaEnvelope } from 'react-icons/fa';
 import { rbacService } from '@/app/services/rbacService';
 import { userService } from '@/app/services/userService';

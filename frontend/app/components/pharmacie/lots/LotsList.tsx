@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaBoxes } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
@@ -19,10 +19,12 @@ import { medicamentService } from '@/app/services/medicamentService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 export default function LotsList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
   const [pagedData, setPagedData] = useState<{ items: LotMedicament[]; totalCount: number; pageIndex: number; totalPages: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [filterMedicamentId, setFilterMedicamentId] = useState<number | undefined>(undefined);
@@ -33,12 +35,14 @@ export default function LotsList() {
   const [medicaments, setMedicaments] = useState<{ id: number; nom: string }[]>([]);
 
   useEffect(() => {
+    if (!peutVoir) return;
     medicamentService.getAll(1, 100).then(res => {
       setMedicaments(res.items.map(m => ({ id: m.idMedicament, nom: m.nomCommercial })));
     }).catch(console.error);
   }, []);
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await lotService.search({
@@ -49,13 +53,13 @@ export default function LotsList() {
         pageSize: pagination.pageSize,
       });
       setPagedData(data);
-    } catch {
-      toast.error('Erreur de chargement');
+    } catch (error) {
+      console.error(error);
       setPagedData({ items: [], totalCount: 0, pageIndex: 1, totalPages: 0 });
     } finally {
       setLoading(false);
     }
-  }, [filterMedicamentId, filterNumeroLot, filterStatut, pagination.pageIndex, pagination.pageSize]);
+  }, [filterMedicamentId, filterNumeroLot, filterStatut, pagination.pageIndex, pagination.pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();

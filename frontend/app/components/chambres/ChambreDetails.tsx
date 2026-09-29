@@ -20,7 +20,7 @@ import {
   FaLayerGroup,
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { chambreService } from '@/app/services/chambreService';
 import { Chambre, StatutChambre, TypeChambre } from '@/app/types/chambre';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';

@@ -8,7 +8,7 @@ import { rendezvousService } from '@/app/services/rendezvousService';
 import { RendezVous } from '@/app/types/rendezvous';
 import SkeletonCards from '@/app/ui/SkeletonCards';
 import EmptyState from '@/app/ui/EmptyState';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 
 export default function PlanningJournalier() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());

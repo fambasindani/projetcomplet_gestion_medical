@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaEdit, FaTrash, FaPlus, FaTag, FaUserTie, FaPhone, FaEnvelope, FaCheckCircle, FaTimesCircle, FaEye, FaChartBar, FaArrowLeft } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { specialiteService } from '@/app/services/specialiteService';

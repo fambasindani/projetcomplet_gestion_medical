@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaArrowLeft, FaCalendarAlt, FaUserMd, FaStethoscope } from 'react-icons/fa';
 import { Chart as ChartJS,  Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Bar } from 'react-chartjs-2';

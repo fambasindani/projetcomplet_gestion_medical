@@ -2,7 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PDFViewer } from '@react-pdf/renderer';

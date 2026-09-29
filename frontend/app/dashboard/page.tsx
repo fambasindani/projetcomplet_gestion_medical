@@ -11,7 +11,7 @@ import {
   FaChartLine, FaMoneyBillWave, FaBoxes, FaUserCheck, FaWallet,
   FaPercentage, FaBed, FaClipboardList,
 } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import toast from '@/app/utils/toast';
 import { AreaChart, BarChart, DonutChart, PALETTE } from '../ui/Charts';
 import PeriodeFilter, { type PeriodeFiltre } from '../ui/PeriodeFilter';
 import { useAuth } from '../contexts/AuthContext';

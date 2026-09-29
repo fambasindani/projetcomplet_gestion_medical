@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaSave, FaUserPlus, FaFlask, FaTimes } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { laboratoireService } from '@/app/services/laboratoireService';
@@ -11,6 +11,7 @@ import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { FormInput } from '@/app/components/common/FormInput';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 import PageHeader from '@/app/ui/PageHeader';
 import Button, { IconButton } from '@/app/ui/Button';
 import Modal from '@/app/ui/Modal';
@@ -36,6 +37,7 @@ const emptyForm = (): FormState => ({
 
 export default function LaboratoiresList() {
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('CATEGORIES_EXAMEN_VOIR');
   const [laboratoires, setLaboratoires] = useState<Laboratoire[]>([]);
   const [loading, setLoading] = useState(true);
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
@@ -51,6 +53,7 @@ export default function LaboratoiresList() {
   const [affecting, setAffecting] = useState(false);
 
   const load = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const res = await laboratoireService.search(undefined, undefined, paginationParams.pageIndex, paginationParams.pageSize);
@@ -62,11 +65,11 @@ export default function LaboratoiresList() {
         totalPages: res.totalPages,
       });
     } catch (error) {
-      toast.error(extractErrorMessage(error));
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [paginationParams.pageIndex, paginationParams.pageSize]);
+  }, [paginationParams.pageIndex, paginationParams.pageSize, peutVoir]);
 
   useEffect(() => {
     void load();

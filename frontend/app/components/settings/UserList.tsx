@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaUsers, FaPlus, FaTrash, FaEdit, FaEye, FaSearch, FaFilter, FaEnvelope, FaCalendarAlt, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { userService } from '@/app/services/userService';

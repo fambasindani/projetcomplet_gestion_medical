@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaFlask, FaPlus, FaEdit, FaTrash, FaSearch, FaFilter, FaEye, FaPrint, FaTags } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { format } from 'date-fns';
@@ -18,6 +18,7 @@ import { examenService } from '@/app/services/examenService';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 import type { Examen, CategorieExamen } from '@/app/types/examen';
 import type { PagedResult } from '@/app/types/pagination';
 
@@ -43,6 +44,7 @@ const statutColors: Record<string, string> = {
 export default function ExamenList() {
     const router = useRouter();
     const confirm = useConfirm();
+    const { allowed: peutVoir } = usePermission('EXAMENS_VOIR');
     const [pagedData, setPagedData] = useState<PagedResult<Examen> | null>(null);
     const [categories, setCategories] = useState<CategorieExamen[]>([]);
     const [loading, setLoading] = useState(true);
@@ -54,6 +56,8 @@ export default function ExamenList() {
     const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
 
     const fetchData = useCallback(async () => {
+        // Ne rien charger si l'utilisateur n'a pas la permission (evite les erreurs 403 en cascade).
+        if (!peutVoir) { setLoading(false); return; }
         setLoading(true);
         try {
             // Recherche et filtres côté serveur (pagination exacte).
@@ -66,12 +70,11 @@ export default function ExamenList() {
             });
             setPagedData(data);
         } catch (error) {
-            toast.error('Erreur lors du chargement des examens');
             console.error(error);
         } finally {
             setLoading(false);
         }
-    }, [searchTerm, selectedStatut, selectedCategorie, paginationParams.pageIndex, paginationParams.pageSize]);
+    }, [searchTerm, selectedStatut, selectedCategorie, paginationParams.pageIndex, paginationParams.pageSize, peutVoir]);
 
     useEffect(() => {
         void (async () => {
@@ -80,6 +83,7 @@ export default function ExamenList() {
     }, [fetchData]);
 
     useEffect(() => {
+        if (!peutVoir) return;
         categorieExamenService.getAllList().then(setCategories).catch(console.error);
     }, []);
 

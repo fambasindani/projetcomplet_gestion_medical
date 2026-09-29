@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaSave, FaLink, FaFlask } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
@@ -13,6 +13,7 @@ import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
 import PageHeader from '@/app/ui/PageHeader';
 import Button, { IconButton } from '@/app/ui/Button';
@@ -41,6 +42,7 @@ const emptyForm = (): FormState => ({
 
 export default function CategoriesExamenList() {
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('CATEGORIES_EXAMEN_VOIR');
   const [categories, setCategories] = useState<CategorieExamen[]>([]);
   const [groupes, setGroupes] = useState<GroupeActe[]>([]);
   const [laboratoires, setLaboratoires] = useState<Laboratoire[]>([]);
@@ -53,6 +55,7 @@ export default function CategoriesExamenList() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const [cats, grps, labs] = await Promise.all([
@@ -70,11 +73,11 @@ export default function CategoriesExamenList() {
       setGroupes(grps.filter((g) => g.actif !== false));
       setLaboratoires(labs);
     } catch (error) {
-      toast.error(extractErrorMessage(error));
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [paginationParams.pageIndex, paginationParams.pageSize]);
+  }, [paginationParams.pageIndex, paginationParams.pageSize, peutVoir]);
 
   useEffect(() => {
     void load();

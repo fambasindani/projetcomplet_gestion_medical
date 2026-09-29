@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaEye, FaEdit, FaTrash, FaBan, FaPrint, FaPrescriptionBottle } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
@@ -17,6 +17,7 @@ import { Prescription, StatutPrescription, TypePrescription } from '@/app/types/
 import { PagedResult } from '@/app/types/pagination';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 import OrdonnanceModal from './OrdonnanceModal';
 
 const statutColors: Record<StatutPrescription, string> = {
@@ -29,6 +30,7 @@ const statutColors: Record<StatutPrescription, string> = {
 export default function PrescriptionsMedicaments() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PRESCRIPTIONS_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<Prescription> | null>(null);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
@@ -36,16 +38,17 @@ export default function PrescriptionsMedicaments() {
   const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await prescriptionService.getByType(TypePrescription.Medicament, pagination.pageIndex, pagination.pageSize);
       setPagedData(data);
-    } catch {
-      toast.error('Erreur de chargement');
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize]);
+  }, [pagination.pageIndex, pagination.pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();

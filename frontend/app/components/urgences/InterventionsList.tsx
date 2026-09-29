@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaFilter, FaPlus, FaSyringe, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -22,6 +22,7 @@ import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const statutColors: Record<StatutInterventionUrgence, string> = {
   Planifiee: 'bg-blue-100 text-blue-700',
@@ -33,6 +34,7 @@ const statutColors: Record<StatutInterventionUrgence, string> = {
 export default function InterventionsList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('URGENCES_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<InterventionUrgence> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -40,6 +42,7 @@ export default function InterventionsList() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
   const loadData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await urgenceService.getInterventions(
@@ -49,11 +52,11 @@ export default function InterventionsList() {
       );
       setPagedData(data);
     } catch (error) {
-      toast.error(extractErrorMessage(error));
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, filtreStatut]);
+  }, [pagination.pageIndex, pagination.pageSize, filtreStatut, peutVoir]);
 
   useEffect(() => {
     void (async () => { await loadData(); })();

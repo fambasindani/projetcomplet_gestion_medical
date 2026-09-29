@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaFilter, FaEye, FaEdit, FaTrash, FaBan, FaUserNurse, FaFlask, FaPlus, FaFilePrescription } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
@@ -19,6 +19,7 @@ import { Prescription, StatutPrescription, TypePrescription } from '@/app/types/
 import { PagedResult } from '@/app/types/pagination';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const statutStyles: Record<string, string> = {
   Active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -30,6 +31,7 @@ const statutStyles: Record<string, string> = {
 export default function PrescriptionsList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PRESCRIPTIONS_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<Prescription> | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ type: '', statut: '', idPatient: '', dateStart: '', dateEnd: '' });
@@ -37,6 +39,7 @@ export default function PrescriptionsList() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const hasFilters = Object.values(filters).some(v => v !== '');
@@ -44,9 +47,9 @@ export default function PrescriptionsList() {
         ? await prescriptionService.search({ ...filters, idPatient: filters.idPatient ? parseInt(filters.idPatient) : undefined }, pagination.pageIndex, pagination.pageSize)
         : await prescriptionService.getAll(pagination.pageIndex, pagination.pageSize);
       setPagedData(data);
-    } catch { toast.error('Erreur de chargement'); }
+    } catch (error) { console.error(error); }
     finally { setLoading(false); }
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, peutVoir]);
 
   useEffect(() => { void (async () => { await fetchData(); })(); }, [fetchData]);
 

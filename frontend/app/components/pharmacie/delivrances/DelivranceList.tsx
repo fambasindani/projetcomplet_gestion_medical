@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPills, FaPlus, FaTrash, FaEye, FaEdit, FaChartBar, FaFilter, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
@@ -19,6 +19,7 @@ import type { DelivranceResponse } from '@/app/types/delivrance';
 import type { PagedResult } from '@/app/types/pagination';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 type DelivranceListItem = DelivranceResponse & { niveauPriorite?: string };
 
@@ -31,6 +32,7 @@ const prioriteStyles: Record<string, string> = {
 export default function DelivranceList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
   const [data, setData] = useState<PagedResult<DelivranceResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,18 +42,19 @@ export default function DelivranceList() {
   const pageSize = 10;
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const res = searchTerm
         ? await delivranceService.search(searchTerm, pageIndex, pageSize)
         : await delivranceService.getAll(pageIndex, pageSize);
       setData(res);
-    } catch {
-      toast.error('Erreur de chargement');
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, pageIndex, pageSize]);
+  }, [searchTerm, pageIndex, pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();

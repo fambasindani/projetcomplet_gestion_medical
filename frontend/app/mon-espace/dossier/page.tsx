@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import {
   FaFolderOpen, FaUser, FaTint, FaBirthdayCake, FaPhone, FaEnvelope,
   FaMapMarkerAlt, FaHeartbeat, FaExclamationTriangle, FaIdCard, FaStethoscope,

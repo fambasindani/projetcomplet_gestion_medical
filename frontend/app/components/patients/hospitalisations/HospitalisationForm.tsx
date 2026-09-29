@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaUserMd, FaCalendarAlt, FaClipboardList, FaHeartbeat, FaFileAlt } from 'react-icons/fa';
 
 import { FormInput } from '@/app/components/common/FormInput';

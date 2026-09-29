@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaUser, FaIdCard, FaPhone, FaBriefcase, FaHeart, FaCalendarAlt, FaEdit, FaFileAlt, FaUserMd, FaHospital, FaEnvelope, FaMapMarkerAlt, FaVenusMars, FaTint } from 'react-icons/fa';
 import type { PatientDetails } from '@/app/types/patient';
 import { patientService } from '@/app/services/patientService';

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { FaUsers, FaCalendarAlt, FaVenusMars, FaUserPlus, FaTint, FaHeart } from 'react-icons/fa';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 
 import SkeletonCards from '@/app/ui/SkeletonCards';
 import PageHeader from '@/app/ui/PageHeader';

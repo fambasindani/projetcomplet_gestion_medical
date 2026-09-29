@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaFlask, FaCheckCircle, FaFilePdf } from 'react-icons/fa';
 import { pdf } from '@react-pdf/renderer';
 import { useAuth } from '@/app/contexts/AuthContext';

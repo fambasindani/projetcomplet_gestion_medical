@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaTrash, FaEye, FaPrint, FaArrowLeft, FaFlask, FaClipboardList, FaUserInjured, FaUserMd } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { examenService } from '@/app/services/examenService';

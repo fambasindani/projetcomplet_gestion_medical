@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaKey } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { rbacService } from '@/app/services/rbacService';

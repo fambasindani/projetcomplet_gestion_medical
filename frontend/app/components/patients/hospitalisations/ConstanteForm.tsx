@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaSave } from 'react-icons/fa';
 import { FormInput } from '../../common/FormInput';
 import { FormTextarea } from '../../common/FormTextarea';

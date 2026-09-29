@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PDFViewer, pdf } from '@react-pdf/renderer';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPrint, FaDownload } from 'react-icons/fa';
 import { examenService } from '@/app/services/examenService';
 import EtiquetteExamenPDF from './EtiquetteExamenPDF';

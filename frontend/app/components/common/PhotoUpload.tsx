@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useMemo } from 'react';
 import { FaCamera, FaTrash, FaUpload, FaUserMd } from 'react-icons/fa';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import axios from 'axios';
 import api from '@/app/services/api';
 

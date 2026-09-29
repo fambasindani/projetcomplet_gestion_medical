@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import {
   FaPills, FaUser, FaUserMd, FaCalendarAlt,
   FaFileAlt, FaTrash, FaPrint, FaEdit

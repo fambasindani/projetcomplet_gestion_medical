@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaUserInjured, FaPlus, FaEdit, FaTrash, FaIdCard, FaEnvelope, FaPhone, FaSearch, FaFilter, FaChartBar, FaEye, FaFileMedical } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';

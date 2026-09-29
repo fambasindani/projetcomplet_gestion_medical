@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaFilter, FaCheckCircle, FaTrash, FaSync, FaExclamationTriangle } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { alerteStockService } from '@/app/services/alerteStockService';
@@ -18,6 +18,7 @@ import type { PagedResult } from '@/app/types/pagination';
 import type { AlerteStock, TypeAlerteStock } from '@/app/types/alerte';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const typeLabels: Record<string, string> = {
   STOCK_FAIBLE: 'Stock faible',
@@ -34,6 +35,7 @@ const statusStyles: Record<string, string> = {
 
 export default function AlertesStock() {
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<AlerteStock>>({
     items: [], pageIndex: 1, pageSize: 10, totalCount: 0, totalPages: 0,
     hasPreviousPage: false, hasNextPage: false,
@@ -44,6 +46,7 @@ export default function AlertesStock() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const params: Parameters<typeof alerteStockService.search>[0] = {
@@ -57,9 +60,9 @@ export default function AlertesStock() {
       if (filters.type) params.type = filters.type as TypeAlerteStock;
       const data = await alerteStockService.search(params);
       setPagedData(data);
-    } catch { toast.error('Erreur de chargement'); }
+    } catch (error) { console.error(error); }
     finally { setLoading(false); }
-  }, [pagination, filters]);
+  }, [pagination, filters, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();

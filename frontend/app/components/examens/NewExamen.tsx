@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaSave, FaArrowLeft, FaPlus, FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { examenService } from '@/app/services/examenService';
 import { categorieExamenService } from '@/app/services/categorieExamenService';

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PDFViewer } from '@react-pdf/renderer';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { inventaireService } from '@/app/services/inventaireService';
 import InventairePV from '@/app/components/pharmacie/inventaire/InventairePV';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { PDFViewer } from '@react-pdf/renderer';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { examenService } from '@/app/services/examenService';
 import ExamensPDF from './ExamensPDF';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

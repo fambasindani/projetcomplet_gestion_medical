@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { consultationService } from '@/app/services/consultationService';
 import ConsultationForm from '@/app/components/consultation/ConsultationForm';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

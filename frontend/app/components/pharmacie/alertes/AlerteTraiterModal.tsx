@@ -6,7 +6,7 @@ import { FaTimes, FaSave } from 'react-icons/fa';
 import { alerteStockService } from '@/app/services/alerteStockService';
 import type { AlerteStock } from '@/app/types/alerte';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FormTextarea } from '../../common/FormTextarea';
 
 

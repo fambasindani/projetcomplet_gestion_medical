@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaCalendarCheck, FaPlus, FaTrash, FaClock } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { patientPortalService, type MonRdv } from '@/app/services/patientPortalService';

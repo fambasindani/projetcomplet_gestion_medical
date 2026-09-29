@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaFilter, FaEdit, FaTrash, FaUserInjured, FaEye } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -24,6 +24,7 @@ import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import AdmissionDetailsModal from './AdmissionDetailsModal';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const graviteColors: Record<GraviteUrgence, string> = {
   Critique: 'bg-red-100 text-red-700',
@@ -45,6 +46,7 @@ export default function AdmissionsList() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('URGENCES_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<AdmissionUrgence> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -55,6 +57,7 @@ export default function AdmissionsList() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
   const loadData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await urgenceService.getAdmissions(
@@ -64,24 +67,25 @@ export default function AdmissionsList() {
       );
       setPagedData(data);
     } catch (error) {
-      toast.error(extractErrorMessage(error));
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, filtreStatut, filtreGravite, patientId]);
+  }, [pagination.pageIndex, pagination.pageSize, filtreStatut, filtreGravite, patientId, peutVoir]);
 
   useEffect(() => {
     void (async () => { await loadData(); })();
   }, [loadData]);
 
   useEffect(() => {
+    if (!peutVoir) return;
     const id = searchParams.get('id');
     if (id && Number(id)) {
       urgenceService.getAdmissionById(Number(id))
         .then(setViewing)
         .catch((error) => toast.error(extractErrorMessage(error)));
     }
-  }, [searchParams]);
+  }, [searchParams, peutVoir]);
 
   const handleDelete = async (adm: AdmissionUrgence) => {
     const ok = await confirm({

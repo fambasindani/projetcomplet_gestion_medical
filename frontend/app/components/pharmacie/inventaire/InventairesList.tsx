@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaTrash, FaEye, FaCheckCircle, FaFilter, FaBoxOpen, FaClipboardCheck, FaPrint } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { inventaireService } from '@/app/services/inventaireService';
@@ -19,6 +19,7 @@ import type { PagedResult } from '@/app/types/pagination';
 import type { Inventaire } from '@/app/types/inventaire';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const statutStyles: Record<string, string> = {
   En_cours: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -29,6 +30,7 @@ const statutStyles: Record<string, string> = {
 export default function InventairesList() {
   const router = useRouter();
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<Inventaire>>({
     items: [], pageIndex: 1, pageSize: 10, totalCount: 0, totalPages: 0,
     hasPreviousPage: false, hasNextPage: false,
@@ -39,16 +41,17 @@ export default function InventairesList() {
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
   const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await inventaireService.search({ ...pagination, ...filters });
       setPagedData(data);
-    } catch {
-      toast.error('Erreur de chargement');
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [pagination, filters]);
+  }, [pagination, filters, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();

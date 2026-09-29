@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { FaReceipt, FaMoneyBillWave, FaFilter, FaSearch } from 'react-icons/fa';

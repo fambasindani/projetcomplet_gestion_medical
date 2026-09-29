@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaFileInvoiceDollar, FaWallet, FaHourglassHalf } from 'react-icons/fa';
 import { patientPortalService, type MaFacture } from '@/app/services/patientPortalService';
 import type { PagedResult } from '@/app/types/pagination';

@@ -6,7 +6,7 @@ import {
   FaUserMd, FaCheckCircle, FaClock, FaTimesCircle, FaGraduationCap,
   FaChartBar, FaCalendarAlt, FaHospital, FaStethoscope, FaUsers,
 } from 'react-icons/fa';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { medecinService } from '@/app/services/medecinService';
 import SkeletonCards from '@/app/ui/SkeletonCards';
 import PageHeader from '@/app/ui/PageHeader';

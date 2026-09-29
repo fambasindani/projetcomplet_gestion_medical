@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaSave, FaUser, FaIdCard, FaPhone, FaEnvelope, FaMapMarkerAlt, FaCalendarAlt, FaBriefcase, FaDollarSign, FaCamera } from 'react-icons/fa';
 import { personnelService } from '@/app/services/personnelService';
 import type { PersonnelRequest, PersonnelUpdate, Genre, TypeContrat } from '@/app/types/personnel';

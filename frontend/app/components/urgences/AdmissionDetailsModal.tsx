@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaTimes, FaUserInjured, FaStethoscope, FaHospital } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';

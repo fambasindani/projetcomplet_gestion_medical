@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import SkeletonCards from '@/app/ui/SkeletonCards';
 import PageHeader from '@/app/ui/PageHeader';
 import Card from '@/app/components/common/Card';

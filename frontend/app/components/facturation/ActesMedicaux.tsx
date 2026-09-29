@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '@/app/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaFilter, FaTimes, FaSave } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 
@@ -25,6 +25,7 @@ import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import Can from '@/app/components/common/Can';
 import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const categorieOptions = CategorieActeMedicalValues.map((categorie) => ({
   value: categorie,
@@ -316,6 +317,7 @@ function ActeFormModal({
 
 export default function ActesMedicaux() {
   const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('FACTURATION_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<ActeMedical> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -326,6 +328,7 @@ export default function ActesMedicaux() {
   const [editingActe, setEditingActe] = useState<ActeMedical | null>(null);
 
   const loadData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await acteMedicalService.getAll({
@@ -336,11 +339,11 @@ export default function ActesMedicaux() {
       });
       setPagedData(data);
     } catch (error) {
-      toast.error(extractErrorMessage(error));
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, search, categorie]);
+  }, [pagination.pageIndex, pagination.pageSize, search, categorie, peutVoir]);
 
   useEffect(() => {
     void (async () => { await loadData(); })();
