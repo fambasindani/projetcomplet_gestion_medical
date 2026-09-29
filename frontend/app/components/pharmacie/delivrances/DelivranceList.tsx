@@ -17,6 +17,8 @@ import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table'
 import { delivranceService } from '@/app/services/delivranceService';
 import type { DelivranceResponse } from '@/app/types/delivrance';
 import type { PagedResult } from '@/app/types/pagination';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 type DelivranceListItem = DelivranceResponse & { niveauPriorite?: string };
 
@@ -72,6 +74,7 @@ export default function DelivranceList() {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Délivrances"
@@ -88,9 +91,11 @@ export default function DelivranceList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/delivrances/nouveau')}>
               Nouvelle
             </Button>
+            </Can>
           </>
         }
       />
@@ -117,9 +122,11 @@ export default function DelivranceList() {
           title="Aucune délivrance enregistrée"
           description="Enregistrez une nouvelle délivrance pour démarrer."
           action={
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/delivrances/nouveau')}>
               Nouvelle
             </Button>
+            </Can>
           }
         />
       ) : (
@@ -152,12 +159,14 @@ export default function DelivranceList() {
                       <IconButton color="gray" title="Voir" onClick={() => router.push(`/pharmacie/delivrances/${d.idDelivrance}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <Can permission="PHARMACIE_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => router.push(`/pharmacie/delivrances/${d.idDelivrance}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(d.idDelivrance)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -174,5 +183,6 @@ export default function DelivranceList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

@@ -18,6 +18,8 @@ import { commandeService } from '@/app/services/commandeService';
 import { CommandeFournisseur, StatutCommandeFournisseur } from '@/app/types/commande';
 import { fournisseurService } from '@/app/services/fournisseurService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const statutColors: Record<StatutCommandeFournisseur, string> = {
   En_attente: 'bg-yellow-100 text-yellow-800',
@@ -118,6 +120,7 @@ export default function CommandesList() {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Commandes fournisseurs"
@@ -128,9 +131,11 @@ export default function CommandesList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/commandes/nouvelle')}>
               Nouvelle commande
             </Button>
+            </Can>
           </>
         }
       />
@@ -158,9 +163,11 @@ export default function CommandesList() {
           title="Aucune commande"
           description="Créez une nouvelle commande fournisseur pour démarrer."
           action={
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/commandes/nouvelle')}>
               Nouvelle commande
             </Button>
+            </Can>
           }
         />
       ) : (
@@ -185,6 +192,14 @@ export default function CommandesList() {
                     {new Date(cmd.dateCommande).toLocaleDateString()}
                   </Td>
                   <Td className="whitespace-nowrap">
+                    <Can
+                      permission="PHARMACIE_GERER"
+                      fallback={
+                        <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${statutColors[cmd.statut]}`}>
+                          {statutLabels[cmd.statut]}
+                        </span>
+                      }
+                    >
                     <select
                       value={cmd.statut}
                       onChange={(e) => handleStatutChange(cmd, e.target.value as StatutCommandeFournisseur)}
@@ -194,6 +209,7 @@ export default function CommandesList() {
                         <option key={s} value={s}>{statutLabels[s]}</option>
                       ))}
                     </select>
+                    </Can>
                   </Td>
                   <Td className="whitespace-nowrap text-gray-900">
                     {cmd.montantTotal ? `$${cmd.montantTotal.toFixed(2)}` : '-'}
@@ -203,12 +219,14 @@ export default function CommandesList() {
                       <IconButton color="gray" title="Détails" onClick={() => router.push(`/pharmacie/commandes/${cmd.idCommande}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <Can permission="PHARMACIE_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => router.push(`/pharmacie/commandes/${cmd.idCommande}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(cmd)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -225,5 +243,6 @@ export default function CommandesList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

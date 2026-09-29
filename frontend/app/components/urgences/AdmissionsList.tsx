@@ -22,6 +22,8 @@ import type { PagedResult } from '@/app/types/pagination';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import AdmissionDetailsModal from './AdmissionDetailsModal';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const graviteColors: Record<GraviteUrgence, string> = {
   Critique: 'bg-red-100 text-red-700',
@@ -110,6 +112,7 @@ export default function AdmissionsList() {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
+    <RequirePermission permission="URGENCES_VOIR">
     <div className="min-h-screen space-y-6 bg-slate-50 p-6">
       <PageHeader
         title="Admissions aux urgences"
@@ -120,9 +123,11 @@ export default function AdmissionsList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="URGENCES_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/urgences/admissions/nouveau')}>
               Nouvelle admission
             </Button>
+            </Can>
           </>
         }
       />
@@ -190,6 +195,14 @@ export default function AdmissionsList() {
                     </span>
                   </Td>
                   <Td>
+                    <Can
+                      permission="URGENCES_GERER"
+                      fallback={
+                        <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${statutColors[adm.statut]}`}>
+                          {StatutAdmissionUrgenceLabels[adm.statut]}
+                        </span>
+                      }
+                    >
                     <select
                       value={adm.statut}
                       onChange={(e) => void handleChangerStatut(adm, e.target.value as StatutAdmissionUrgence)}
@@ -200,6 +213,7 @@ export default function AdmissionsList() {
                         <option key={s} value={s}>{StatutAdmissionUrgenceLabels[s]}</option>
                       ))}
                     </select>
+                    </Can>
                   </Td>
                   <Td className="text-gray-600">{format(new Date(adm.dateArrivee), 'dd/MM/yyyy HH:mm', { locale: fr })}</Td>
                   <Td className="text-right">
@@ -207,12 +221,14 @@ export default function AdmissionsList() {
                       <IconButton color="gray" title="Voir la fiche" onClick={() => router.push(`/urgences/admissions/${adm.idAdmissionUrgence}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <Can permission="URGENCES_GERER">
                       <IconButton color="indigo" title="Modifier" onClick={() => router.push(`/urgences/admissions/${adm.idAdmissionUrgence}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(adm)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -231,5 +247,6 @@ export default function AdmissionsList() {
 
       {viewing && <AdmissionDetailsModal admission={viewing} onClose={() => setViewing(null)} onRefresh={() => void loadData()} />}
     </div>
+    </RequirePermission>
   );
 }

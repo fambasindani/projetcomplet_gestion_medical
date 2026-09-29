@@ -14,6 +14,8 @@ import PageShell from '@/app/ui/PageShell';
 import EmptyState from '@/app/ui/EmptyState';
 import Button, { IconButton } from '@/app/ui/Button';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import type { SoinPrescrit } from '@/app/types/soin';
 import type { Prescription } from '@/app/types/prescription';
 
@@ -90,6 +92,7 @@ export default function PrescriptionSoins() {
   if (!prescription) return <div className="p-6 text-center">Prescription non trouvée</div>;
 
   return (
+    <RequirePermission permission="PRESCRIPTIONS_VOIR">
     <PageShell
       title="Soins de la prescription"
       subtitle={
@@ -105,9 +108,11 @@ export default function PrescriptionSoins() {
           <Button variant="secondary" onClick={() => router.push(`/prescriptions/examens/${prescriptionId}`)}>
             Voir les examens
           </Button>
-          <Button icon={<FaPlus />} onClick={handleAdd}>
-            Ajouter un soin
-          </Button>
+          <Can permission="PRESCRIPTIONS_GERER">
+            <Button icon={<FaPlus />} onClick={handleAdd}>
+              Ajouter un soin
+            </Button>
+          </Can>
         </>
       }
     >
@@ -118,9 +123,11 @@ export default function PrescriptionSoins() {
           title="Aucun soin associé"
           description="Aucun soin associé à cette prescription."
           action={
-            <Button icon={<FaPlus />} onClick={handleAdd}>
-              Ajouter un soin
-            </Button>
+            <Can permission="PRESCRIPTIONS_GERER">
+              <Button icon={<FaPlus />} onClick={handleAdd}>
+                Ajouter un soin
+              </Button>
+            </Can>
           }
         />
       ) : (
@@ -148,12 +155,16 @@ export default function PrescriptionSoins() {
                   <Td>{format(new Date(s.datePrescription), 'dd/MM/yyyy HH:mm')}</Td>
                   <Td className="text-center">
                     <div className="flex justify-center gap-2">
-                      <IconButton color="blue" title="Modifier" onClick={() => handleEdit(s)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(s)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(s)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(s)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -167,5 +178,6 @@ export default function PrescriptionSoins() {
         Retour aux prescriptions
       </Button>
     </PageShell>
+    </RequirePermission>
   );
 }

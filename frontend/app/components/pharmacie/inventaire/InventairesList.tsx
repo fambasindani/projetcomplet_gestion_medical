@@ -17,6 +17,8 @@ import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls'
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import type { PagedResult } from '@/app/types/pagination';
 import type { Inventaire } from '@/app/types/inventaire';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const statutStyles: Record<string, string> = {
   En_cours: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -91,6 +93,7 @@ export default function InventairesList() {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Gestion des Inventaires"
@@ -101,9 +104,11 @@ export default function InventairesList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/inventaire/nouveau')}>
               Nouvel Inventaire
             </Button>
+            </Can>
           </>
         }
       />
@@ -132,9 +137,11 @@ export default function InventairesList() {
           title="Aucun inventaire trouvé"
           description="Créez un nouvel inventaire pour commencer le suivi des stocks."
           action={
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/inventaire/nouveau')}>
               Nouvel Inventaire
             </Button>
+            </Can>
           }
         />
       ) : (
@@ -170,6 +177,7 @@ export default function InventairesList() {
                       <IconButton color="indigo" title="Imprimer le PV" onClick={() => router.push(`/pharmacie/inventaire/${inv.idInventaire}/impression`)}>
                         <FaPrint size={14} />
                       </IconButton>
+                      <Can permission="PHARMACIE_GERER">
                       {inv.statut === 'En_cours' && (
                         <IconButton color="green" title="Valider" onClick={() => handleValider(inv.idInventaire)}>
                           <FaCheckCircle size={14} />
@@ -183,6 +191,7 @@ export default function InventairesList() {
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(inv.idInventaire)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -199,5 +208,6 @@ export default function InventairesList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

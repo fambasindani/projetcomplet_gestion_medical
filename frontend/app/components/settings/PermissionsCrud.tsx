@@ -14,6 +14,8 @@ import Modal from '@/app/ui/Modal';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 export default function PermissionsCrud() {
   const confirm = useConfirm();
@@ -105,13 +107,16 @@ export default function PermissionsCrud() {
   if (loading) return <SkeletonTable columns={4} rows={6} />;
 
   return (
+    <RequirePermission permission="UTILISATEURS_GERER">
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h5 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
           <FaKey className="text-indigo-500" /> Permissions
           <span className="text-sm font-normal text-gray-400">({data?.totalCount ?? 0})</span>
         </h5>
-        <Button icon={<FaPlus />} onClick={openCreate}>Nouvelle permission</Button>
+        <Can permission="UTILISATEURS_GERER">
+          <Button icon={<FaPlus />} onClick={openCreate}>Nouvelle permission</Button>
+        </Can>
       </div>
 
       {!data || data.items.length === 0 ? (
@@ -137,12 +142,16 @@ export default function PermissionsCrud() {
                   <Td className="text-sm text-gray-500">{perm.module ?? '—'}</Td>
                   <Td className="text-center">
                     <div className="flex justify-center gap-2">
-                      <IconButton color="gray" title="Modifier" onClick={() => openEdit(perm)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(perm)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="UTILISATEURS_GERER">
+                        <IconButton color="gray" title="Modifier" onClick={() => openEdit(perm)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="UTILISATEURS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(perm)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -184,5 +193,6 @@ export default function PermissionsCrud() {
         </form>
       </Modal>
     </div>
+    </RequirePermission>
   );
 }

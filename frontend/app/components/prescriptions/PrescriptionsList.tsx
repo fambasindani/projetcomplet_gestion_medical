@@ -17,6 +17,8 @@ import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table'
 import { prescriptionService } from '@/app/services/prescriptionService';
 import { Prescription, StatutPrescription, TypePrescription } from '@/app/types/prescription';
 import { PagedResult } from '@/app/types/pagination';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const statutStyles: Record<string, string> = {
   Active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -59,6 +61,7 @@ export default function PrescriptionsList() {
   if (loading) return <SkeletonTable columns={5} rows={8} />;
 
   return (
+    <RequirePermission permission="PRESCRIPTIONS_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Prescriptions"
@@ -69,9 +72,11 @@ export default function PrescriptionsList() {
             <Button variant="secondary" icon={<FaFilter size={14} />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
-            <Button icon={<FaPlus />} onClick={() => router.push('/prescriptions/nouveau')}>
-              Nouvelle
-            </Button>
+            <Can permission="PRESCRIPTIONS_GERER">
+              <Button icon={<FaPlus />} onClick={() => router.push('/prescriptions/nouveau')}>
+                Nouvelle
+              </Button>
+            </Can>
           </>
         }
       />
@@ -128,31 +133,41 @@ export default function PrescriptionsList() {
                       <IconButton color="indigo" title="Détails" onClick={() => router.push(`/prescriptions/${p.idPrescription}`)}>
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton color="blue" title="Modifier" onClick={() => router.push(`/prescriptions/${p.idPrescription}/modifier`)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      {p.typePrescription === TypePrescription.Examen && (
-                        <IconButton color="green" title="Examens de la prescription" onClick={() => router.push(`/prescriptions/examens/${p.idPrescription}`)}>
-                          <FaFlask size={14} />
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => router.push(`/prescriptions/${p.idPrescription}/modifier`)}>
+                          <FaEdit size={14} />
                         </IconButton>
+                      </Can>
+                      {p.typePrescription === TypePrescription.Examen && (
+                        <Can permission="PRESCRIPTIONS_GERER">
+                          <IconButton color="green" title="Examens de la prescription" onClick={() => router.push(`/prescriptions/examens/${p.idPrescription}`)}>
+                            <FaFlask size={14} />
+                          </IconButton>
+                        </Can>
                       )}
                       {p.typePrescription === TypePrescription.Soin && (
-                        <IconButton color="indigo" title="Soins de la prescription" onClick={() => router.push(`/prescriptions/${p.idPrescription}/soins`)}>
-                          <FaUserNurse size={14} />
-                        </IconButton>
+                        <Can permission="PRESCRIPTIONS_GERER">
+                          <IconButton color="indigo" title="Soins de la prescription" onClick={() => router.push(`/prescriptions/${p.idPrescription}/soins`)}>
+                            <FaUserNurse size={14} />
+                          </IconButton>
+                        </Can>
                       )}
                       {p.statut !== 'Annulee' && (
-                        <IconButton
-                          color="gray"
-                          title="Annuler"
-                          onClick={async () => { const m = prompt('Motif ?'); if(m) await prescriptionService.annuler(p.idPrescription, m); fetchData(); }}
-                        >
-                          <FaBan size={14} />
-                        </IconButton>
+                        <Can permission="PRESCRIPTIONS_GERER">
+                          <IconButton
+                            color="gray"
+                            title="Annuler"
+                            onClick={async () => { const m = prompt('Motif ?'); if(m) await prescriptionService.annuler(p.idPrescription, m); fetchData(); }}
+                          >
+                            <FaBan size={14} />
+                          </IconButton>
+                        </Can>
                       )}
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(p)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(p)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -165,5 +180,6 @@ export default function PrescriptionsList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

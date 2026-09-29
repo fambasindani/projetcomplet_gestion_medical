@@ -19,15 +19,12 @@ import { GenreLabels } from '@/app/types/patient';
 
 import type { Genre, Patient } from '@/app/types/patient';
 import { patientService } from '@/app/services/patientService';
-import { useAuth } from '@/app/contexts/AuthContext';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const PatientList: React.FC = () => {
   const router = useRouter();
   const confirm = useConfirm();
-  const { hasPermission } = useAuth();
-  const peutAjouter = hasPermission('PATIENTS_AJOUTER');
-  const peutModifier = hasPermission('PATIENTS_MODIFIER');
-  const peutSupprimer = hasPermission('PATIENTS_SUPPRIMER');
 
   const [pagedData, setPagedData] = useState<PagedResult<Patient> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,7 +102,8 @@ const PatientList: React.FC = () => {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
-    <div className="space-y-6">
+    <RequirePermission permission="PATIENTS_VOIR">
+      <div className="space-y-6">
       <PageHeader
         title="Gestion des patients"
         subtitle={
@@ -122,11 +120,11 @@ const PatientList: React.FC = () => {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
-            {peutAjouter && (
+            <Can permission="PATIENTS_AJOUTER">
               <Button icon={<FaPlus />} onClick={handleAdd}>
                 Nouveau patient
               </Button>
-            )}
+            </Can>
           </>
         }
       />
@@ -218,19 +216,19 @@ const PatientList: React.FC = () => {
                       <IconButton color="gray" title="Voir détails" onClick={() => handleViewDetails(patient)}>
                         <FaEye size={14} />
                       </IconButton>
-                      {peutModifier && (
+                      <Can permission="PATIENTS_MODIFIER">
                         <IconButton color="blue" title="Modifier" onClick={() => handleEdit(patient)}>
                           <FaEdit size={14} />
                         </IconButton>
-                      )}
+                      </Can>
                       <IconButton color="green" title="Dossier médical" onClick={() => handleDossierMedical(patient)}>
                         <FaFileMedical size={14} />
                       </IconButton>
-                      {peutSupprimer && (
+                      <Can permission="PATIENTS_SUPPRIMER">
                         <IconButton color="red" title="Supprimer" onClick={() => handleDelete(patient.idPatient, patient.nom, patient.prenom)}>
                           <FaTrash size={14} />
                         </IconButton>
-                      )}
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -248,7 +246,8 @@ const PatientList: React.FC = () => {
           )}
         </TableContainer>
       )}
-    </div>
+      </div>
+    </RequirePermission>
   );
 };
 

@@ -16,6 +16,8 @@ import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls'
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import type { PagedResult } from '@/app/types/pagination';
 import type { AlerteStock, TypeAlerteStock } from '@/app/types/alerte';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const typeLabels: Record<string, string> = {
   STOCK_FAIBLE: 'Stock faible',
@@ -84,6 +86,7 @@ export default function AlertesStock() {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Alertes de Stock"
@@ -91,9 +94,11 @@ export default function AlertesStock() {
         actions={
           <>
             <RefreshButton onRefresh={fetchData} loading={loading} />
+            <Can permission="PHARMACIE_GERER">
             <Button variant="secondary" icon={<FaSync />} onClick={() => alerteStockService.verifier().then(fetchData)}>
               Vérifier
             </Button>
+            </Can>
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
@@ -154,6 +159,7 @@ export default function AlertesStock() {
                   </Td>
                   <Td className="text-center">
                     <div className="flex justify-center gap-2">
+                      <Can permission="PHARMACIE_GERER">
                       {!a.traitee && (
                         <IconButton color="green" title="Marquer comme traitée" onClick={() => handleMarquerTraitee(a)}>
                           <FaCheckCircle size={14} />
@@ -162,6 +168,7 @@ export default function AlertesStock() {
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(a.idAlerte)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -178,5 +185,6 @@ export default function AlertesStock() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

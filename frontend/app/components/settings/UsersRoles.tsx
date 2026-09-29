@@ -8,6 +8,8 @@ import { userService } from '@/app/services/userService';
 import type { RoleDto } from '@/app/types/rbac';
 import type { User } from '@/app/types/user';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const roleLabels: Record<string, string> = {
   ADMIN: 'Administrateur',
@@ -77,6 +79,7 @@ export default function UsersRoles() {
   }
 
   return (
+    <RequirePermission permission="UTILISATEURS_GERER">
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
         <table className="min-w-full divide-y divide-slate-100">
@@ -106,13 +109,15 @@ export default function UsersRoles() {
                     const key = `${user.id}-${r.nom}`;
                     return (
                       <td key={r.nom} className="px-3 py-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={saving === key}
-                          onChange={() => toggleRole(user, r.nom)}
-                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
+                        <Can permission="UTILISATEURS_GERER">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={saving === key}
+                            onChange={() => toggleRole(user, r.nom)}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                        </Can>
                       </td>
                     );
                   })}
@@ -126,5 +131,6 @@ export default function UsersRoles() {
         )}
       </div>
     </div>
+    </RequirePermission>
   );
 }

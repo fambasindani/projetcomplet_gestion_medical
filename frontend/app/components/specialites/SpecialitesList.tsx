@@ -19,6 +19,8 @@ import EmptyState from '@/app/ui/EmptyState';
 import SpecialitesFilters from './SpecialitesFilters';
 import StatsDashboard from './StatsDashboard';
 import { Specialite } from '@/app/types/specialite';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const SpecialitesList: React.FC = () => {
   const confirm = useConfirm();
@@ -113,6 +115,7 @@ const SpecialitesList: React.FC = () => {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="SPECIALITES_VOIR">
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
@@ -128,9 +131,11 @@ const SpecialitesList: React.FC = () => {
             >
               Statistiques
             </Button>
-            <Button onClick={() => router.push('/specialites/nouveau')} icon={<FaPlus />}>
-              Nouvelle spécialité
-            </Button>
+            <Can permission="SPECIALITES_GERER">
+              <Button onClick={() => router.push('/specialites/nouveau')} icon={<FaPlus />}>
+                Nouvelle spécialité
+              </Button>
+            </Can>
           </>
         }
       />
@@ -207,20 +212,24 @@ const SpecialitesList: React.FC = () => {
                         >
                           <FaEye size={14} />
                         </IconButton>
-                        <IconButton
-                          color="blue"
-                          onClick={() => router.push(`/specialites/${spec.idSpecialite}/modifier`)}
-                          title="Modifier"
-                        >
-                          <FaEdit size={14} />
-                        </IconButton>
-                        <IconButton
-                          color="red"
-                          onClick={() => handleDelete(spec.idSpecialite, spec.nomSpecialite)}
-                          title="Supprimer"
-                        >
-                          <FaTrash size={14} />
-                        </IconButton>
+                        <Can permission="SPECIALITES_GERER">
+                          <IconButton
+                            color="blue"
+                            onClick={() => router.push(`/specialites/${spec.idSpecialite}/modifier`)}
+                            title="Modifier"
+                          >
+                            <FaEdit size={14} />
+                          </IconButton>
+                        </Can>
+                        <Can permission="SPECIALITES_GERER">
+                          <IconButton
+                            color="red"
+                            onClick={() => handleDelete(spec.idSpecialite, spec.nomSpecialite)}
+                            title="Supprimer"
+                          >
+                            <FaTrash size={14} />
+                          </IconButton>
+                        </Can>
                       </div>
                     </Td>
                   </Tr>
@@ -242,6 +251,7 @@ const SpecialitesList: React.FC = () => {
         </>
       )}
     </div>
+    </RequirePermission>
   );
 };
 

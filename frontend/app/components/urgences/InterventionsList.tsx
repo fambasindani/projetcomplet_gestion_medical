@@ -20,6 +20,8 @@ import type { InterventionUrgence, StatutInterventionUrgence } from '@/app/types
 import { StatutInterventionUrgenceLabels, StatutInterventionUrgenceValues } from '@/app/types/urgence';
 import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const statutColors: Record<StatutInterventionUrgence, string> = {
   Planifiee: 'bg-blue-100 text-blue-700',
@@ -86,6 +88,7 @@ export default function InterventionsList() {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
+    <RequirePermission permission="URGENCES_VOIR">
     <div className="min-h-screen space-y-6 bg-slate-50 p-6">
       <PageHeader
         title="Interventions d&apos;urgence"
@@ -96,9 +99,11 @@ export default function InterventionsList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="URGENCES_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/urgences/interventions/nouveau')}>
               Nouvelle intervention
             </Button>
+            </Can>
           </>
         }
       />
@@ -152,6 +157,14 @@ export default function InterventionsList() {
                   </Td>
                   <Td className="text-gray-600">{format(new Date(int.dateIntervention), 'dd/MM/yyyy HH:mm', { locale: fr })}</Td>
                   <Td>
+                    <Can
+                      permission="URGENCES_GERER"
+                      fallback={
+                        <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${statutColors[int.statut]}`}>
+                          {StatutInterventionUrgenceLabels[int.statut]}
+                        </span>
+                      }
+                    >
                     <select
                       value={int.statut}
                       onChange={(e) => void handleChangerStatut(int, e.target.value as StatutInterventionUrgence)}
@@ -162,18 +175,21 @@ export default function InterventionsList() {
                         <option key={s} value={s}>{StatutInterventionUrgenceLabels[s]}</option>
                       ))}
                     </select>
+                    </Can>
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-2">
                       <IconButton color="gray" title="Voir la fiche" onClick={() => router.push(`/urgences/interventions/${int.idInterventionUrgence}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <Can permission="URGENCES_GERER">
                       <IconButton color="indigo" title="Modifier" onClick={() => router.push(`/urgences/interventions/${int.idInterventionUrgence}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(int)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -190,5 +206,6 @@ export default function InterventionsList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

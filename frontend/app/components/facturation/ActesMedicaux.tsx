@@ -23,6 +23,8 @@ import type { ActeMedical, ActeMedicalCreate, CategorieActeMedical } from '@/app
 import { CategorieActeLabels, CategorieActeMedicalValues } from '@/app/types/facture';
 import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const categorieOptions = CategorieActeMedicalValues.map((categorie) => ({
   value: categorie,
@@ -378,6 +380,7 @@ export default function ActesMedicaux() {
   if (!pagedData) return null;
 
   return (
+    <RequirePermission permission="FACTURATION_VOIR">
     <PageShell
       title="Actes médicaux"
       subtitle={`${pagedData.totalCount} actes`}
@@ -388,9 +391,11 @@ export default function ActesMedicaux() {
           <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
             Filtres
           </Button>
+          <Can permission="FACTURATION_GERER">
           <Button icon={<FaPlus />} onClick={openCreate}>
             Nouvel acte
           </Button>
+          </Can>
         </>
       }
     >
@@ -472,12 +477,14 @@ export default function ActesMedicaux() {
                   </Td>
                   <Td className="whitespace-nowrap text-center">
                     <div className="flex justify-center gap-2">
+                      <Can permission="FACTURATION_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => openEdit(acte)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(acte)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -503,5 +510,6 @@ export default function ActesMedicaux() {
         initialData={editingActe}
       />
     </PageShell>
+    </RequirePermission>
   );
 }

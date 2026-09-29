@@ -17,6 +17,8 @@ import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table'
 import { fournisseurService } from '@/app/services/fournisseurService';
 import { Fournisseur } from '@/app/types/fournisseur';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 export default function FournisseursList() {
   const router = useRouter();
@@ -88,6 +90,7 @@ export default function FournisseursList() {
   if (!pagedData) return <div className="p-6 text-center">Aucune donnée</div>;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Fournisseurs pharmaceutiques"
@@ -98,9 +101,11 @@ export default function FournisseursList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={handleAdd}>
               Nouveau fournisseur
             </Button>
+            </Can>
           </>
         }
       />
@@ -144,9 +149,11 @@ export default function FournisseursList() {
           title="Aucun fournisseur"
           description="Ajoutez un nouveau fournisseur pour démarrer."
           action={
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={handleAdd}>
               Nouveau fournisseur
             </Button>
+            </Can>
           }
         />
       ) : (
@@ -179,12 +186,14 @@ export default function FournisseursList() {
                       <IconButton color="gray" title="Voir" onClick={() => router.push(`/pharmacie/fournisseurs/${f.idFournisseur}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <Can permission="PHARMACIE_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => handleEdit(f)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(f)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -201,5 +210,6 @@ export default function FournisseursList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

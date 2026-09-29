@@ -17,6 +17,8 @@ import type { PagedResult } from '@/app/types/pagination';
 import { chambreService } from '@/app/services/chambreService';
 import { Chambre, StatutChambre, TypeChambre } from '@/app/types/chambre';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const statutColors: Record<StatutChambre, string> = {
   [StatutChambre.Disponible]: 'bg-green-100 text-green-800',
@@ -134,6 +136,7 @@ const ChambreList: React.FC = () => {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
+    <RequirePermission permission="CHAMBRES_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Gestion des chambres"
@@ -148,9 +151,11 @@ const ChambreList: React.FC = () => {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
-            <Button icon={<FaPlus />} onClick={handleAdd}>
-              Nouvelle chambre
-            </Button>
+            <Can permission="CHAMBRES_GERER">
+              <Button icon={<FaPlus />} onClick={handleAdd}>
+                Nouvelle chambre
+              </Button>
+            </Can>
           </>
         }
       />
@@ -240,6 +245,14 @@ const ChambreList: React.FC = () => {
                     <FaBuilding className="inline mr-1" /> Étage {chambre.etage ?? '-'} - {chambre.batiment ?? '-'}
                   </Td>
                   <Td className="whitespace-nowrap">
+                    <Can
+                      permission="CHAMBRES_GERER"
+                      fallback={
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statutColors[chambre.statut]}`}>
+                          {statutLabels[chambre.statut]}
+                        </span>
+                      }
+                    >
                     <select
                       value={chambre.statut}
                       onChange={(e) => void handleChangerStatut(chambre, e.target.value as StatutChambre)}
@@ -250,6 +263,7 @@ const ChambreList: React.FC = () => {
                         <option key={s} value={s}>{statutLabels[s]}</option>
                       ))}
                     </select>
+                    </Can>
                   </Td>
                   <Td className="whitespace-nowrap text-sm text-gray-600">
                     {chambre.prixJour ? `$${chambre.prixJour}` : '-'}
@@ -262,12 +276,16 @@ const ChambreList: React.FC = () => {
                       <IconButton color="gray" title="Voir détails" onClick={() => handleViewDetails(chambre)}>
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton color="blue" title="Modifier" onClick={() => handleEdit(chambre)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(chambre.idChambre, chambre.numeroChambre)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="CHAMBRES_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(chambre)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="CHAMBRES_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(chambre.idChambre, chambre.numeroChambre)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -286,6 +304,7 @@ const ChambreList: React.FC = () => {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 };
 

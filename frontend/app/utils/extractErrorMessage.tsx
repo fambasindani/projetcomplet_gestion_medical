@@ -8,6 +8,15 @@ export const extractErrorMessage = (error: unknown): string => {
     if (!error.response) {
       return 'Impossible de contacter le serveur. Vérifiez que le backend est démarré et que votre origine est autorisée (CORS).';
     }
+    const status = error.response.status;
+    // 401 : non authentifié / session expirée
+    if (status === 401) {
+      return 'Votre session a expiré. Veuillez vous reconnecter.';
+    }
+    // 403 : permission manquante (RBAC)
+    if (status === 403) {
+      return "Vous n'avez pas les droits nécessaires pour effectuer cette action.";
+    }
     // Si le backend a renvoyé un message dans une propriété 'message'
     if (error.response?.data?.message) {
       return error.response.data.message;

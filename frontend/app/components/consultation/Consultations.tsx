@@ -18,6 +18,8 @@ import type { Consultation } from '@/app/types/consultation';
 import { consultationService } from '@/app/services/consultationService';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { peutModifier } from '@/app/utils/permissions';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const ConsultationList: React.FC = () => {
   const router = useRouter();
@@ -97,6 +99,7 @@ const ConsultationList: React.FC = () => {
   const hasNoItems = pagedData.items.length === 0;
 
   return (
+    <RequirePermission permission="CONSULTATIONS_VOIR">
     <div className="space-y-6">
       <PageHeader
         title={estMedecin ? 'Mes consultations' : 'Toutes les consultations'}
@@ -128,9 +131,11 @@ const ConsultationList: React.FC = () => {
               <Button type="submit" icon={<FaSearch />}>Rechercher</Button>
             </form>
             <RefreshButton onRefresh={fetchConsultations} loading={loading} />
-            <Button icon={<FaPlus />} onClick={() => router.push('/consultations/nouveau')}>
-              Nouvelle consultation
-            </Button>
+            <Can permission="CONSULTATIONS_GERER">
+              <Button icon={<FaPlus />} onClick={() => router.push('/consultations/nouveau')}>
+                Nouvelle consultation
+              </Button>
+            </Can>
           </>
         }
       />
@@ -201,7 +206,7 @@ const ConsultationList: React.FC = () => {
                         <FaEye size={14} />
                       </IconButton>
                       {peutEditer && (
-                        <>
+                        <Can permission="CONSULTATIONS_GERER">
                           <IconButton
                             color="blue"
                             title="Modifier"
@@ -216,7 +221,7 @@ const ConsultationList: React.FC = () => {
                           >
                             <FaTrash size={14} />
                           </IconButton>
-                        </>
+                        </Can>
                       )}
                     </div>
                   </Td>
@@ -237,6 +242,7 @@ const ConsultationList: React.FC = () => {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 };
 

@@ -15,6 +15,8 @@ import Modal from '@/app/ui/Modal';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const roleLabels: Record<string, string> = {
   ADMIN: 'Administrateur',
@@ -172,13 +174,16 @@ export default function RolesCrud() {
   if (loading) return <SkeletonTable columns={4} rows={6} />;
 
   return (
+    <RequirePermission permission="UTILISATEURS_GERER">
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h5 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
           <FaShieldAlt className="text-indigo-500" /> Rôles
           <span className="text-sm font-normal text-gray-400">({data?.totalCount ?? 0})</span>
         </h5>
-        <Button icon={<FaPlus />} onClick={openCreate}>Nouveau rôle</Button>
+        <Can permission="UTILISATEURS_GERER">
+          <Button icon={<FaPlus />} onClick={openCreate}>Nouveau rôle</Button>
+        </Can>
       </div>
 
       {!data || data.items.length === 0 ? (
@@ -210,15 +215,21 @@ export default function RolesCrud() {
                   </Td>
                   <Td className="text-center">
                     <div className="flex justify-center gap-2">
-                      <IconButton color="blue" title="Permissions" onClick={() => openPermissions(role)}>
-                        <FaKey size={14} />
-                      </IconButton>
-                      <IconButton color="gray" title="Modifier" onClick={() => openEdit(role)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(role)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="UTILISATEURS_GERER">
+                        <IconButton color="blue" title="Permissions" onClick={() => openPermissions(role)}>
+                          <FaKey size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="UTILISATEURS_GERER">
+                        <IconButton color="gray" title="Modifier" onClick={() => openEdit(role)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="UTILISATEURS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(role)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -270,33 +281,39 @@ export default function RolesCrud() {
             {rolePermissions.length} / {allPermissions.length} permission(s)
           </span>
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              icon={<FaEdit size={12} />}
-              onClick={editRoleFromPermissions}
-            >
-              Modifier le rôle
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => toggleAll(true)}
-              disabled={savingPerm === '__all__' || rolePermissions.length === allPermissions.length}
-            >
-              Tout cocher
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => toggleAll(false)}
-              disabled={savingPerm === '__all__' || rolePermissions.length === 0}
-            >
-              Tout décocher
-            </Button>
+            <Can permission="UTILISATEURS_GERER">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                icon={<FaEdit size={12} />}
+                onClick={editRoleFromPermissions}
+              >
+                Modifier le rôle
+              </Button>
+            </Can>
+            <Can permission="UTILISATEURS_GERER">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => toggleAll(true)}
+                disabled={savingPerm === '__all__' || rolePermissions.length === allPermissions.length}
+              >
+                Tout cocher
+              </Button>
+            </Can>
+            <Can permission="UTILISATEURS_GERER">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => toggleAll(false)}
+                disabled={savingPerm === '__all__' || rolePermissions.length === 0}
+              >
+                Tout décocher
+              </Button>
+            </Can>
           </div>
         </div>
         <div className="max-h-[60vh] space-y-4 overflow-y-auto">
@@ -317,5 +334,6 @@ export default function RolesCrud() {
         </div>
       </Modal>
     </div>
+    </RequirePermission>
   );
 }

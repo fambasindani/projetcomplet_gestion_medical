@@ -15,6 +15,8 @@ import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table'
 import { prescriptionService } from '@/app/services/prescriptionService';
 import { Prescription, StatutPrescription, TypePrescription } from '@/app/types/prescription';
 import { PagedResult } from '@/app/types/pagination';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import OrdonnanceModal from './OrdonnanceModal';
 
 const statutColors: Record<StatutPrescription, string> = {
@@ -73,14 +75,17 @@ export default function PrescriptionsMedicaments() {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
+    <RequirePermission permission="PRESCRIPTIONS_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Prescriptions médicaments"
         subtitle={`${pagedData?.totalCount || 0} prescriptions`}
         actions={
-          <Button icon={<FaPrescriptionBottle />} onClick={() => router.push('/prescriptions/nouveau?type=Medicament')}>
-            Nouvelle prescription médicament
-          </Button>
+          <Can permission="PRESCRIPTIONS_GERER">
+            <Button icon={<FaPrescriptionBottle />} onClick={() => router.push('/prescriptions/nouveau?type=Medicament')}>
+              Nouvelle prescription médicament
+            </Button>
+          </Can>
         }
       />
 
@@ -120,20 +125,26 @@ export default function PrescriptionsMedicaments() {
                       <IconButton color="indigo" title="Détails" onClick={() => router.push(`/prescriptions/${p.idPrescription}`)}>
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton color="blue" title="Modifier" onClick={() => router.push(`/prescriptions/${p.idPrescription}/modifier`)}>
-                        <FaEdit size={14} />
-                      </IconButton>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => router.push(`/prescriptions/${p.idPrescription}/modifier`)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
                       <IconButton color="green" title="Imprimer l'ordonnance" onClick={() => handlePrintOrdonnance(p.idPrescription)}>
                         <FaPrint size={14} />
                       </IconButton>
                       {p.statut !== 'Annulee' && (
-                        <IconButton color="gray" title="Annuler" onClick={() => handleAnnuler(p)}>
-                          <FaBan size={14} />
-                        </IconButton>
+                        <Can permission="PRESCRIPTIONS_GERER">
+                          <IconButton color="gray" title="Annuler" onClick={() => handleAnnuler(p)}>
+                            <FaBan size={14} />
+                          </IconButton>
+                        </Can>
                       )}
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(p)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(p)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -152,5 +163,6 @@ export default function PrescriptionsMedicaments() {
         onClose={() => setModalOpen(false)}
       />
     </div>
+    </RequirePermission>
   );
 }

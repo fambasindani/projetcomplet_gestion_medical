@@ -21,6 +21,8 @@ import { StatutFactureLabels, StatutFactureValues } from '@/app/types/facture';
 import type { PagedResult } from '@/app/types/pagination';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const statutColors: Record<StatutFacture, string> = {
   En_attente: 'bg-yellow-100 text-yellow-800',
@@ -74,6 +76,7 @@ export default function FacturesList() {
   if (!pagedData) return null;
 
   return (
+    <RequirePermission permission="FACTURATION_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Factures"
@@ -84,9 +87,11 @@ export default function FacturesList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="FACTURATION_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/factures/nouveau')}>
               Nouvelle facture
             </Button>
+            </Can>
           </>
         }
       />
@@ -190,5 +195,6 @@ export default function FacturesList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

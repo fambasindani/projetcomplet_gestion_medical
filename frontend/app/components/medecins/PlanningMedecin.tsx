@@ -14,6 +14,8 @@ import { FilterPanel, FilterInput } from '@/app/ui/FilterControls';
 import { RendezVous } from '@/app/types/planningService';
 import { planningService } from '@/app/services/planningService';
 import { FormSelect } from '../common/FormSelect';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 // ✅ Options de statut avec les valeurs exactes de l'enum (avec accents)
 const statutOptions = [
@@ -112,6 +114,7 @@ const PlanningMedecin: React.FC = () => {
   if (loading) return <SkeletonTable columns={5} rows={8} />;
 
   return (
+    <RequirePermission permission="PLANNING_GROUPE_VOIR">
     <div className="space-y-6">
       {/* En-tête avec statistiques */}
       <PageHeader
@@ -188,17 +191,19 @@ const PlanningMedecin: React.FC = () => {
                   </Td>
                   <Td>
                     <div className="flex items-center gap-2">
-                      <select
-                        value={rdv.statut}
-                        onChange={(e) => handleStatutChange(rdv.idRdv, e.target.value)}
-                        className="rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                      >
-                        <option value="Programmé">Programmé</option>
-                        <option value="Confirmé">Confirmé</option>
-                        <option value="Annulé">Annulé</option>
-                        <option value="Terminé">Terminé</option>
-                        <option value="NonPrésenté">Non présenté</option>
-                      </select>
+                      <Can permission="RENDEZ_VOUS_GERER">
+                        <select
+                          value={rdv.statut}
+                          onChange={(e) => handleStatutChange(rdv.idRdv, e.target.value)}
+                          className="rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                          <option value="Programmé">Programmé</option>
+                          <option value="Confirmé">Confirmé</option>
+                          <option value="Annulé">Annulé</option>
+                          <option value="Terminé">Terminé</option>
+                          <option value="NonPrésenté">Non présenté</option>
+                        </select>
+                      </Can>
                       {rdv.idConsultation && (
                         <IconButton
                           color="indigo"
@@ -228,6 +233,7 @@ const PlanningMedecin: React.FC = () => {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 };
 

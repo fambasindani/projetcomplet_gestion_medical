@@ -18,6 +18,8 @@ import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import { Hospitalisation, StatutHospitalisation } from '@/app/types/hospitalisation';
 import type { PagedResult } from '@/app/types/pagination';
 
@@ -83,6 +85,7 @@ export default function HospitalisationList() {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
+    <RequirePermission permission="HOSPITALISATIONS_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Hospitalisations"
@@ -93,9 +96,11 @@ export default function HospitalisationList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
-            <Button icon={<FaPlus />} onClick={() => router.push('/patients/hospitalisations/nouveau')}>
-              Nouvelle admission
-            </Button>
+            <Can permission="HOSPITALISATIONS_GERER">
+              <Button icon={<FaPlus />} onClick={() => router.push('/patients/hospitalisations/nouveau')}>
+                Nouvelle admission
+              </Button>
+            </Can>
           </>
         }
       />
@@ -148,12 +153,16 @@ export default function HospitalisationList() {
                       <IconButton color="gray" title="Voir détails" onClick={() => router.push(`/patients/hospitalisations/${h.idHospitalisation}`)}>
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton color="blue" title="Modifier" onClick={() => router.push(`/patients/hospitalisations/${h.idHospitalisation}/modifier`)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(h)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="HOSPITALISATIONS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => router.push(`/patients/hospitalisations/${h.idHospitalisation}/modifier`)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="HOSPITALISATIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(h)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                       <IconButton
                         color="indigo"
                         title="Constantes vitales"
@@ -177,5 +186,6 @@ export default function HospitalisationList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

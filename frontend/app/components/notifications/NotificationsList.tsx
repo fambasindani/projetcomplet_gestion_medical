@@ -16,6 +16,8 @@ import Button, { IconButton } from '@/app/ui/Button';
 import RefreshButton from '@/app/ui/RefreshButton';
 import { FilterPanel, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import { notificationService } from '@/app/services/notificationService';
 import type { Notification, TypeNotification } from '@/app/services/notificationService';
 import type { PagedResult } from '@/app/types/pagination';
@@ -127,6 +129,7 @@ const NotificationsList: React.FC = () => {
   if (loading) return <SkeletonTable columns={4} rows={8} />;
 
   return (
+    <RequirePermission permission="NOTIFICATIONS_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Notifications"
@@ -141,9 +144,11 @@ const NotificationsList: React.FC = () => {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
-            <Button variant="secondary" icon={<FaCheckDouble />} onClick={handleMarkAll}>
-              Tout marquer lu
-            </Button>
+            <Can permission="NOTIFICATIONS_VOIR">
+              <Button variant="secondary" icon={<FaCheckDouble />} onClick={handleMarkAll}>
+                Tout marquer lu
+              </Button>
+            </Can>
             <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => router.push('/')}>
               Retour
             </Button>
@@ -236,13 +241,17 @@ const NotificationsList: React.FC = () => {
                     <Td className="whitespace-nowrap text-center">
                       <div className="flex justify-center gap-2">
                         {!notif.lue && (
-                          <IconButton color="indigo" title="Marquer lue" onClick={() => handleMarkOne(notif)}>
-                            <FaCheckDouble size={14} />
-                          </IconButton>
+                          <Can permission="NOTIFICATIONS_VOIR">
+                            <IconButton color="indigo" title="Marquer lue" onClick={() => handleMarkOne(notif)}>
+                              <FaCheckDouble size={14} />
+                            </IconButton>
+                          </Can>
                         )}
-                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(notif)}>
-                          <FaTrash size={14} />
-                        </IconButton>
+                        <Can permission="NOTIFICATIONS_VOIR">
+                          <IconButton color="red" title="Supprimer" onClick={() => handleDelete(notif)}>
+                            <FaTrash size={14} />
+                          </IconButton>
+                        </Can>
                       </div>
                     </Td>
                   </Tr>
@@ -263,6 +272,7 @@ const NotificationsList: React.FC = () => {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 };
 

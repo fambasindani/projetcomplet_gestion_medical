@@ -20,6 +20,8 @@ import RefreshButton from '@/app/ui/RefreshButton';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const BASE_URL = API_URL?.replace('/api', '') || 'http://localhost:7034';
@@ -193,6 +195,7 @@ const MedecinsList: React.FC = () => {
   }
 
   return (
+    <RequirePermission permission="MEDECINS_VOIR">
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
@@ -203,7 +206,9 @@ const MedecinsList: React.FC = () => {
             <RefreshButton onRefresh={loadMedecins} loading={loading} />
             <Button variant="secondary" onClick={handleStats} icon={<FaChartBar />}>Statistiques</Button>
             <Button variant="secondary" onClick={() => setShowFilters(!showFilters)} icon={<FaFilter />}>Filtres</Button>
-            <Button onClick={handleAdd} icon={<FaPlus />}>Nouveau médecin</Button>
+            <Can permission="MEDECINS_GERER">
+              <Button onClick={handleAdd} icon={<FaPlus />}>Nouveau médecin</Button>
+            </Can>
           </>
         }
       />
@@ -323,20 +328,24 @@ const MedecinsList: React.FC = () => {
                       >
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton
-                        color="blue"
-                        onClick={() => handleEdit(medecin)}
-                        title="Modifier"
-                      >
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton
-                        color="red"
-                        onClick={() => handleDelete(medecin.idMedecin, medecin.nom, medecin.prenom)}
-                        title="Supprimer"
-                      >
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="MEDECINS_GERER">
+                        <IconButton
+                          color="blue"
+                          onClick={() => handleEdit(medecin)}
+                          title="Modifier"
+                        >
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="MEDECINS_GERER">
+                        <IconButton
+                          color="red"
+                          onClick={() => handleDelete(medecin.idMedecin, medecin.nom, medecin.prenom)}
+                          title="Supprimer"
+                        >
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -357,6 +366,7 @@ const MedecinsList: React.FC = () => {
         )}
       </TableContainer>
     </div>
+    </RequirePermission>
   );
 };
 

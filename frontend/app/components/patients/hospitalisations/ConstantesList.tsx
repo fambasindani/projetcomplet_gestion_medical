@@ -16,6 +16,8 @@ import RefreshButton from '@/app/ui/RefreshButton';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { constanteService } from '@/app/services/constanteService';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import { Constante } from '@/app/types/constante';
 import type { PagedResult } from '@/app/types/pagination';
 import type { Hospitalisation } from '@/app/types/hospitalisation';
@@ -89,6 +91,7 @@ export default function ConstantesList() {
   if (!hospitalisation) return <div className="space-y-6 text-center">Hospitalisation non trouvée</div>;
 
   return (
+    <RequirePermission permission="CONSTANTES_VOIR">
     <PageShell
       title="Constantes vitales"
       subtitle={`Hospitalisation ${hospitalisation.numeroAdmission} - ${hospitalisation.patientNom} ${hospitalisation.patientPrenom}`}
@@ -96,9 +99,11 @@ export default function ConstantesList() {
       actions={
         <>
           <RefreshButton onRefresh={fetchData} loading={loading} />
-          <Button icon={<FaPlus />} onClick={handleAdd}>
-            Nouvelle mesure
-          </Button>
+          <Can permission="CONSTANTES_GERER">
+            <Button icon={<FaPlus />} onClick={handleAdd}>
+              Nouvelle mesure
+            </Button>
+          </Can>
         </>
       }
       maxWidth="max-w-6xl"
@@ -138,12 +143,16 @@ export default function ConstantesList() {
                   <Td className="text-sm">{c.douleurEchelle ? `${c.douleurEchelle}/10` : '-'}</Td>
                   <Td className="text-center whitespace-nowrap">
                     <div className="flex justify-center gap-2">
-                      <IconButton color="blue" title="Modifier" onClick={() => handleEdit(c)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(c)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="CONSTANTES_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(c)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="CONSTANTES_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(c)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -160,5 +169,6 @@ export default function ConstantesList() {
         </TableContainer>
       )}
     </PageShell>
+    </RequirePermission>
   );
 }

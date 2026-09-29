@@ -32,6 +32,8 @@ import { rendezvousService } from '@/app/services/rendezvousService';
 import { RendezVous, StatutRendezVous } from '@/app/types/rendezvous';
 import { PagedResult } from '@/app/types/pagination';
 import { useAuth } from '@/app/contexts/AuthContext';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 import { AnnulationModal } from './AnnulationModal'; // <-- import
 
@@ -141,6 +143,7 @@ export default function RendezVousList() {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="RENDEZ_VOUS_VOIR">
     <div className="space-y-6">
       {/* HEADER */}
       <PageHeader
@@ -156,9 +159,11 @@ export default function RendezVousList() {
             >
               Filtres
             </Button>
-            <Button onClick={() => router.push('/rendezvous/nouveau')} icon={<FaPlus />}>
-              Nouveau rendez-vous
-            </Button>
+            <Can permission="RENDEZ_VOUS_GERER">
+              <Button onClick={() => router.push('/rendezvous/nouveau')} icon={<FaPlus />}>
+                Nouveau rendez-vous
+              </Button>
+            </Can>
           </>
         }
       />
@@ -250,23 +255,29 @@ export default function RendezVousList() {
                         <FaEye size={14} />
                       </IconButton>
                       {/* Modifier */}
-                      <IconButton color="blue" title="Modifier" onClick={() => router.push(`/rendezvous/${rdv.idRdv}/modifier`)}>
-                        <FaEdit size={14} />
-                      </IconButton>
+                      <Can permission="RENDEZ_VOUS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => router.push(`/rendezvous/${rdv.idRdv}/modifier`)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
                       {/* Annuler */}
                       {rdv.statut !== StatutRendezVous.Annule && (
-                        <IconButton
-                          color="green"
-                          title="Annuler"
-                          onClick={() => openAnnulationModal(rdv)}
-                        >
-                          <FaBan size={14} />
-                        </IconButton>
+                        <Can permission="RENDEZ_VOUS_GERER">
+                          <IconButton
+                            color="green"
+                            title="Annuler"
+                            onClick={() => openAnnulationModal(rdv)}
+                          >
+                            <FaBan size={14} />
+                          </IconButton>
+                        </Can>
                       )}
                       {/* Supprimer */}
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(rdv)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="RENDEZ_VOUS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(rdv)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -296,5 +307,6 @@ export default function RendezVousList() {
         onCancel={closeAnnulationModal}
       />
     </div>
+    </RequirePermission>
   );
 }

@@ -11,6 +11,8 @@ import { acteCatalogueService, type GroupeActe } from '@/app/services/acteCatalo
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import { FormTextarea } from '@/app/components/common/FormTextarea';
 import PageHeader from '@/app/ui/PageHeader';
 import Button, { IconButton } from '@/app/ui/Button';
@@ -148,14 +150,17 @@ export default function CategoriesExamenList() {
   };
 
   return (
+    <RequirePermission permission="CATEGORIES_EXAMEN_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Catégories d'examen"
         subtitle="Chaque catégorie est reliée à un groupe d'actes du catalogue (examens précis)."
         actions={
-          <Button icon={<FaPlus />} onClick={openCreate}>
-            Nouvelle catégorie
-          </Button>
+          <Can permission="CATEGORIES_EXAMEN_GERER">
+            <Button icon={<FaPlus />} onClick={openCreate}>
+              Nouvelle catégorie
+            </Button>
+          </Can>
         }
       />
 
@@ -206,12 +211,16 @@ export default function CategoriesExamenList() {
                   </Td>
                   <Td className="whitespace-nowrap text-center">
                     <div className="flex justify-center gap-2">
-                      <IconButton color="blue" title="Modifier" onClick={() => openEdit(c)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(c)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="CATEGORIES_EXAMEN_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => openEdit(c)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="CATEGORIES_EXAMEN_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(c)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -302,5 +311,6 @@ export default function CategoriesExamenList() {
         </form>
       </Modal>
     </div>
+    </RequirePermission>
   );
 }

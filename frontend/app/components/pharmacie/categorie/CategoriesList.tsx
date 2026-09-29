@@ -16,6 +16,8 @@ import { categorieService } from '@/app/services/categorieService';
 import { Categorie } from '@/app/types/categorie';
 import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 export default function CategoriesList() {
   const router = useRouter();
@@ -59,6 +61,7 @@ export default function CategoriesList() {
   if (!pagedData) return null;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Catégories de médicaments"
@@ -66,9 +69,11 @@ export default function CategoriesList() {
         actions={
           <>
             <RefreshButton onRefresh={fetchData} loading={loading} />
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/categories/nouveau')}>
               Nouvelle catégorie
             </Button>
+            </Can>
           </>
         }
       />
@@ -79,9 +84,11 @@ export default function CategoriesList() {
           title="Aucune catégorie"
           description="Ajoutez une nouvelle catégorie pour démarrer."
           action={
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/categories/nouveau')}>
               Nouvelle catégorie
             </Button>
+            </Can>
           }
         />
       ) : (
@@ -105,12 +112,14 @@ export default function CategoriesList() {
                   <Td className="whitespace-nowrap text-center">{cat.nombreMedicaments || 0}</Td>
                   <Td className="whitespace-nowrap text-center">
                     <div className="flex justify-center gap-2">
+                      <Can permission="PHARMACIE_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => router.push(`/pharmacie/categories/${cat.idCategorie}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(cat)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -127,5 +136,6 @@ export default function CategoriesList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

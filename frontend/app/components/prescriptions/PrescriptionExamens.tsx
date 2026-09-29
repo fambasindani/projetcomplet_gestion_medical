@@ -15,6 +15,8 @@ import EmptyState from '@/app/ui/EmptyState';
 import { InfoGrid, InfoCard } from '@/app/ui/InfoCard';
 import Button, { IconButton } from '@/app/ui/Button';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import Link from 'next/link';
 import type { Examen } from '@/app/types/examen';
 import type { Prescription } from '@/app/types/prescription';
@@ -83,6 +85,7 @@ export default function PrescriptionExamens() {
   if (!prescription) return <div className="p-6 text-center">Prescription non trouvée</div>;
 
   return (
+    <RequirePermission permission="PRESCRIPTIONS_VOIR">
     <PageShell
       title="Examens de la prescription"
       subtitle={
@@ -98,9 +101,11 @@ export default function PrescriptionExamens() {
           <Link href={`/prescriptions/${prescriptionId}/soins`}>
             <Button variant="secondary">Voir les soins</Button>
           </Link>
-          <Link href={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
-            <Button icon={<FaPlus />}>Ajouter un examen</Button>
-          </Link>
+          <Can permission="PRESCRIPTIONS_GERER">
+            <Link href={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
+              <Button icon={<FaPlus />}>Ajouter un examen</Button>
+            </Link>
+          </Can>
         </>
       }
     >
@@ -119,9 +124,11 @@ export default function PrescriptionExamens() {
           title="Aucun examen associé"
           description="Aucun examen associé à cette prescription."
           action={
-            <Link href={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
-              <Button icon={<FaPlus />}>Ajouter un examen</Button>
-            </Link>
+            <Can permission="PRESCRIPTIONS_GERER">
+              <Link href={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
+                <Button icon={<FaPlus />}>Ajouter un examen</Button>
+              </Link>
+            </Can>
           }
         />
       ) : (
@@ -171,9 +178,11 @@ export default function PrescriptionExamens() {
                       >
                         <FaPrint size={14} />
                       </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(ex)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(ex)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -187,5 +196,6 @@ export default function PrescriptionExamens() {
         Retour aux prescriptions
       </Button>
     </PageShell>
+    </RequirePermission>
   );
 }

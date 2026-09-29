@@ -17,6 +17,8 @@ import { lotService } from '@/app/services/lotService';
 import { LotMedicament, StatutLot } from '@/app/types/lot';
 import { medicamentService } from '@/app/services/medicamentService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 export default function LotsList() {
   const router = useRouter();
@@ -83,6 +85,7 @@ export default function LotsList() {
   if (!pagedData) return <div className="p-6 text-center">Aucune donnée</div>;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Lots de médicaments"
@@ -93,9 +96,11 @@ export default function LotsList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={handleAdd}>
               Nouveau lot
             </Button>
+            </Can>
           </>
         }
       />
@@ -137,9 +142,11 @@ export default function LotsList() {
           title="Aucun lot"
           description="Ajoutez un nouveau lot pour démarrer."
           action={
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={handleAdd}>
               Nouveau lot
             </Button>
+            </Can>
           }
         />
       ) : (
@@ -179,12 +186,14 @@ export default function LotsList() {
                       <IconButton color="gray" title="Voir" onClick={() => router.push(`/pharmacie/lots/${lot.idLot}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <Can permission="PHARMACIE_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => handleEdit(lot)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(lot)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -201,5 +210,6 @@ export default function LotsList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

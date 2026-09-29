@@ -15,6 +15,8 @@ import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls'
 import { personnelService } from '@/app/services/personnelService';
 import type { PersonnelResponse } from '@/app/types/personnel';
 import { GenreLabels, TypeContratLabels } from '@/app/types/personnel';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 interface PersonnelListProps {
   fonctionFixe?: string;
@@ -133,6 +135,7 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="PERSONNEL_VOIR">
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
@@ -148,12 +151,14 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
             >
               Filtres
             </Button>
-            <Button
-              onClick={() => router.push(`/personnel/nouveau${fonctionFixe ? `?fonction=${encodeURIComponent(fonctionFixe)}` : ''}`)}
-              icon={<FaPlus />}
-            >
-              {labelAjout || 'Nouveau'}
-            </Button>
+            <Can permission="PERSONNEL_GERER">
+              <Button
+                onClick={() => router.push(`/personnel/nouveau${fonctionFixe ? `?fonction=${encodeURIComponent(fonctionFixe)}` : ''}`)}
+                icon={<FaPlus />}
+              >
+                {labelAjout || 'Nouveau'}
+              </Button>
+            </Can>
           </>
         }
       />
@@ -211,12 +216,14 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
             hasFilters ? (
               <Button variant="secondary" onClick={clearFilters}>Effacer les filtres</Button>
             ) : (
-              <Button
-                icon={<FaPlus />}
-                onClick={() => router.push(`/personnel/nouveau${fonctionFixe ? `?fonction=${encodeURIComponent(fonctionFixe)}` : ''}`)}
-              >
-                {labelAjout || 'Ajouter'}
-              </Button>
+              <Can permission="PERSONNEL_GERER">
+                <Button
+                  icon={<FaPlus />}
+                  onClick={() => router.push(`/personnel/nouveau${fonctionFixe ? `?fonction=${encodeURIComponent(fonctionFixe)}` : ''}`)}
+                >
+                  {labelAjout || 'Ajouter'}
+                </Button>
+              </Can>
             )
           }
         />
@@ -287,20 +294,24 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
                       >
                         <FaUserTag size={14} />
                       </IconButton>
-                      <IconButton
-                        color="blue"
-                        onClick={() => router.push(`/personnel/${p.idPersonnel}/modifier`)}
-                        title="Modifier"
-                      >
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton
-                        color="red"
-                        onClick={() => handleDelete(p.idPersonnel, p.nom, p.prenom)}
-                        title="Supprimer"
-                      >
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="PERSONNEL_GERER">
+                        <IconButton
+                          color="blue"
+                          onClick={() => router.push(`/personnel/${p.idPersonnel}/modifier`)}
+                          title="Modifier"
+                        >
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="PERSONNEL_GERER">
+                        <IconButton
+                          color="red"
+                          onClick={() => handleDelete(p.idPersonnel, p.nom, p.prenom)}
+                          title="Supprimer"
+                        >
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -319,6 +330,7 @@ const PersonnelList = ({ fonctionFixe, titre, labelAjout }: PersonnelListProps =
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 };
 

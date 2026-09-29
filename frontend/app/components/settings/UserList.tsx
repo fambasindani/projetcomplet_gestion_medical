@@ -17,6 +17,8 @@ import RefreshButton from '@/app/ui/RefreshButton';
 import PageHeader from '@/app/ui/PageHeader';
 import EmptyState from '@/app/ui/EmptyState';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const roleColors: Record<string, string> = {
   ADMIN: 'bg-purple-100 text-purple-800',
@@ -114,6 +116,7 @@ export default function UserList() {
   if (loading) return <SkeletonTable columns={7} rows={8} />;
 
   return (
+    <RequirePermission permission="UTILISATEURS_GERER">
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
@@ -129,9 +132,11 @@ export default function UserList() {
             >
               Filtres
             </Button>
-            <Button onClick={() => router.push('/settings/utilisateurs/nouveau')} icon={<FaPlus />}>
-              Nouvel utilisateur
-            </Button>
+            <Can permission="UTILISATEURS_GERER">
+              <Button onClick={() => router.push('/settings/utilisateurs/nouveau')} icon={<FaPlus />}>
+                Nouvel utilisateur
+              </Button>
+            </Can>
           </>
         }
       />
@@ -257,20 +262,24 @@ export default function UserList() {
                       >
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton
-                        color="blue"
-                        onClick={() => router.push(`/settings/utilisateurs/${user.id}/modifier`)}
-                        title="Modifier"
-                      >
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton
-                        color="red"
-                        onClick={() => handleDelete(user)}
-                        title="Supprimer"
-                      >
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="UTILISATEURS_GERER">
+                        <IconButton
+                          color="blue"
+                          onClick={() => router.push(`/settings/utilisateurs/${user.id}/modifier`)}
+                          title="Modifier"
+                        >
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="UTILISATEURS_GERER">
+                        <IconButton
+                          color="red"
+                          onClick={() => handleDelete(user)}
+                          title="Supprimer"
+                        >
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -289,5 +298,6 @@ export default function UserList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

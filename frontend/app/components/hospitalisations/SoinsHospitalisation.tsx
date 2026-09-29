@@ -17,6 +17,8 @@ import EmptyState from '@/app/ui/EmptyState';
 import { FilterPanel, FilterInput } from '@/app/ui/FilterControls';
 import type { SoinInfirmier } from '@/app/types/soin';
 import { useAuth } from '@/app/contexts/AuthContext';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 export default function SoinsInfirmiersList() {
   const router = useRouter();
@@ -102,6 +104,7 @@ export default function SoinsInfirmiersList() {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="SOINS_VOIR">
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
@@ -113,9 +116,11 @@ export default function SoinsInfirmiersList() {
             <Button variant="secondary" onClick={() => setShowFilters(!showFilters)} icon={<FaFilter />}>
               Filtres
             </Button>
-            <Button onClick={handleAdd} icon={<FaPlus />}>
-              Nouveau soin
-            </Button>
+            <Can permission="SOINS_GERER">
+              <Button onClick={handleAdd} icon={<FaPlus />}>
+                Nouveau soin
+              </Button>
+            </Can>
           </>
         }
       />
@@ -177,12 +182,16 @@ export default function SoinsInfirmiersList() {
                       <IconButton color="gray" title="Voir détails" onClick={() => router.push(`/hospitalisations/soins/${s.idSoin}`)}>
                         <FaEye size={14} />
                       </IconButton>
-                      <IconButton color="blue" title="Modifier" onClick={() => handleEdit(s)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(s.idSoin)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="SOINS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(s)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="SOINS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(s.idSoin)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -195,5 +204,6 @@ export default function SoinsInfirmiersList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

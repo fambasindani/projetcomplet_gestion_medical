@@ -9,6 +9,8 @@ import type { Laboratoire, PersonnelAffecte } from '@/app/types/examen';
 import { PersonnelSearchSelect } from '@/app/components/common/PersonnelSearchSelect';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { FormInput } from '@/app/components/common/FormInput';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import PageHeader from '@/app/ui/PageHeader';
 import Button, { IconButton } from '@/app/ui/Button';
 import Modal from '@/app/ui/Modal';
@@ -179,14 +181,17 @@ export default function LaboratoiresList() {
   };
 
   return (
+    <RequirePermission permission="CATEGORIES_EXAMEN_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Laboratoires"
         subtitle="Plateaux techniques (ISO 15189) : chaque technicien ne voit que les examens de son laboratoire."
         actions={
-          <Button icon={<FaPlus />} onClick={openCreate}>
-            Nouveau laboratoire
-          </Button>
+          <Can permission="CATEGORIES_EXAMEN_GERER">
+            <Button icon={<FaPlus />} onClick={openCreate}>
+              Nouveau laboratoire
+            </Button>
+          </Can>
         }
       />
 
@@ -230,14 +235,16 @@ export default function LaboratoiresList() {
                           className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700"
                         >
                           {p.nom}
-                          <button
-                            type="button"
-                            onClick={() => handleRetirer(l, p)}
-                            className="text-indigo-400 hover:text-red-600"
-                            title="Retirer"
-                          >
-                            <FaTimes size={9} />
-                          </button>
+                          <Can permission="CATEGORIES_EXAMEN_GERER">
+                            <button
+                              type="button"
+                              onClick={() => handleRetirer(l, p)}
+                              className="text-indigo-400 hover:text-red-600"
+                              title="Retirer"
+                            >
+                              <FaTimes size={9} />
+                            </button>
+                          </Can>
                         </span>
                       ))}
                     </div>
@@ -251,15 +258,21 @@ export default function LaboratoiresList() {
                   </Td>
                   <Td className="whitespace-nowrap text-center">
                     <div className="flex justify-center gap-2">
-                      <IconButton color="green" title="Affecter un technicien" onClick={() => openAffect(l)}>
-                        <FaUserPlus size={14} />
-                      </IconButton>
-                      <IconButton color="blue" title="Modifier" onClick={() => openEdit(l)}>
-                        <FaEdit size={14} />
-                      </IconButton>
-                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(l)}>
-                        <FaTrash size={14} />
-                      </IconButton>
+                      <Can permission="CATEGORIES_EXAMEN_GERER">
+                        <IconButton color="green" title="Affecter un technicien" onClick={() => openAffect(l)}>
+                          <FaUserPlus size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="CATEGORIES_EXAMEN_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => openEdit(l)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="CATEGORIES_EXAMEN_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(l)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -360,5 +373,6 @@ export default function LaboratoiresList() {
         </div>
       </Modal>
     </div>
+    </RequirePermission>
   );
 }

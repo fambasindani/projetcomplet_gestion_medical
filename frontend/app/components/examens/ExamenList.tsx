@@ -16,7 +16,8 @@ import { FilterPanel, FilterSelect, FilterInput } from '@/app/ui/FilterControls'
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { examenService } from '@/app/services/examenService';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
-import { useAuth } from '@/app/contexts/AuthContext';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 import type { Examen, CategorieExamen } from '@/app/types/examen';
 import type { PagedResult } from '@/app/types/pagination';
 
@@ -42,9 +43,6 @@ const statutColors: Record<string, string> = {
 export default function ExamenList() {
     const router = useRouter();
     const confirm = useConfirm();
-    const { hasPermission } = useAuth();
-    const peutGerer = hasPermission('EXAMENS_GERER');
-    const peutResultat = hasPermission('EXAMENS_GERER') || hasPermission('EXAMENS_RESULTAT');
     const [pagedData, setPagedData] = useState<PagedResult<Examen> | null>(null);
     const [categories, setCategories] = useState<CategorieExamen[]>([]);
     const [loading, setLoading] = useState(true);
@@ -136,6 +134,7 @@ export default function ExamenList() {
     if (loading) return <SkeletonTable columns={8} rows={8} />;
 
     return (
+        <RequirePermission permission="EXAMENS_VOIR">
         <div className="space-y-6">
             <PageHeader
                 title="Gestion des examens"
@@ -150,11 +149,11 @@ export default function ExamenList() {
                         <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
                             Filtres
                         </Button>
-                        {peutGerer && (
+                        <Can permission="EXAMENS_GERER">
                             <Button icon={<FaPlus />} onClick={handleAdd}>
                                 Nouvel examen
                             </Button>
-                        )}
+                        </Can>
                     </>
                 }
             />
@@ -273,15 +272,15 @@ export default function ExamenList() {
                                             >
                                                 <FaEye size={14} />
                                             </IconButton>
-                                            {peutResultat && (
+                                            <Can anyOf={['EXAMENS_GERER', 'EXAMENS_RESULTAT']}>
                                                 <IconButton
                                                     color="blue"
-                                                    title={peutGerer ? 'Modifier' : 'Saisir le résultat'}
+                                                    title="Modifier"
                                                     onClick={() => handleEdit(examen)}
                                                 >
                                                     <FaEdit size={14} />
                                                 </IconButton>
-                                            )}
+                                            </Can>
                                             <IconButton
                                                 color="green"
                                                 title={examen.idPrescription
@@ -304,7 +303,7 @@ export default function ExamenList() {
                                             >
                                                 <FaTags size={14} />
                                             </IconButton>
-                                            {peutGerer && (
+                                            <Can permission="EXAMENS_GERER">
                                                 <IconButton
                                                     color="red"
                                                     title="Supprimer"
@@ -312,7 +311,7 @@ export default function ExamenList() {
                                                 >
                                                     <FaTrash size={14} />
                                                 </IconButton>
-                                            )}
+                                            </Can>
                                         </div>
                                     </Td>
                                 </Tr>
@@ -331,5 +330,6 @@ export default function ExamenList() {
                 </TableContainer>
             )}
         </div>
+        </RequirePermission>
     );
 }

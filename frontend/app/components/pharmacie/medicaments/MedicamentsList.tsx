@@ -18,6 +18,8 @@ import { Medicament } from '@/app/types/medicament';
 import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { CategorieSelect } from '@/app/components/common/CategorieSelect';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 export default function MedicamentsList() {
   const router = useRouter();
@@ -82,6 +84,7 @@ export default function MedicamentsList() {
   if (loading) return <SkeletonTable columns={6} rows={8} />;
 
   return (
+    <RequirePermission permission="PHARMACIE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Médicaments"
@@ -92,9 +95,11 @@ export default function MedicamentsList() {
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/medicaments/nouveau')}>
               Nouveau médicament
             </Button>
+            </Can>
           </>
         }
       />
@@ -159,9 +164,11 @@ export default function MedicamentsList() {
               : 'Impossible de charger la liste des médicaments. Vérifiez que le serveur est démarré puis cliquez sur Actualiser.'
           }
           action={
+            <Can permission="PHARMACIE_GERER">
             <Button icon={<FaPlus />} onClick={() => router.push('/pharmacie/medicaments/nouveau')}>
               Nouveau médicament
             </Button>
+            </Can>
           }
         />
       ) : (
@@ -192,12 +199,14 @@ export default function MedicamentsList() {
                       <IconButton color="gray" title="Voir" onClick={() => router.push(`/pharmacie/medicaments/${med.idMedicament}`)}>
                         <FaEye size={14} />
                       </IconButton>
+                      <Can permission="PHARMACIE_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => router.push(`/pharmacie/medicaments/${med.idMedicament}/modifier`)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDelete(med)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -214,5 +223,6 @@ export default function MedicamentsList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

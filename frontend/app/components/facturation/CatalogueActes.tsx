@@ -19,6 +19,8 @@ import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 import { FilterPanel, FilterInput, FilterSelect } from '@/app/ui/FilterControls';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
+import Can from '@/app/components/common/Can';
+import RequirePermission from '@/app/components/common/RequirePermission';
 
 const categorieOptions = CategorieActeMedicalValues.map((c): { value: CategorieActeMedical; label: string } => ({
   value: c,
@@ -287,21 +289,26 @@ export default function CatalogueActes() {
   };
 
   return (
+    <RequirePermission permission="CATALOGUE_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Catalogue d'actes"
         subtitle="Tarifs des examens, interventions, soins, consultations…"
         actions={
           <>
+            <Can permission="CATALOGUE_GERER">
             <Button variant="secondary" icon={<FaLayerGroup />} onClick={() => setShowGroupeModal(true)}>
               Groupes
             </Button>
+            </Can>
             <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
               Filtres
             </Button>
+            <Can permission="CATALOGUE_GERER">
             <Button icon={<FaPlus />} onClick={openCreateActe}>
               Nouvel acte
             </Button>
+            </Can>
           </>
         }
       />
@@ -388,12 +395,14 @@ export default function CatalogueActes() {
                   </Td>
                   <Td className="whitespace-nowrap text-center">
                     <div className="flex justify-center gap-2">
+                      <Can permission="CATALOGUE_GERER">
                       <IconButton color="blue" title="Modifier" onClick={() => openEditActe(acte)}>
                         <FaEdit size={14} />
                       </IconButton>
                       <IconButton color="red" title="Supprimer" onClick={() => handleDeleteActe(acte)}>
                         <FaTrash size={14} />
                       </IconButton>
+                      </Can>
                     </div>
                   </Td>
                 </Tr>
@@ -591,12 +600,14 @@ export default function CatalogueActes() {
                     <p className="text-xs text-gray-400">{CategorieActeLabels[g.categorie]}</p>
                   </div>
                   <div className="flex gap-1">
+                    <Can permission="CATALOGUE_GERER">
                     <IconButton color="gray" title="Modifier" onClick={() => handleEditGroupe(g)}>
                       <FaEdit size={12} />
                     </IconButton>
                     <IconButton color="red" title="Supprimer" onClick={() => handleDeleteGroupe(g)}>
                       <FaTrash size={12} />
                     </IconButton>
+                    </Can>
                   </div>
                 </div>
               ))}
@@ -606,5 +617,6 @@ export default function CatalogueActes() {
         </div>
       </Modal>
     </div>
+    </RequirePermission>
   );
 }
