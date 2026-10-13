@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { FaSave, FaArrowLeft } from 'react-icons/fa';
+import { FaSave } from 'react-icons/fa';
 import { soinPrescritService } from '@/app/services/soinPrescritService';
 import { personnelService } from '@/app/services/personnelService';
 import { FormSelect } from '../common/FormSelect';

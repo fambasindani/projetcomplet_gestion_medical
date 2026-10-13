@@ -85,8 +85,9 @@ export const PersonnelSearchSelect: React.FC<PersonnelSearchSelectProps> = ({
 
   // Recharge quand la fonction filtrée change.
   useEffect(() => {
-    setPersonnels([]);
     if (isOpen) {
+      // Le chargement asynchrone met à jour l'état après la réponse réseau.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       void searchPersonnel('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

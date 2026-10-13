@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useMemo } from 'react';
+import Image from 'next/image';
 import { FaCamera, FaTrash, FaUpload, FaUserMd } from 'react-icons/fa';
 import { toast } from '@/app/utils/toast';
 import axios from 'axios';
@@ -111,9 +112,12 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
           </div>
         ) : previewUrl ? (
           <div className="group relative h-full w-full">
-            <img
+            <Image
               src={previewUrl}
               alt={name}
+              fill
+              sizes="(max-width: 640px) 100vw, 256px"
+              unoptimized
               className="h-full w-full object-cover"
               onError={(e) => {
                 e.currentTarget.src = '/default-avatar.png';

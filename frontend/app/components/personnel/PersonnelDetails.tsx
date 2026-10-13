@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { toast } from '@/app/utils/toast';
 import {
   FaArrowLeft, FaEdit, FaEnvelope, FaPhone, FaMapMarkerAlt,
   FaBriefcase, FaCalendarAlt, FaIdCard, FaUser, FaUserTie, FaMoneyBillWave
@@ -62,7 +62,7 @@ export default function PersonnelDetails() {
           <div className="flex justify-center lg:block">
             <div className="w-24 h-24 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
               {personnel.photo ? (
-                <img src={personnel.photo} alt="Photo" className="w-full h-full object-cover" />
+                <Image src={personnel.photo} alt="Photo" width={96} height={96} unoptimized className="w-full h-full object-cover" />
               ) : (
                 <FaUser size={40} className="text-slate-300" />
               )}

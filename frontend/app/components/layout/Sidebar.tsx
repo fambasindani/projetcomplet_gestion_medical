@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,12 +9,12 @@ import {
   FaChevronLeft, FaChevronRight, FaHospital, FaAmbulance, FaHeartbeat, FaUsers,
   FaUserMd, FaStethoscope, FaFileMedical, FaAngleDown, FaAngleUp, FaProcedures,
   FaSyringe, FaFileInvoiceDollar, FaClipboardCheck, FaUserNurse, FaBed, FaNotesMedical,
-  FaVial, FaMicroscope, FaXRay, FaHeart, FaBrain, FaEye, FaFlask, FaMoneyBillWave, FaChartBar, FaSitemap,
+  FaMicroscope, FaFlask, FaMoneyBillWave, FaChartBar, FaSitemap,
   FaPrescriptionBottle,
   FaListAlt,
-  FaBandAid
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAppSettings } from '../../contexts/AppSettingsContext';
 
 interface MenuItem {
   path: string;
@@ -33,190 +33,182 @@ const menuItems: MenuItem[] = [
   // PORTAIL PATIENT
   {
     path: '/mon-espace-module',
-    name: 'Mon espace',
+    name: 'menu.monEspace',
     icon: FaUserInjured,
     roles: ['PATIENT'],
     rolesOnly: true,
     permission: 'MON_ESPACE_VOIR',
     children: [
-      { path: '/mon-espace/rendez-vous', permission: 'MES_RENDEZ_VOUS_VOIR', name: 'Mes rendez-vous', icon: FaCalendarCheck },
-      { path: '/mon-espace/examens', permission: 'MES_EXAMENS_VOIR', name: 'Mes résultats', icon: FaFlask },
-      { path: '/mon-espace/ordonnances', permission: 'MES_ORDONNANCES_VOIR', name: 'Ordonnances & consultations', icon: FaListAlt },
-      { path: '/mon-espace/factures', permission: 'MES_FACTURES_VOIR', name: 'Mes factures', icon: FaFileInvoiceDollar },
-      { path: '/mon-espace/dossier', permission: 'MON_DOSSIER_VOIR', name: 'Mon dossier', icon: FaClipboardList },
+      { path: '/mon-espace/rendez-vous', permission: 'MES_RENDEZ_VOUS_VOIR', name: 'menu.mesRendezVous', icon: FaCalendarCheck },
+      { path: '/mon-espace/examens', permission: 'MES_EXAMENS_VOIR', name: 'menu.mesResultats', icon: FaFlask },
+      { path: '/mon-espace/ordonnances', permission: 'MES_ORDONNANCES_VOIR', name: 'menu.ordonnancesConsultations', icon: FaListAlt },
+      { path: '/mon-espace/factures', permission: 'MES_FACTURES_VOIR', name: 'menu.mesFactures', icon: FaFileInvoiceDollar },
+      { path: '/mon-espace/dossier', permission: 'MON_DOSSIER_VOIR', name: 'menu.monDossier', icon: FaClipboardList },
     ],
   },
 
   // DASHBOARD
-  { path: '/dashboard', name: 'Tableau de bord', icon: FaTachometerAlt, badge: 'Actif', badgeColor: '#10b981', permission: 'DASHBOARD_VOIR' },
+  { path: '/dashboard', name: 'menu.dashboard', icon: FaTachometerAlt, badge: 'Actif', badgeColor: '#10b981', permission: 'DASHBOARD_VOIR' },
 
   // MÉDECINS
   {
     path: '/medecins-module',
-    name: 'Médecins',
+    name: 'menu.medecins',
     icon: FaUserMd,
     roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'RH'],
     anyPermission: ['MEDECINS_VOIR', 'PLANNING_GROUPE_VOIR'],
     children: [
-      { path: '/medecins', name: 'Médecins', icon: FaUserMd, permission: 'MEDECINS_VOIR' },
-      { path: '/medecins/planning', name: 'Planning de groupe', icon: FaCalendarCheck, permission: 'PLANNING_GROUPE_VOIR' },
-      { path: '/specialites', name: 'Spécialités', icon: FaStethoscope, permission: 'SPECIALITES_VOIR' },
+      { path: '/medecins', name: 'menu.medecins', icon: FaUserMd, permission: 'MEDECINS_VOIR' },
+      { path: '/medecins/planning', name: 'menu.planningGroupe', icon: FaCalendarCheck, permission: 'PLANNING_GROUPE_VOIR' },
+      { path: '/specialites', name: 'menu.specialites', icon: FaStethoscope, permission: 'SPECIALITES_VOIR' },
     ]
   },
 
   // PATIENTS
   {
     path: '/patients-module',
-    name: 'Patients',
+    name: 'menu.patients',
     icon: FaUserInjured,
     badge: '12',
     badgeColor: '#667eea',
     roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
     permission: 'PATIENTS_VOIR',
     children: [
-      { path: '/patients', name: 'Patients', icon: FaUserInjured },
+      { path: '/patients', name: 'menu.patients', icon: FaUserInjured },
     ]
   },
 
   // RENDEZ-VOUS
   {
     path: '/rendezvous-module',
-    name: 'Rendez-vous',
+    name: 'menu.rendezvous',
     icon: FaCalendarCheck,
     badge: '8',
     badgeColor: '#f59e0b',
     roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
     permission: 'RENDEZ_VOUS_VOIR',
     children: [
-      { path: '/rendezvous', name: 'Tous les rendez-vous', icon: FaCalendarCheck },
-      { path: '/rendezvous/planning', name: 'Planning journalier', icon: FaClipboardCheck },
-      { path: '/consultations', name: 'Consultations', icon: FaStethoscope, permission: 'CONSULTATIONS_VOIR' },
+      { path: '/rendezvous', name: 'menu.tousRdv', icon: FaCalendarCheck },
+      { path: '/rendezvous/planning', name: 'menu.planningJournalier', icon: FaClipboardCheck },
+      { path: '/consultations', name: 'menu.consultations', icon: FaStethoscope, permission: 'CONSULTATIONS_VOIR' },
     ]
   },
 
 {
   path: '/prescriptions-module',
-  name: 'Prescriptions',
-  icon: FaPrescriptionBottle, // ou une icône appropriée
+  name: 'menu.prescriptions',
+  icon: FaPrescriptionBottle,
   roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE'],
   permission: 'PRESCRIPTIONS_VOIR',
   children: [
-    { path: '/prescriptions', name: 'Toutes les prescriptions', icon: FaListAlt },
-    { path: '/prescriptions/medicaments', name: 'Prescriptions médicaments', icon: FaPills },
-  /*   { path: '/prescriptions/examens', name: 'Prescriptions examens', icon: FaMicroscope },
-    { path: '/prescriptions/soins', name: 'Prescriptions soins', icon: FaBandAid }, */
+    { path: '/prescriptions', name: 'menu.toutesPrescriptions', icon: FaListAlt },
+    { path: '/prescriptions/medicaments', name: 'menu.prescriptionsMedicaments', icon: FaPills },
   ]
 },
-
 
   // PHARMACIE
   {
     path: '/pharmacie-module',
-    name: 'Pharmacie',
+    name: 'menu.pharmacie',
     icon: FaPills,
     roles: ['ADMIN', 'PHARMACIEN'],
     permission: 'PHARMACIE_VOIR',
     children: [
-      { path: '/pharmacie/medicaments', name: 'Médicaments', icon: FaPills },
-      { path: '/pharmacie/categories', name: 'Catégories', icon: FaFlask },
-      { path: '/pharmacie/lots', name: 'Gestion des lots', icon: FaSyringe },
-      { path: '/pharmacie/fournisseurs', name: 'Fournisseurs', icon: FaUsers },
-      { path: '/pharmacie/commandes', name: 'Commandes', icon: FaClipboardList },
-      { path: '/pharmacie/inventaire', name: 'Inventaire', icon: FaClipboardCheck },
-      { path: '/pharmacie/alertes', name: 'Alertes stock', icon: FaHeartbeat },
-      { path: '/pharmacie/delivrances', name: 'Délivrances', icon: FaFileMedical },
+      { path: '/pharmacie/medicaments', name: 'menu.medicaments', icon: FaPills },
+      { path: '/pharmacie/categories', name: 'menu.categories', icon: FaFlask },
+      { path: '/pharmacie/lots', name: 'menu.lots', icon: FaSyringe },
+      { path: '/pharmacie/fournisseurs', name: 'menu.fournisseurs', icon: FaUsers },
+      { path: '/pharmacie/commandes', name: 'menu.commandes', icon: FaClipboardList },
+      { path: '/pharmacie/inventaire', name: 'menu.inventaire', icon: FaClipboardCheck },
+      { path: '/pharmacie/alertes', name: 'menu.alertesStock', icon: FaHeartbeat },
+      { path: '/pharmacie/delivrances', name: 'menu.delivrances', icon: FaFileMedical },
     ]
   },
 
   // EXAMENS
   {
     path: '/examens-module',
-    name: 'Examens',
+    name: 'menu.examens',
     icon: FaMicroscope,
     roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'LABORANTIN'],
     permission: 'EXAMENS_VOIR',
     children: [
-      // { path: '/examens/radiologie', name: 'Radiologie', icon: FaXRay },
-      // { path: '/examens/biologie', name: 'Biologie', icon: FaVial },
-      // { path: '/examens/cardiologie', name: 'Cardiologie', icon: FaHeart },
-      // { path: '/examens/neurologie', name: 'Neurologie', icon: FaBrain },
-      // { path: '/examens/ophtalmologie', name: 'Ophtalmologie', icon: FaEye },
-      { path: '/examens/liste', name: 'Tous les examens', icon: FaNotesMedical },
+      { path: '/examens/liste', name: 'menu.tousExamens', icon: FaNotesMedical },
     ]
   },
 
   // URGENCES
   {
     path: '/urgences-module',
-    name: 'Urgences',
+    name: 'menu.urgences',
     icon: FaAmbulance,
     badge: '3',
     badgeColor: '#ef4444',
     roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'INFIRMIER'],
     permission: 'URGENCES_VOIR',
     children: [
-      { path: '/urgences/admissions', name: 'Admissions', icon: FaHeartbeat },
-      { path: '/urgences/interventions', name: 'Interventions', icon: FaFileMedical },
-      { path: '/urgences/salle-attente', name: "Salle d'attente", icon: FaUsers },
+      { path: '/urgences/admissions', name: 'menu.admissions', icon: FaHeartbeat },
+      { path: '/urgences/interventions', name: 'menu.interventions', icon: FaFileMedical },
+      { path: '/urgences/salle-attente', name: 'menu.salleAttente', icon: FaUsers },
     ]
   },
 
   // HOSPITALISATION
   {
     path: '/hospitalisation-module',
-    name: 'Hospitalisation',
+    name: 'menu.hospitalisation',
     icon: FaHospital,
     roles: ['ADMIN', 'MEDECIN', 'SECRETAIRE', 'INFIRMIER'],
     permission: 'HOSPITALISATIONS_VOIR',
     children: [
-      { path: '/patients/hospitalisations', name: 'Admissions & séjours', icon: FaProcedures, permission: 'HOSPITALISATIONS_VOIR' },
-      { path: '/hospitalisations/chambres', name: 'Chambres', icon: FaBed, permission: 'CHAMBRES_VOIR' },
-      { path: '/hospitalisations/soins', name: 'Soins infirmiers', icon: FaUserNurse, permission: 'SOINS_VOIR' },
+      { path: '/patients/hospitalisations', name: 'menu.admissionsSejours', icon: FaProcedures, permission: 'HOSPITALISATIONS_VOIR' },
+      { path: '/hospitalisations/chambres', name: 'menu.chambres', icon: FaBed, permission: 'CHAMBRES_VOIR' },
+      { path: '/hospitalisations/soins', name: 'menu.soinsInfirmiers', icon: FaUserNurse, permission: 'SOINS_VOIR' },
     ]
   },
 
   // PERSONNEL
   {
     path: '/personnel-module',
-    name: 'Personnel',
+    name: 'menu.personnel',
     icon: FaUsers,
     roles: ['ADMIN', 'RH'],
     permission: 'PERSONNEL_VOIR',
     children: [
-      { path: '/personnel', name: 'Liste du personnel', icon: FaUsers },
-      { path: '/personnel/infirmiers', name: 'Infirmiers', icon: FaUserNurse },
+      { path: '/personnel', name: 'menu.listePersonnel', icon: FaUsers },
+      { path: '/personnel/infirmiers', name: 'menu.infirmiers', icon: FaUserNurse },
     ]
   },
 
   // FACTURATION
   {
     path: '/facturation-module',
-    name: 'Facturation',
+    name: 'menu.facturation',
     icon: FaFileInvoiceDollar,
     roles: ['ADMIN', 'SECRETAIRE', 'MEDECIN'],
     permission: 'FACTURATION_VOIR',
     children: [
-      { path: '/factures', name: 'Factures', icon: FaFileInvoiceDollar },
-      { path: '/factures/catalogue', name: "Catalogue d'actes", icon: FaListAlt },
-      { path: '/factures/paiements', name: 'Paiements', icon: FaMoneyBillWave },
-      { path: '/factures/statistiques', name: 'Statistiques', icon: FaChartBar },
+      { path: '/factures', name: 'menu.factures', icon: FaFileInvoiceDollar },
+      { path: '/factures/catalogue', name: 'menu.catalogueActes', icon: FaListAlt },
+      { path: '/factures/paiements', name: 'menu.paiements', icon: FaMoneyBillWave },
+      { path: '/factures/statistiques', name: 'menu.statistiques', icon: FaChartBar },
     ]
   },
 
   // PARAMÈTRES
   {
     path: '/parametres-module',
-    name: 'Paramètres',
+    name: 'menu.parametres',
     icon: FaCog,
     roles: ['ADMIN'],
     permission: 'UTILISATEURS_GERER',
     children: [
-      { path: '/settings/profil', name: 'Mon profil', icon: FaUserMd },
-      { path: '/settings/utilisateurs', name: 'Utilisateurs', icon: FaUsers },
-      { path: '/settings/roles', name: 'Rôles & permissions', icon: FaClipboardCheck },
-      { path: '/settings/categories-examen', name: "Catégories d'examen", icon: FaListAlt },
-      { path: '/settings/laboratoires', name: 'Laboratoires', icon: FaFlask },
-      { path: '/settings/services', name: 'Services', icon: FaSitemap },
+      { path: '/settings/profil', name: 'menu.monProfil', icon: FaUserMd },
+      { path: '/settings/utilisateurs', name: 'menu.utilisateurs', icon: FaUsers },
+      { path: '/settings/roles', name: 'menu.rolesPermissions', icon: FaClipboardCheck },
+      { path: '/settings/categories-examen', name: 'menu.categoriesExamen', icon: FaListAlt },
+      { path: '/settings/laboratoires', name: 'menu.laboratoires', icon: FaFlask },
+      { path: '/settings/services', name: 'menu.services', icon: FaSitemap },
     ]
   },
 ];
@@ -253,14 +245,12 @@ const submenuReducer = (state: SubmenuState, action: SubmenuAction): SubmenuStat
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileOpen, onMobileClose }) => {
   const pathname = usePathname();
   const { user, permissions } = useAuth();
+  const { t } = useAppSettings();
 
   const canSee = (item: MenuItem): boolean => {
-    // Certains menus sont strictement reserves a un role (ex. Mon espace = PATIENT),
-    // independamment des permissions : un ADMIN ne doit pas voir l'espace patient.
     if (item.rolesOnly && item.roles) {
       return !!user?.role && item.roles.includes(user.role);
     }
-    // Priorité aux permissions explicites (RBAC) si elles sont fournies par le backend
     if (permissions.length > 0) {
       if (item.anyPermission && item.anyPermission.length > 0) {
         return item.anyPermission.some((p) => permissions.includes(p));
@@ -269,7 +259,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         return permissions.includes(item.permission);
       }
     }
-    // Repli sur le rôle (anciens jetons sans permissions)
     if (item.roles) {
       return !!user?.role && item.roles.includes(user.role);
     }
@@ -278,7 +267,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
 
   const visibleMenuItems = menuItems
     .filter((item) => {
-      // Un module parent est visible si lui-même OU l'un de ses enfants est autorisé.
       if (item.children && item.children.length > 0 && !item.permission && !item.anyPermission) {
         const anyChild = item.children.some((c) => canSee(c));
         if (anyChild) return true;
@@ -287,7 +275,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
     })
     .map((item) => {
       if (!item.children) return item;
-      // Ne garder que les enfants autorisés (permission/anyPermission/roles).
       const children = item.children.filter((c) => {
         if (c.permission || c.anyPermission) return canSee(c);
         return true;
@@ -318,7 +305,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
 
   const toggleSubmenu = (path: string, e: React.MouseEvent) => {
     e.preventDefault();
-    // Si la barre est réduite, un clic sur une rubrique la déploie d'abord.
     if (isCollapsed) {
       toggleSidebar();
     }
@@ -338,8 +324,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
     if (isMobileOpen && onMobileClose) onMobileClose();
   };
 
+  const badgeLabel = (badge?: string) => (badge === 'Actif' ? t('menu.badge.active') : badge);
+
   const sidebarWidth = isCollapsed ? 'w-20' : 'w-64';
-  const sidebarClasses = `fixed left-0 top-0 z-40 flex h-full flex-col bg-slate-900 text-white transition-all duration-300 ${sidebarWidth} ${
+  const sidebarClasses = `fixed left-0 top-0 z-40 flex h-full flex-col bg-[#0b1120] text-white transition-all duration-300 ${sidebarWidth} ${
     isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
   }`;
 
@@ -349,7 +337,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={handleLinkClick} />
       )}
       <aside className={sidebarClasses}>
-        <div className={`flex h-16 shrink-0 items-center border-b border-slate-800 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`flex h-16 shrink-0 items-center border-b border-[#1e293b] px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
               <FaHospital className="text-lg text-white" />
@@ -357,11 +345,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
             {!isCollapsed && (
               <div className="truncate">
                 <span className="block text-sm font-bold leading-tight">Hôpital</span>
-                <span className="block text-[11px] leading-tight text-slate-400">Saint-Luc</span>
+                <span className="block text-[11px] leading-tight text-[#94a3b8]">Saint-Luc</span>
               </div>
             )}
           </div>
-          <button onClick={toggleSidebar} className="hidden rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-white lg:block">
+          <button onClick={toggleSidebar} className="hidden rounded-lg p-1.5 text-[#94a3b8] transition hover:bg-[#1e293b] hover:text-white lg:block">
             {isCollapsed ? <FaChevronRight size={16} /> : <FaChevronLeft size={16} />}
           </button>
         </div>
@@ -374,15 +362,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
                   <div
                     onClick={(e) => toggleSubmenu(item.path, e)}
                     className={`flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      isActive(item.path) || isChildActive(item.children) ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      isActive(item.path) || isChildActive(item.children) ? 'bg-[#1e293b] text-white' : 'text-[#cbd5e1] hover:bg-[#1e293b] hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3 truncate">
                       <item.icon size={20} />
-                      {!isCollapsed && <span>{item.name}</span>}
+                      {!isCollapsed && <span>{t(item.name)}</span>}
                       {!isCollapsed && item.badge && (
                         <span className="ml-auto rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: item.badgeColor }}>
-                          {item.badge}
+                          {badgeLabel(item.badge)}
                         </span>
                       )}
                     </div>
@@ -397,7 +385,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="ml-4 mt-1 space-y-1 overflow-hidden border-l border-slate-800 pl-2"
+                        className="ml-4 mt-1 space-y-1 overflow-hidden border-l border-[#1e293b] pl-2"
                       >
                         {item.children.map((child) => {
                           const isActiveChild = getActiveChild(item.children)?.path === child.path;
@@ -407,12 +395,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
                               href={child.path}
                               onClick={handleLinkClick}
                               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                                isActiveChild ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                isActiveChild ? 'bg-[#1e293b] text-white' : 'text-[#94a3b8] hover:bg-[#1e293b] hover:text-white'
                               }`}
                             >
                               <child.icon size={16} />
-                              <span>{child.name}</span>
-                              {child.badge && <span className="ml-auto rounded bg-gray-700 px-1.5 text-xs">{child.badge}</span>}
+                              <span>{t(child.name)}</span>
+                              {child.badge && <span className="ml-auto rounded bg-[#374151] px-1.5 text-xs">{child.badge}</span>}
                             </Link>
                           );
                         })}
@@ -425,14 +413,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
                   href={item.path}
                   onClick={handleLinkClick}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive(item.path) ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    isActive(item.path) ? 'bg-[#1e293b] text-white' : 'text-[#cbd5e1] hover:bg-[#1e293b] hover:text-white'
                   }`}
                 >
                   <item.icon size={20} />
-                  {!isCollapsed && <span>{item.name}</span>}
+                  {!isCollapsed && <span>{t(item.name)}</span>}
                   {!isCollapsed && item.badge && (
                     <span className="ml-auto rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: item.badgeColor }}>
-                      {item.badge}
+                      {badgeLabel(item.badge)}
                     </span>
                   )}
                 </Link>
@@ -442,14 +430,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         </nav>
 
         {!isCollapsed && (
-          <div className="shrink-0 border-t border-slate-800 p-4 text-center">
-            <p className="text-xs text-slate-500">Version 1.0.0</p>
-            <div className="mt-2 flex items-center justify-center gap-2 text-xs text-slate-400">
+          <div className="shrink-0 border-t border-[#1e293b] p-4 text-center">
+            <p className="text-xs text-[#64748b]">{t('menu.version')}</p>
+            <div className="mt-2 flex items-center justify-center gap-2 text-xs text-[#94a3b8]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
-              <span>Connecté</span>
+              <span>{t('menu.connected')}</span>
             </div>
           </div>
         )}

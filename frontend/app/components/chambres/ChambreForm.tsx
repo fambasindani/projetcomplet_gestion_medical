@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
 import { FaSave, FaDollarSign, FaBed, FaSyringe } from 'react-icons/fa';

@@ -69,7 +69,7 @@ export default function CommandesList() {
     fournisseurService.getAll(1, 100).then(res => {
       setFournisseurs(res.items.map(f => ({ id: f.idFournisseur, nom: f.nomFournisseur })));
     }).catch(console.error);
-  }, []);
+  }, [peutVoir]);
 
   const fetchData = useCallback(async () => {
     if (!peutVoir) { setLoading(false); return; }

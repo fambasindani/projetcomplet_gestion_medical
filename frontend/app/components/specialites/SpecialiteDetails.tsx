@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
 import {
   FaArrowLeft, FaBuilding, FaUserMd, FaBed, FaPhone, FaEnvelope,
-  FaClipboardList, FaUserTie, FaCalendarAlt, FaCheckCircle, FaTimesCircle,
-  FaEdit, FaTrash, FaStethoscope, FaDoorOpen
+  FaClipboardList, FaCalendarAlt,
+  FaEdit, FaTrash, FaStethoscope
 } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

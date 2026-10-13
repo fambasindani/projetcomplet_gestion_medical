@@ -54,7 +54,11 @@ export default function ServicesList() {
     }
   }, [paginationParams.pageIndex, paginationParams.pageSize]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    // Le chargement asynchrone met à jour l'état après la réponse réseau.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+  }, [load]);
 
   const openCreate = () => { setEditing(null); setForm(emptyForm()); setShowModal(true); };
   const openEdit = (s: ServiceHospitalier) => {

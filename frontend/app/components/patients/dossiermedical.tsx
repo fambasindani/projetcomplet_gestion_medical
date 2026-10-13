@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   FaNotesMedical, FaCalendarAlt, FaPrescriptionBottle, FaFlask,
-  FaHospitalUser, FaSyringe, FaArrowLeft, FaEye, FaPrint, FaHeartbeat,
+  FaHospitalUser, FaSyringe, FaEye, FaPrint, FaHeartbeat,
 } from 'react-icons/fa';
 import { dossierMedicalService } from '@/app/services/dossierMedicalService';
 import { DossierMedical } from '@/app/types/dossierMedical';
@@ -14,7 +14,7 @@ import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import PageShell from '@/app/ui/PageShell';
 import DetailBanner from '@/app/ui/DetailBanner';
 import { InfoCard, InfoGrid } from '@/app/ui/InfoCard';
-import Button, { IconButton } from '@/app/ui/Button';
+import { IconButton } from '@/app/ui/Button';
 import EmptyState from '@/app/ui/EmptyState';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 
@@ -38,6 +38,7 @@ export default function DossierMedicalPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('info');
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     if (id) {
@@ -62,7 +63,7 @@ export default function DossierMedicalPage() {
   const formatDateTime = (d?: string | null) => (d ? new Date(d).toLocaleString('fr-FR') : '—');
 
   const age = dossier.dateNaissance
-    ? Math.floor((Date.now() - new Date(dossier.dateNaissance).getTime()) / (365.25 * 86400000))
+    ? Math.floor((now - new Date(dossier.dateNaissance).getTime()) / (365.25 * 86400000))
     : null;
 
   const tabs = [

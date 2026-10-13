@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaCalendarAlt, FaClipboardList, FaBell, FaArrowLeft, FaSave } from 'react-icons/fa';
+import { FaCalendarAlt, FaClipboardList, FaBell, FaSave } from 'react-icons/fa';
 
 import { FormInput } from '../common/FormInput';
 import { FormSelect } from '../common/FormSelect';

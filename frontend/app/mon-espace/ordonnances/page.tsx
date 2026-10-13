@@ -4,17 +4,13 @@ import { useEffect, useState } from 'react';
 import { toast } from '@/app/utils/toast';
 import { FaFileMedical, FaStethoscope } from 'react-icons/fa';
 import { patientPortalService, type MonOrdonnance, type MaConsultation } from '@/app/services/patientPortalService';
-import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import PageHeader from '@/app/ui/PageHeader';
-import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
 
 export default function MesOrdonnancesPage() {
   const [onglet, setOnglet] = useState<'ordonnances' | 'consultations'>('ordonnances');
   const [ordonnances, setOrdonnances] = useState<MonOrdonnance[]>([]);
-  const [pagedData, setPagedData] = useState<PagedResult<MonOrdonnance> | null>(null);
-  const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
   const [consultations, setConsultations] = useState<MaConsultation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,10 +19,9 @@ export default function MesOrdonnancesPage() {
       setLoading(true);
       try {
         const [o, c] = await Promise.all([
-          patientPortalService.getOrdonnances(pagination.pageIndex, pagination.pageSize),
+          patientPortalService.getOrdonnances(1, 10),
           patientPortalService.getConsultations(),
         ]);
-        setPagedData(o);
         setOrdonnances(o.items);
         setConsultations(c);
       } catch (e) {
@@ -35,8 +30,7 @@ export default function MesOrdonnancesPage() {
         setLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.pageIndex]);
+  }, []);
 
   return (
     <div className="space-y-5">

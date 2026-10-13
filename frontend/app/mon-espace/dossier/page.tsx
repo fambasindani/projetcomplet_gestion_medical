@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { toast } from '@/app/utils/toast';
 import {
-  FaFolderOpen, FaUser, FaTint, FaBirthdayCake, FaPhone, FaEnvelope,
-  FaMapMarkerAlt, FaHeartbeat, FaExclamationTriangle, FaIdCard, FaStethoscope,
+  FaUser, FaTint, FaPhone, FaEnvelope,
+  FaMapMarkerAlt, FaHeartbeat, FaExclamationTriangle, FaStethoscope,
 } from 'react-icons/fa';
 import { patientPortalService, type MonDossier } from '@/app/services/patientPortalService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';

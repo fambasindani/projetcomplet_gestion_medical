@@ -2,8 +2,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { toast } from '@/app/utils/toast';
 import {
   FaArrowLeft,
   FaBuilding,
@@ -59,6 +59,7 @@ const MedecinDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [medecin, setMedecin] = useState<MedecinDetails | null>(null);
   const [activeTab, setActiveTab] = useState<'infos' | 'rdv'>('infos');
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     const loadMedecin = async () => {
@@ -136,7 +137,7 @@ const MedecinDetails: React.FC = () => {
                 style={{ boxShadow: '0 4px 14px rgba(15,23,42,0.15)' }}
               >
                 {p?.photo ? (
-                  <img src={getImageUrl(p.photo) ?? ''} alt={`${p.prenom} ${p.nom}`} className="h-full w-full object-cover" />
+                  <Image src={getImageUrl(p.photo) ?? ''} alt={`${p.prenom} ${p.nom}`} width={112} height={112} unoptimized className="h-full w-full object-cover" />
                 ) : (
                   <FaUserMd className="text-4xl text-slate-400" />
                 )}
@@ -250,7 +251,7 @@ const MedecinDetails: React.FC = () => {
               {listeRdv.length ? (
                 listeRdv.map((r) => {
                   const date = new Date(r.dateRdv);
-                  const passe = date.getTime() < Date.now();
+                  const passe = date.getTime() < now;
                   return (
                     <Tr key={r.idRdv}>
                       <Td className="whitespace-nowrap">{date.toLocaleString('fr-FR')}</Td>

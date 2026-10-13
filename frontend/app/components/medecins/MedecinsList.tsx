@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
 import { FaUserMd, FaPlus, FaEdit, FaTrash, FaIdCard, FaEnvelope, FaPhone, FaBuilding, FaGraduationCap, FaCheckCircle, FaTimesCircle, FaClock, FaSearch, FaFilter, FaChartBar, FaEye } from 'react-icons/fa';
@@ -285,9 +286,12 @@ const MedecinsList: React.FC = () => {
                     <div className="flex items-center">
                       <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-indigo-100">
                         {imageUrl && !hasImageError ? (
-                          <img
+                          <Image
                             src={imageUrl}
                             alt={`${medecin.prenom} ${medecin.nom}`}
+                            width={40}
+                            height={40}
+                            unoptimized
                             className="h-full w-full object-cover"
                             onError={() => handleImageError(medecin.idMedecin)}
                           />

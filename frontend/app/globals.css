@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8fafc; /* slate-50 */
   --foreground: #0f172a; /* slate-900 */
@@ -12,6 +14,39 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ===== Thème sombre (classe .dark sur <html>) =====
+   Tailwind v4 génère les utilitaires via var(--color-*).
+   On remappe donc la palette slate pour basculer toutes les pages
+   sans toucher aux centaines de fichiers de modules. */
+html.dark {
+  --background: #0b1220;
+  --foreground: #f1f5f9;
+  --sidebar: #0b1120;
+
+  --color-slate-50: #0f172a;
+  --color-slate-100: #1e293b;
+  --color-slate-200: #334155;
+  --color-slate-300: #475569;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #a5b4c9;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f1f5f9;
+
+  /* Palette grise utilisée par les composants historiques. */
+  --color-gray-50: #0f172a;
+  --color-gray-100: #1e293b;
+  --color-gray-200: #334155;
+  --color-gray-300: #475569;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #94a3b8;
+  --color-gray-600: #cbd5e1;
+  --color-gray-700: #e2e8f0;
+  --color-gray-800: #f1f5f9;
+  --color-gray-900: #f8fafc;
 }
 
 html {
@@ -58,4 +93,89 @@ body {
 /* Titres plus nets */
 h1, h2, h3, h4 {
   letter-spacing: -0.01em;
+}
+
+/* ===== Surfaces blanches (cartes, popovers) en thème sombre =====
+   text-white est volontairement inchangé (boutons/texte sur fond coloré). */
+html.dark .bg-white {
+  background-color: #111827;
+}
+html.dark .bg-white\/95 {
+  background-color: rgb(17 24 39 / 0.95);
+}
+html.dark .bg-white\/90 {
+  background-color: rgb(17 24 39 / 0.9);
+}
+html.dark .bg-white\/80 {
+  background-color: rgb(17 24 39 / 0.8);
+}
+html.dark .bg-white\/70 {
+  background-color: rgb(17 24 39 / 0.7);
+}
+html.dark .bg-white\/50 {
+  background-color: rgb(17 24 39 / 0.5);
+}
+html.dark .hover\:bg-white:hover {
+  background-color: #111827;
+}
+
+/* Champs de formulaire, filtres et contrôles date/heure */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+html.dark select,
+html.dark textarea {
+  background-color: #111827 !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.dark input[type="date"],
+html.dark input[type="time"],
+html.dark input[type="datetime-local"],
+html.dark input[type="month"],
+html.dark input[type="week"] {
+  color-scheme: dark;
+}
+
+html.dark select option {
+  background-color: #111827;
+  color: #f1f5f9;
+}
+
+/* Dialogue de confirmation (react-use-confirming-dialog) */
+html.dark [role="dialog"] > div {
+  background-color: #111827 !important;
+  color: #f1f5f9 !important;
+  border: 1px solid #334155;
+}
+
+html.dark [role="dialog"] h2,
+html.dark [role="dialog"] p {
+  color: #f1f5f9 !important;
+}
+
+html.dark [role="dialog"] button:first-of-type {
+  background-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Scrollbar sombre */
+html.dark * {
+  scrollbar-color: #475569 transparent;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  background-clip: content-box;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+  background-clip: content-box;
+}
+html.dark ::selection {
+  background: rgba(99, 102, 241, 0.4);
+  color: #eef2ff;
 }

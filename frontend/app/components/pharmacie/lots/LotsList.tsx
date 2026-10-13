@@ -39,7 +39,7 @@ export default function LotsList() {
     medicamentService.getAll(1, 100).then(res => {
       setMedicaments(res.items.map(m => ({ id: m.idMedicament, nom: m.nomCommercial })));
     }).catch(console.error);
-  }, []);
+  }, [peutVoir]);
 
   const fetchData = useCallback(async () => {
     if (!peutVoir) { setLoading(false); return; }

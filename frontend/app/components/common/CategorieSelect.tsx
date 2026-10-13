@@ -15,12 +15,11 @@ interface CategorieSelectProps {
 
 export const CategorieSelect: React.FC<CategorieSelectProps> = ({ value, onChange, error, label = 'Catégorie', required = false, placeholder = 'Sélectionner une catégorie', hideLabel = false }) => {
   const [categories, setCategories] = useState<{ id: number; nom: string }[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     categorieService.getAll(1, 100).then(res => {
       setCategories(res.items.map(c => ({ id: c.idCategorie, nom: c.nomCategorie })));
-    }).finally(() => setLoading(false));
+    });
   }, []);
 
   return (

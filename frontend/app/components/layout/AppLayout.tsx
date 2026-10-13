@@ -38,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1220]">
       <Header onMenuClick={toggleMobile} />
       <Sidebar
         isCollapsed={sidebarCollapsed}

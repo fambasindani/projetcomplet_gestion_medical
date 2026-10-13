@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   FaEdit,
-  FaBed,
   FaBuilding,
   FaStethoscope,
   FaCheck,

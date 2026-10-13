@@ -7,11 +7,9 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PDFViewer } from '@react-pdf/renderer';
 import {
-  FaArrowLeft,
   FaMoneyBillWave,
   FaBan,
   FaUserInjured,
-  FaCalendarAlt,
   FaDollarSign,
   FaFileInvoice,
   FaListAlt,
@@ -19,7 +17,6 @@ import {
   FaPrint,
   FaTimes,
 } from 'react-icons/fa';
-import type { IconType } from 'react-icons';
 import { useConfirm } from 'react-use-confirming-dialog';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';

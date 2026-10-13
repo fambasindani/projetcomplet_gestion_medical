@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaSave, FaArrowLeft, FaCheckCircle, FaFlask } from 'react-icons/fa';
+import { FaSave, FaCheckCircle, FaFlask } from 'react-icons/fa';
 import { examenService } from '@/app/services/examenService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { FormInput } from '../common/FormInput';

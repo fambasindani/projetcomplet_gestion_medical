@@ -2,17 +2,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import {
-  FaUserMd, FaCheckCircle, FaClock, FaTimesCircle, FaGraduationCap,
+  FaUserMd, FaCheckCircle,
   FaChartBar, FaCalendarAlt, FaHospital, FaStethoscope, FaUsers,
 } from 'react-icons/fa';
-import { toast } from '@/app/utils/toast';
 import { medecinService } from '@/app/services/medecinService';
 import SkeletonCards from '@/app/ui/SkeletonCards';
 import PageHeader from '@/app/ui/PageHeader';
 import Card from '@/app/components/common/Card';
 import { DonutChart } from '@/app/ui/Charts';
-import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
+import { Table, THead, Th, TBody, Tr, Td } from '@/app/ui/Table';
 import type { MedecinStats } from '@/app/types/medecin';
 
 const STAT_COLORS: Record<string, string> = {
@@ -225,7 +225,7 @@ const MedecinStats: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center">
                           {imageUrl ? (
-                            <img src={imageUrl} alt={`${medecin.prenom} ${medecin.nom}`} className="h-full w-full object-cover" />
+                            <Image src={imageUrl} alt={`${medecin.prenom} ${medecin.nom}`} width={36} height={36} unoptimized className="h-full w-full object-cover" />
                           ) : (
                             <FaUserMd className="text-slate-400" />
                           )}

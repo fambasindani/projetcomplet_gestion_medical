@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaCheck, FaTimes } from 'react-icons/fa';
+import { FaCheck } from 'react-icons/fa';
 import { commandeService } from '@/app/services/commandeService';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import PageShell from '@/app/ui/PageShell';

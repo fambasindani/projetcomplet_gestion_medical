@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from '@/app/utils/toast';
-import { FaCalendarCheck, FaPlus, FaTrash, FaClock } from 'react-icons/fa';
+import { FaCalendarCheck, FaPlus, FaTrash } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { patientPortalService, type MonRdv } from '@/app/services/patientPortalService';
 import type { PagedResult } from '@/app/types/pagination';
 import Pagination from '@/app/ui/Pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import PageHeader from '@/app/ui/PageHeader';
-import Card from '@/app/components/common/Card';
 import Button from '@/app/ui/Button';
 import Modal from '@/app/ui/Modal';
 import { FormInput } from '@/app/components/common/FormInput';
@@ -55,7 +54,12 @@ export default function MesRendezVousPage() {
     }
   };
 
-  useEffect(() => { void load(pagination.pageIndex); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [pagination.pageIndex]);
+  useEffect(() => {
+    // Le chargement asynchrone met à jour l'état après la réponse réseau.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load(pagination.pageIndex);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.pageIndex]);
 
   const openModal = async () => {
     setForm({ dateRdv: '', idMedecin: '', motif: '' });

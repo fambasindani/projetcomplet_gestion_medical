@@ -1,17 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { toast } from '@/app/utils/toast';
 import {
-  FaArrowLeft, FaUserMd, FaUserInjured, FaClipboardList,
-  FaStethoscope, FaPrescriptionBottle, FaFlask, FaBandAid, FaEdit,
-  FaTrash, FaClock, FaDumbbell, FaUserNurse
+  FaUserMd, FaUserInjured, FaStethoscope, FaFlask, FaEdit,
+  FaTrash, FaUserNurse
 } from 'react-icons/fa';
-import type { IconType } from 'react-icons';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import PageShell from '@/app/ui/PageShell';
@@ -29,14 +25,6 @@ const statutStyles: Record<StatutPrescription, string> = {
   Terminee: 'bg-blue-50 text-blue-700 border-blue-200',
   Annulee: 'bg-red-50 text-red-700 border-red-200',
   EnAttente: 'bg-amber-50 text-amber-700 border-amber-200'
-};
-
-const typeIcons: Record<TypePrescription, ReactNode> = {
-  [TypePrescription.Medicament]: <FaPrescriptionBottle />,
-  [TypePrescription.Examen]: <FaFlask />,
-  [TypePrescription.Soin]: <FaBandAid />,
-  [TypePrescription.Reeducation]: <FaDumbbell />,
-  [TypePrescription.Regime]: <FaClipboardList />
 };
 
 export default function PrescriptionDetails() {
@@ -146,25 +134,5 @@ export default function PrescriptionDetails() {
         </div>
       </DetailBanner>
     </PageShell>
-  );
-}
-
-// Composant utilitaire pour les infos
-interface InfoItemProps {
-  icon: IconType;
-  label: string;
-  value: string;
-  iconComponent?: ReactNode;
-}
-
-function InfoItem({ icon: Icon, label, value, iconComponent }: InfoItemProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="text-indigo-500 bg-indigo-50 p-2 rounded-lg">{iconComponent || <Icon />}</div>
-      <div>
-        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">{label}</p>
-        <p className="font-semibold text-gray-800">{value}</p>
-      </div>
-    </div>
   );
 }

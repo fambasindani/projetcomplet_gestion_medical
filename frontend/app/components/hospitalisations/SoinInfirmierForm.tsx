@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaSave, FaArrowLeft } from 'react-icons/fa';
+import { FaSave } from 'react-icons/fa';
 import { soinInfirmierService } from '@/app/services/soinInfirmierService';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 import { PersonnelSearchSelect } from '@/app/components/common/PersonnelSearchSelect';

@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaSave, FaArrowLeft } from 'react-icons/fa';
+import { FaSave } from 'react-icons/fa';
 import { examenService } from '@/app/services/examenService';
 import { categorieExamenService } from '@/app/services/categorieExamenService';
 import { PatientSearchSelect } from '@/app/components/common/PatientSearchSelect';

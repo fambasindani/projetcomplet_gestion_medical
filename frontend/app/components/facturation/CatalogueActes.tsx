@@ -126,16 +126,20 @@ export default function CatalogueActes() {
   }, [categorie, idGroupe, search, pageSize, peutVoir]);
 
   useEffect(() => {
+    // Le chargement asynchrone met à jour l'état après la réponse réseau.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadGroupes();
   }, [loadGroupes]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
     void loadActes(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorie, idGroupe, search]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadActes(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);

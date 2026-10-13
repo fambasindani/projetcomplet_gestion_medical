@@ -12,7 +12,7 @@ import {
   FaPercentage, FaBed, FaClipboardList,
 } from 'react-icons/fa';
 import toast from '@/app/utils/toast';
-import { AreaChart, BarChart, DonutChart, PALETTE } from '../ui/Charts';
+import { AreaChart, BarChart, DonutChart } from '../ui/Charts';
 import PeriodeFilter, { type PeriodeFiltre } from '../ui/PeriodeFilter';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/common/Card';
@@ -35,8 +35,6 @@ import type { AlerteStock } from '../types/alerte';
 import type { Examen } from '../types/examen';
 import type { SoinInfirmier } from '../types/soin';
 import type { FactureStats } from '../types/facture';
-
-const COLORS = PALETTE;
 
 const AlerteTypeLabels: Record<string, string> = {
   STOCK_FAIBLE: 'Stock faible',
@@ -146,7 +144,6 @@ const Dashboard = () => {
 
   if (loading) return <SkeletonCards cards={4} />;
 
-  const dateLabel = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const examensEnAttente = examens.filter((e) => ['Prescrit', 'Planifié', 'En_cours'].includes(e.statut));
   const examensRealises = examens.filter((e) => ['Réalisé', 'Validé'].includes(e.statut));
 

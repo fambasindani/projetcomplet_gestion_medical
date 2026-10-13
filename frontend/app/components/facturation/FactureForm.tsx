@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
 import {
   FaSave,
-  FaArrowLeft,
   FaPlus,
   FaTrash,
   FaFileInvoice,
@@ -22,6 +21,8 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { consultationService } from '@/app/services/consultationService';
 import { hospitalisationService } from '@/app/services/hospitalisationService';
 import { factureService, SourceElementLabels, type ElementFacturable, type SourceElement } from '@/app/services/factureService';
+
+const ORDRE_SOURCES: SourceElement[] = ['CONSULTATION', 'EXAMEN', 'MEDICAMENT', 'HOSPITALISATION', 'SOIN', 'INTERVENTION'];
 import type { FactureCreate } from '@/app/types/facture';
 import type { Consultation } from '@/app/types/consultation';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
@@ -256,8 +257,6 @@ export default function FactureForm() {
   };
 
   const { totalHt, montantTva, totalTtc, partAssurance, partComplementaire, reste } = calculs();
-
-  const ORDRE_SOURCES: SourceElement[] = ['CONSULTATION', 'EXAMEN', 'MEDICAMENT', 'HOSPITALISATION', 'SOIN', 'INTERVENTION'];
 
   const groupesElements = useMemo(() => {
     const map = new Map<SourceElement, { el: ElementFacturable; index: number }[]>();

@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaSave, FaArrowLeft, FaUser, FaCalendarAlt, FaHeartbeat, FaPills, FaCalendarCheck } from 'react-icons/fa';
+import { FaSave, FaUser, FaCalendarAlt, FaHeartbeat, FaPills, FaCalendarCheck } from 'react-icons/fa';
 import { ConsultationCreate, Consultation } from '@/app/types/consultation';
 import { consultationService } from '@/app/services/consultationService';
 import { patientService } from '@/app/services/patientService';

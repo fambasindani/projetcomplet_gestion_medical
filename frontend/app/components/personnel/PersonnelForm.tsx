@@ -4,11 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
 import { FaSave, FaUser, FaIdCard, FaPhone, FaEnvelope, FaMapMarkerAlt, FaCalendarAlt, FaBriefcase, FaDollarSign, FaCamera } from 'react-icons/fa';
 import { personnelService } from '@/app/services/personnelService';
-import type { PersonnelRequest, PersonnelUpdate, Genre, TypeContrat } from '@/app/types/personnel';
+import type { PersonnelRequest, PersonnelUpdate } from '@/app/types/personnel';
 import { GenreLabels, TypeContratLabels } from '@/app/types/personnel';
 import { FormInput } from '@/app/components/common/FormInput';
 import { FormSelect } from '@/app/components/common/FormSelect';
-import { FormTextarea } from '@/app/components/common/FormTextarea';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import PageShell from '@/app/ui/PageShell';
@@ -90,7 +89,7 @@ const PersonnelForm: React.FC<PersonnelFormProps> = ({ initialData, isEditMode, 
         router.push('/personnel');
       });
     }
-  }, [id, isEditMode, router]);
+  }, [id, initialData, isEditMode, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;

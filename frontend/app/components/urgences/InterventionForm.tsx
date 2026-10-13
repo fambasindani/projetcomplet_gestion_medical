@@ -133,7 +133,7 @@ export default function InterventionForm({ initialData, isEdit = false }: Interv
               placeholder="Optionnel" />
             <div className="md:col-span-2">
               <label className="mb-1.5 block text-sm font-semibold text-gray-800">
-                Type d'intervention <span className="text-red-500">*</span>
+                 Type d&apos;intervention <span className="text-red-500">*</span>
               </label>
               <ActeAutocomplete
                 categorie="Intervention"

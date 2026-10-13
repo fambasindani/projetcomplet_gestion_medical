@@ -1,13 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from '@/app/utils/toast';
 import {
-  FaArrowLeft,
   FaFlask,
   FaUser,
   FaUserMd,

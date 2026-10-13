@@ -3,7 +3,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { FaBuilding, FaCheckCircle, FaTimesCircle, FaUserMd, FaBed, FaChartBar } from 'react-icons/fa';
-import { toast } from '@/app/utils/toast';
 import SkeletonCards from '@/app/ui/SkeletonCards';
 import { specialiteService } from '@/app/services/specialiteService';
 import type { StatistiquesSpecialites } from '@/app/types/specialite';

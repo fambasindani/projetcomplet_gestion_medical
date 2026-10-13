@@ -85,7 +85,7 @@ export default function ExamenList() {
     useEffect(() => {
         if (!peutVoir) return;
         categorieExamenService.getAllList().then(setCategories).catch(console.error);
-    }, []);
+    }, [peutVoir]);
 
     const handleDelete = async (examen: Examen) => {
         const ok = await confirm({

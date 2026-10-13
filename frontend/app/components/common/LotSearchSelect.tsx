@@ -92,8 +92,9 @@ export const LotSearchSelect: React.FC<LotSearchSelectProps> = ({
 
   // Recharge la liste quand le médicament change : évite d'afficher des lots d'un autre médicament.
   useEffect(() => {
-    setLots([]);
     if (isOpen) {
+      // Le chargement asynchrone met à jour l'état après la réponse réseau.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       void searchLots('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

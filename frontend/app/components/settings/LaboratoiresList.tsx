@@ -72,6 +72,8 @@ export default function LaboratoiresList() {
   }, [paginationParams.pageIndex, paginationParams.pageSize, peutVoir]);
 
   useEffect(() => {
+    // Le chargement asynchrone met à jour l'état après la réponse réseau.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 

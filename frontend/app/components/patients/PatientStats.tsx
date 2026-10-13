@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FaUsers, FaCalendarAlt, FaVenusMars, FaUserPlus, FaTint, FaHeart } from 'react-icons/fa';
-import { toast } from '@/app/utils/toast';
+import { FaUsers, FaCalendarAlt, FaVenusMars, FaTint, FaHeart } from 'react-icons/fa';
 
 import SkeletonCards from '@/app/ui/SkeletonCards';
 import PageHeader from '@/app/ui/PageHeader';

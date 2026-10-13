@@ -6,10 +6,9 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from '@/app/utils/toast';
 import {
-  FaArrowLeft, FaEdit, FaCalendarAlt, FaUserMd, FaUserInjured,
+  FaEdit, FaUserMd, FaUserInjured,
   FaStethoscope, FaClock, FaTimesCircle
 } from 'react-icons/fa';
-import type { IconType } from 'react-icons';
 
 import SkeletonDetails from '@/app/ui/SkeletonDetails';
 import PageShell from '@/app/ui/PageShell';
