@@ -4,5 +4,8 @@ bakend/uploads/
 # Runner GitHub Actions (contient des secrets locaux)
 actions-runner/
 
+# Migration Vite (non versionnée pour l'instant)
+frontend-vite/
+
 .env
 !.env.example
