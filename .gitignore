@@ -1,5 +1,8 @@
 
 bakend/uploads/
 
+# Runner GitHub Actions (contient des secrets locaux)
+actions-runner/
+
 .env
 !.env.example
