@@ -64,7 +64,7 @@ const PatientDetails: React.FC = () => {
       <DetailBanner
         meta="Patient"
         title={`${informationsPersonnelles.prenom} ${informationsPersonnelles.nom}`}
-        subtitle={`N° ${informationsPersonnelles.numeroSecuriteSociale}`}
+        subtitle={informationsPersonnelles.numeroSecuriteSociale ? `N° ${informationsPersonnelles.numeroSecuriteSociale}` : 'N° non renseigné'}
         badges={
           <span className="rounded-full bg-slate-700 px-3 py-1 text-xs font-semibold text-white">
             {getGenreLabel(informationsPersonnelles.genre)}
@@ -76,7 +76,7 @@ const PatientDetails: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           <FormSection title="Informations personnelles" icon={<FaUser />}>
             <InfoGrid className="p-0!">
-              <InfoCard icon={FaIdCard} label="N° Sécurité sociale" value={informationsPersonnelles.numeroSecuriteSociale} />
+              <InfoCard icon={FaIdCard} label="N° Sécurité sociale" value={informationsPersonnelles.numeroSecuriteSociale || '-'} />
               <InfoCard icon={FaUser} label="Nom" value={informationsPersonnelles.nom} />
               <InfoCard icon={FaUser} label="Prénom" value={informationsPersonnelles.prenom} />
               <InfoCard icon={FaCalendarAlt} label="Date naissance" value={new Date(informationsPersonnelles.dateNaissance).toLocaleDateString('fr-FR')} />

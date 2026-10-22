@@ -45,7 +45,8 @@ public class PatientService {
 
     @Transactional
     public PatientResponseDto createPatient(PatientRequestDto dto) {
-        if (patientRepository.existsByNumeroSecuriteSociale(dto.getNumeroSecuriteSociale()))
+        if (dto.getNumeroSecuriteSociale() != null && !dto.getNumeroSecuriteSociale().trim().isEmpty()
+                && patientRepository.existsByNumeroSecuriteSociale(dto.getNumeroSecuriteSociale()))
             throw new BusinessException("Numéro sécurité sociale déjà existant");
         if (dto.getEmail() != null && patientRepository.existsByEmail(dto.getEmail()))
             throw new BusinessException("Email déjà existant");
@@ -77,7 +78,8 @@ public class PatientService {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient non trouvé"));
 
-        if (patientRepository.existsByNumeroSecuriteSocialeAndIdPatientNot(dto.getNumeroSecuriteSociale(), id))
+        if (dto.getNumeroSecuriteSociale() != null && !dto.getNumeroSecuriteSociale().trim().isEmpty()
+                && patientRepository.existsByNumeroSecuriteSocialeAndIdPatientNot(dto.getNumeroSecuriteSociale(), id))
             throw new BusinessException("Numéro sécurité sociale déjà utilisé par un autre patient");
         if (dto.getEmail() != null && patientRepository.existsByEmailAndIdPatientNot(dto.getEmail(), id))
             throw new BusinessException("Email déjà utilisé par un autre patient");

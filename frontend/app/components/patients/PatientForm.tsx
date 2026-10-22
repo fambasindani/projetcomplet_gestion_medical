@@ -59,7 +59,6 @@ const PatientFormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditMode);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [, setValidated] = useState(false);
 
   useEffect(() => {
     if (isEditMode) {
@@ -106,17 +105,24 @@ const PatientFormPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     if (type === 'checkbox') {
       setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+    if (name === 'email') {
+      if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        setErrors(prev => ({ ...prev, email: 'Email invalide' }));
+      } else {
+        setErrors(prev => ({ ...prev, email: '' }));
+      }
+    } else if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.numeroSecuriteSociale?.trim()) newErrors.numeroSecuriteSociale = 'Le numéro de sécurité sociale est requis';
     if (!formData.nom?.trim()) newErrors.nom = 'Le nom est requis';
     if (!formData.prenom?.trim()) newErrors.prenom = 'Le prénom est requis';
     if (!formData.dateNaissance) newErrors.dateNaissance = 'La date de naissance est requise';
@@ -128,11 +134,6 @@ const PatientFormPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
-    if (form.checkValidity() === false) {
-      setValidated(true);
-      return;
-    }
     if (!validateForm()) {
       toast.error('Veuillez corriger les erreurs');
       return;
@@ -141,6 +142,7 @@ const PatientFormPage: React.FC = () => {
     try {
       const dataToSend = {
         ...formData,
+        numeroSecuriteSociale: formData.numeroSecuriteSociale?.trim() || null,
         telephone: formData.telephone || null,
         telephoneUrgent: formData.telephoneUrgent || null,
         email: formData.email || null,
@@ -218,7 +220,6 @@ const PatientFormPage: React.FC = () => {
               name="numeroSecuriteSociale"
               value={formData.numeroSecuriteSociale}
               onChange={handleChange}
-              required
               error={errors.numeroSecuriteSociale}
               icon={<FaIdCard />}
               placeholder="1 89 05 78 123 456 78"

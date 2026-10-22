@@ -14,6 +14,7 @@ import PageShell from '@/app/ui/PageShell';
 import FormSection from '@/app/ui/FormSection';
 import FormActions from '@/app/ui/FormActions';
 import Button from '@/app/ui/Button';
+import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/app/ui/Table';
 import { prescriptionService } from '@/app/services/prescriptionService';
 import { examenService } from '@/app/services/examenService';
 import { soinPrescritService } from '@/app/services/soinPrescritService';
@@ -390,15 +391,37 @@ export default function PrescriptionForm({ initialData, isEditing = false }: Pro
                 <input type="text" placeholder="Instructions spécifiques" value={newMedicament.instructions} onChange={e => setNewMedicament(prev => ({ ...prev, instructions: e.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
               </div>
               {medicaments.length > 0 && (
-                <div className="overflow-x-auto mt-2">
-                  <table className="min-w-full divide-y text-sm">
-                    <thead className="bg-slate-50"><tr><th>Médicament</th><th>Posologie</th><th>Durée</th><th>Qté</th><th>Instructions</th><th></th></tr></thead>
-                    <tbody>
-                      {medicaments.map((med, idx) => (
-                        <tr key={idx} className="border-t"><td className="px-4 py-2">{med.isCustom ? med.nomLibre : `[${med.id}] ${med.nomLibre}`}</td><td>{med.posologie}</td><td>{med.dureeTraitement || '-'}</td><td>{med.quantitePrescrite}</td><td>{med.instructions || '-'}</td><td><button type="button" onClick={() => handleRemoveMedicament(idx)} className="text-red-500"><FaTrash /></button></td></tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="mt-3">
+                  <TableContainer>
+                    <Table>
+                      <THead>
+                        <Tr>
+                          <Th>Médicament</Th>
+                          <Th>Posologie</Th>
+                          <Th>Durée</Th>
+                          <Th align="center">Qté</Th>
+                          <Th>Instructions</Th>
+                          <Th align="right">Action</Th>
+                        </Tr>
+                      </THead>
+                      <TBody>
+                        {medicaments.map((med, idx) => (
+                          <Tr key={idx}>
+                            <Td className="font-medium text-slate-800">{med.isCustom ? med.nomLibre : med.nomLibre}</Td>
+                            <Td>{med.posologie}</Td>
+                            <Td>{med.dureeTraitement || '-'}</Td>
+                            <Td className="text-center">{med.quantitePrescrite}</Td>
+                            <Td>{med.instructions || '-'}</Td>
+                            <Td className="text-right">
+                              <button type="button" onClick={() => handleRemoveMedicament(idx)} className="text-red-500 transition hover:text-red-700" aria-label="Supprimer">
+                                <FaTrash />
+                              </button>
+                            </Td>
+                          </Tr>
+                        ))}
+                      </TBody>
+                    </Table>
+                  </TableContainer>
                 </div>
               )}
               {errors.medicaments && <p className="text-sm text-red-600">{errors.medicaments}</p>}

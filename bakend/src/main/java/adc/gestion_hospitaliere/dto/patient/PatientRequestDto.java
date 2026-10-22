@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class PatientRequestDto {
-    @NotBlank @Size(max=20) private String numeroSecuriteSociale;
+    @Size(max=20) private String numeroSecuriteSociale;
     @NotBlank @Size(max=50) private String nom;
     @NotBlank @Size(max=50) private String prenom;
     @NotNull private LocalDateTime dateNaissance;

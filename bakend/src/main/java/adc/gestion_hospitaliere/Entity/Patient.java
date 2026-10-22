@@ -26,7 +26,7 @@ public class Patient {
     @Column(name = "id_patient")
     private Integer idPatient;
 
-    @Column(name = "numero_securite_sociale", nullable = false, unique = true, length = 20)
+    @Column(name = "numero_securite_sociale", length = 20)
     private String numeroSecuriteSociale;
 
     @Column(name = "nom", nullable = false, length = 50)

@@ -195,7 +195,7 @@ const PatientList: React.FC = () => {
                 <Tr key={patient.idPatient} className="cursor-pointer">
                   <Td className="whitespace-nowrap">
                     <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
-                      <FaIdCard className="mr-1" /> {patient.numeroSecuriteSociale}
+                      <FaIdCard className="mr-1" /> {patient.numeroSecuriteSociale || '-'}
                     </span>
                   </Td>
                   <Td className="whitespace-nowrap text-sm font-medium text-gray-900">

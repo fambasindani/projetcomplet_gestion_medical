@@ -82,7 +82,8 @@ export default function MedicamentDetails() {
           <InfoCard icon={FaFlask} label="Dosage" value={medicament.dosage} />
           <InfoCard icon={FaClipboardList} label="Voie" value={medicament.voieAdministration} />
           <InfoCard icon={FaBoxes} label="Stock minimum" value={medicament.stockMinimum} />
-          <InfoCard icon={FaDollarSign} label="Prix de vente" value={`$${medicament.prixVente} — Taux: ${medicament.tauxRemboursement}%`} />
+          <InfoCard icon={FaDollarSign} label="Prix de vente" value={medicament.prixVente != null ? `$${medicament.prixVente}` : '-'} />
+          <InfoCard icon={FaClipboardList} label="Taux de remboursement" value={medicament.tauxRemboursement != null ? `${medicament.tauxRemboursement}%` : '-'} />
           <InfoCard icon={FaThermometerHalf} label="Conservation" value={`${medicament.temperatureConservation || 'Ambiante'} — ${medicament.dureeConservationMois} mois`} />
         </InfoGrid>
 

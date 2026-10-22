@@ -6,7 +6,7 @@ export type SituationFamiliale = 'Célibataire' | 'Marié_e' | 'Divorcé_e' | 'V
 
 export interface Patient {
   idPatient: number;
-  numeroSecuriteSociale: string;
+  numeroSecuriteSociale: string | null;
   nom: string;
   prenom: string;
   dateNaissance: string;
@@ -33,7 +33,7 @@ export interface Patient {
 }
 
 export interface PatientCreate {
-  numeroSecuriteSociale: string;
+  numeroSecuriteSociale?: string | null;
   nom: string;
   prenom: string;
   dateNaissance: string;
@@ -60,7 +60,7 @@ export interface PatientCreate {
 
 export interface PatientUpdate {
   idPatient: number;
-  numeroSecuriteSociale: string;
+  numeroSecuriteSociale?: string | null;
   nom: string;
   prenom: string;
   dateNaissance: string;
@@ -96,7 +96,7 @@ export interface PatientStats {
 export interface PatientDetails {
   informationsPersonnelles: {
     idPatient: number;
-    numeroSecuriteSociale: string;
+    numeroSecuriteSociale: string | null;
     nom: string;
     prenom: string;
     dateNaissance: string;
