@@ -160,6 +160,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/alertes-stock/**").hasAuthority("PHARMACIE_GERER")
 
                         // ===== PERSONNEL =====
+                        // Liste légère pour les formulaires (technicien labo, infirmier...) : AVANT la règle générale.
+                        .requestMatchers(HttpMethod.GET, "/api/personnel/liste-simple")
+                        .hasAnyAuthority("PERSONNEL_VOIR", "PERSONNEL_GERER", "EXAMENS_VOIR", "EXAMENS_GERER",
+                                "SOINS_VOIR", "SOINS_GERER", "HOSPITALISATIONS_VOIR", "HOSPITALISATIONS_GERER",
+                                "UTILISATEURS_GERER")
                         .requestMatchers(HttpMethod.GET, "/api/personnel/**").hasAuthority("PERSONNEL_VOIR")
                         .requestMatchers("/api/personnel/**").hasAuthority("PERSONNEL_GERER")
 

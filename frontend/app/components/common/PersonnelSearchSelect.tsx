@@ -65,15 +65,19 @@ export const PersonnelSearchSelect: React.FC<PersonnelSearchSelectProps> = ({
   const searchPersonnel = async (search: string) => {
     setLoading(true);
     try {
-      // Utiliser l'API de recherche existante (search) plutôt que getSimpleList
-      const result = await personnelService.search(search, 1, 20, fonction);
-      const items = result.items.map(p => ({
-        idPersonnel: p.idPersonnel,
-        nom: p.nom,
-        prenom: p.prenom,
-        email: p.email || '',
-        fonction: p.fonction,
-      }));
+      // Utilise l'endpoint léger (liste-simple) qui ne requiert pas PERSONNEL_VOIR,
+      // ce qui permet aux médecins/soignants de choisir un technicien/infirmier.
+      const list = await personnelService.getSimpleList(fonction);
+      const term = search.trim().toLowerCase();
+      const items = list
+        .filter(p => !term || `${p.nom} ${p.prenom} ${p.fonction}`.toLowerCase().includes(term))
+        .map(p => ({
+          idPersonnel: p.idPersonnel,
+          nom: p.nom,
+          prenom: p.prenom,
+          email: p.email || '',
+          fonction: p.fonction,
+        }));
       setPersonnels(items);
     } catch (error) {
       console.error(error);

@@ -32,6 +32,12 @@ public class PersonnelController {
         return ResponseEntity.ok(personnelService.getAllPersonnels(pageable));
     }
 
+    @GetMapping("/liste-simple")
+    public ResponseEntity<java.util.List<Map<String, Object>>> getListeSimple(
+            @RequestParam(required = false) String fonction) {
+        return ResponseEntity.ok(personnelService.getListeSimple(fonction));
+    }
+
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('PERSONNEL_VOIR')")
     public ResponseEntity<PagedResponse<PersonnelResponseDto>> search(

@@ -74,6 +74,26 @@ public class PersonnelService {
         return PagedResponse.of(page);
     }
 
+    /** Liste légère (id, nom, prénom, fonction, email) pour les formulaires qui doivent
+     *  choisir un personnel (technicien de laboratoire, infirmier...) sans accès complet au module. */
+    public List<Map<String, Object>> getListeSimple(String fonction) {
+        List<Personnel> source;
+        if (fonction != null && !fonction.isBlank()) {
+            source = personnelRepository.findByFonctionContainingIgnoreCase(fonction, Pageable.unpaged()).getContent();
+        } else {
+            source = personnelRepository.findAll();
+        }
+        return source.stream().map(p -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("idPersonnel", p.getIdPersonnel());
+            m.put("nom", p.getNom());
+            m.put("prenom", p.getPrenom());
+            m.put("fonction", p.getFonction());
+            m.put("email", p.getEmail());
+            return m;
+        }).collect(Collectors.toList());
+    }
+
     public PersonnelResponseDto getPersonnelById(Integer id) {
         Personnel personnel = personnelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Personnel non trouvé avec l'id : " + id));

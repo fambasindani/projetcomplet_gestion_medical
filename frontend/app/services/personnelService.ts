@@ -12,6 +12,11 @@ export const personnelService = {
     return res.data;
   },
 
+  async getSimpleList(fonction?: string): Promise<{ idPersonnel: number; nom: string; prenom: string; email: string; fonction: string }[]> {
+    const res = await api.get('/personnel/liste-simple', { params: { fonction: fonction || undefined } });
+    return res.data;
+  },
+
   async search(keyword: string, pageIndex = 1, pageSize = 10, fonction?: string, genre?: string): Promise<PagedResult<PersonnelResponse>> {
     const res = await api.get('/personnel/search', {
       params: { keyword: keyword || undefined, pageIndex, pageSize, fonction: fonction || undefined, genre: genre || undefined },

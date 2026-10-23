@@ -302,6 +302,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <PersonnelSearchSelect
                 label="Technicien de laboratoire"
                 value={null}
+                fonction="Laborantin"
                 onChange={(_id, nom, prenom) => {
                   const nomComplet = [prenom, nom].filter(Boolean).join(' ');
                   setCurrentLigne({ ...currentLigne, technicien: nomComplet });
