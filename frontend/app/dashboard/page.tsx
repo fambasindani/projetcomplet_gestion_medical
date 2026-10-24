@@ -153,7 +153,7 @@ const Dashboard = () => {
       { title: 'Médecins', value: medecinStats?.resume?.totalMedecins ?? 0, sub: 'Médecins inscrits', icon: FaUserMd, color: '#8b5cf6', href: '/medecins' },
       { title: 'Rendez-vous du jour', value: rdvStats?.aujourdhui ?? 0, sub: "Aujourd'hui", icon: FaCalendarCheck, color: '#10b981', href: '/rendezvous' },
       { title: 'Consultations ce mois', value: consultationStats?.consultationsMois ?? 0, sub: `${consultationStats?.total ?? 0} au total`, icon: FaStethoscope, color: '#0ea5e9', href: '/consultations' },
-      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours enregistrés', icon: FaBed, color: '#14b8a6', href: '/hospitalisations' },
+      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours enregistrés', icon: FaBed, color: '#14b8a6', href: '/patients/hospitalisations' },
       { title: 'Alertes stock', value: alertesCount, sub: 'Non traitées', icon: FaExclamationTriangle, color: '#ef4444', href: '/pharmacie/alertes' },
       { title: 'Encaissé', value: `${(factureStats?.totalPaye ?? 0).toFixed(2)} $`, sub: `${factureStats?.totalFactures ?? 0} factures`, icon: FaWallet, color: '#22c55e', href: '/factures/statistiques' },
       { title: 'Reste dû', value: `${(factureStats?.totalRestant ?? 0).toFixed(2)} $`, sub: 'Total impayé', icon: FaMoneyBillWave, color: '#f43f5e', href: '/factures' },
@@ -164,7 +164,7 @@ const Dashboard = () => {
       { title: 'Examens à saisir', value: examensEnAttente.length, sub: 'Résultats en attente', icon: FaFlask, color: '#f59e0b', href: '/examens/liste' },
       { title: 'Examens réalisés', value: examensRealises.length, sub: 'Réalisés / validés', icon: FaMicroscope, color: '#14b8a6', href: '/examens/liste' },
       { title: 'Patients', value: patientStats?.totalPatients ?? 0, sub: `${patientStats?.patientsRecents ?? 0} récents`, icon: FaUserInjured, color: '#8b5cf6', href: '/patients' },
-      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours en cours', icon: FaBed, color: '#0ea5e9', href: '/hospitalisations' },
+      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours en cours', icon: FaBed, color: '#0ea5e9', href: '/patients/hospitalisations' },
     ],
     SECRETAIRE: [
       { title: 'Patients', value: patientStats?.totalPatients ?? 0, sub: `${patientStats?.patientsRecents ?? 0} récents`, icon: FaUserInjured, color: '#6366f1', href: '/patients' },
@@ -185,7 +185,7 @@ const Dashboard = () => {
     INFIRMIER: [
       { title: 'Mes soins', value: soinsCount, sub: 'Réalisés', icon: FaUserNurse, color: '#6366f1', href: '/hospitalisations/soins' },
       { title: 'Soins récents', value: soins.length, sub: 'Derniers enregistrés', icon: FaStethoscope, color: '#10b981', href: '/hospitalisations/soins' },
-      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours suivis', icon: FaBed, color: '#0ea5e9', href: '/hospitalisations' },
+      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours suivis', icon: FaBed, color: '#0ea5e9', href: '/patients/hospitalisations' },
     ],
     LABORANTIN: [
       { title: 'Examens à saisir', value: examensEnAttente.length, sub: 'En attente de résultat', icon: FaMicroscope, color: '#f59e0b', href: '/examens/liste' },
@@ -197,7 +197,7 @@ const Dashboard = () => {
       { title: 'Personnel', value: personnelStats?.totalPersonnels ?? personnelCount, sub: 'Agents enregistrés', icon: FaUsers, color: '#6366f1', href: '/personnel' },
       { title: 'Médecins', value: medecinStats?.resume?.totalMedecins ?? 0, sub: 'Médecins inscrits', icon: FaUserMd, color: '#8b5cf6', href: '/medecins' },
       { title: 'Fonctions', value: personnelStats?.topFonctions?.length ?? 0, sub: 'Principales fonctions', icon: FaUserCheck, color: '#10b981', href: '/personnel' },
-      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours enregistrés', icon: FaBed, color: '#14b8a6', href: '/hospitalisations' },
+      { title: 'Hospitalisations', value: hospitalisationsCount, sub: 'Séjours enregistrés', icon: FaBed, color: '#14b8a6', href: '/patients/hospitalisations' },
     ],
     PATIENT: [],
   };
