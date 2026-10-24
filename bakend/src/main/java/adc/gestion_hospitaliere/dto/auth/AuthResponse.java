@@ -21,6 +21,7 @@ public class AuthResponse {
     private String role;
     private Integer medecinId;
     private Integer patientId;
+    private Integer personnelId;
     private String token;
     private String refreshToken;
     private Long expiresIn;

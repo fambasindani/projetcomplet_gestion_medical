@@ -94,6 +94,15 @@ const menuItems: MenuItem[] = [
     ]
   },
 
+  // SIGNES VITAUX (pré-consultation)
+  {
+    path: '/signes-vitaux',
+    name: 'menu.signesVitaux',
+    icon: FaHeartbeat,
+    roles: ['ADMIN', 'MEDECIN', 'INFIRMIER'],
+    permission: 'SIGNES_VITAUX_VOIR',
+  },
+
 {
   path: '/prescriptions-module',
   name: 'menu.prescriptions',

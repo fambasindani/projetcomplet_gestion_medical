@@ -9,6 +9,8 @@ import { ConsultationCreate, Consultation } from '@/app/types/consultation';
 import { consultationService } from '@/app/services/consultationService';
 import { patientService } from '@/app/services/patientService';
 import { medecinService } from '@/app/services/medecinService';
+import { signeVitalService } from '@/app/services/signeVitalService';
+import { SigneVital } from '@/app/types/signeVital';
 import { FormInput } from '../common/FormInput';
 import { FormTextarea } from '../common/FormTextarea';
 import { FormSelect } from '../common/FormSelect';
@@ -35,6 +37,20 @@ const formatDateTimeLocal = (date?: string | null): string => {
   if (!date) return '';
   if (date.includes('T')) return date.slice(0, 16);
   return `${date}T00:00`;
+};
+
+// La taille peut être stockée en cm (> 3) ou en m (<= 3).
+const formatTaille = (taille: number | null | undefined): string => {
+  if (taille == null) return '—';
+  if (taille > 3) return `${taille} cm`;
+  return `${taille} m`;
+};
+
+// Convertit la taille vers des mètres (pour le champ "Taille (m)" de la consultation).
+const tailleEnMetres = (taille: number | null | undefined): number | null => {
+  if (taille == null) return null;
+  if (taille > 3) return Number((taille / 100).toFixed(2));
+  return taille;
 };
 
 const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
@@ -102,6 +118,35 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
   const [acteCatalogueLibelle, setActeCatalogueLibelle] = useState(
     (initialData as Consultation | undefined)?.libelleActeCatalogue || ''
   );
+
+  const [dernierSigneVital, setDernierSigneVital] = useState<SigneVital | null>(null);
+
+  useEffect(() => {
+    if (formData.idPatient && formData.idPatient !== 0) {
+      signeVitalService.getByPatient(formData.idPatient, 1, 1)
+        .then((r) => {
+          const dernier = r.items?.[0] ?? null;
+          setDernierSigneVital(dernier);
+          // Pré-remplir les constantes de la consultation à partir des derniers signes vitaux.
+          if (dernier && !isEdit) {
+            setFormData((prev) => ({
+              ...prev,
+              temperature: dernier.temperature ?? prev.temperature,
+              pouls: dernier.pouls ?? prev.pouls,
+              pressionSystolique: dernier.pressionSystolique ?? prev.pressionSystolique,
+              pressionDiastolique: dernier.pressionDiastolique ?? prev.pressionDiastolique,
+              saturation: dernier.saturation ?? prev.saturation,
+              glycemie: dernier.glycemie ?? prev.glycemie,
+              poids: dernier.poids ?? prev.poids,
+              taille: tailleEnMetres(dernier.taille) ?? prev.taille,
+            }));
+          }
+        })
+        .catch(() => setDernierSigneVital(null));
+    } else {
+      setDernierSigneVital(null);
+    }
+  }, [formData.idPatient, isEdit]);
 
   useEffect(() => {
     if (formData.idPatient && formData.idPatient !== 0 && !selectedPatientName) {
@@ -183,6 +228,27 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
       onBack={() => router.back()}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Derniers signes vitaux relevés par l'infirmier (lecture seule, en haut) */}
+      {dernierSigneVital && (
+        <FormSection title="Derniers signes vitaux relevés" icon={<FaHeartbeat />}>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-700">
+              <span><strong>Poids :</strong> {dernierSigneVital.poids != null ? `${dernierSigneVital.poids} kg` : '—'}</span>
+              <span><strong>Taille :</strong> {formatTaille(dernierSigneVital.taille)}</span>
+              <span><strong>IMC :</strong> {dernierSigneVital.imc != null ? dernierSigneVital.imc : '—'}</span>
+              <span><strong>Température :</strong> {dernierSigneVital.temperature != null ? `${dernierSigneVital.temperature} °C` : '—'}</span>
+              <span><strong>Pouls :</strong> {dernierSigneVital.pouls != null ? `${dernierSigneVital.pouls} bpm` : '—'}</span>
+              <span><strong>Tension :</strong> {dernierSigneVital.pressionSystolique != null && dernierSigneVital.pressionDiastolique != null ? `${dernierSigneVital.pressionSystolique}/${dernierSigneVital.pressionDiastolique}` : '—'}</span>
+              <span><strong>SpO₂ :</strong> {dernierSigneVital.saturation != null ? `${dernierSigneVital.saturation} %` : '—'}</span>
+            </div>
+            <p className="mt-2 text-xs text-slate-400">
+              Relevé le {new Date(dernierSigneVital.dateMesure).toLocaleString('fr-FR')}
+              {dernierSigneVital.prisePar ? ` par ${dernierSigneVital.prisePar}` : ''}
+            </p>
+          </div>
+        </FormSection>
+      )}
+
       {/* Section 1 : Patient & Médecin */}
       <FormSection title="Patient & Médecin" icon={<FaUser />}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

@@ -233,6 +233,7 @@ public class AuthService {
                 .role(user.getRole().name())
                 .medecinId(medecinId)
                 .patientId(patientId)
+                .personnelId(user.getPersonnel() != null ? user.getPersonnel().getIdPersonnel() : null)
                 .token(token)
                 .refreshToken(refreshToken)
                 .expiresIn(jwtExpiration)

@@ -137,6 +137,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/constantes/**").hasAuthority("CONSTANTES_VOIR")
                         .requestMatchers("/api/constantes/**").hasAuthority("CONSTANTES_GERER")
 
+                        // ===== SIGNES VITAUX (pré-consultation) =====
+                        .requestMatchers(HttpMethod.GET, "/api/signes-vitaux/**").hasAuthority("SIGNES_VITAUX_VOIR")
+                        .requestMatchers("/api/signes-vitaux/**").hasAuthority("SIGNES_VITAUX_GERER")
+
                         // ===== PRESCRIPTIONS =====
                         .requestMatchers(HttpMethod.GET, "/api/prescriptions/**").hasAuthority("PRESCRIPTIONS_VOIR")
                         .requestMatchers("/api/prescriptions/**").hasAuthority("PRESCRIPTIONS_GERER")

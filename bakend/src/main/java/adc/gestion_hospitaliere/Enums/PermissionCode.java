@@ -34,6 +34,9 @@ public enum PermissionCode {
     CONSTANTES_VOIR,
     CONSTANTES_GERER,
 
+    SIGNES_VITAUX_VOIR,
+    SIGNES_VITAUX_GERER,
+
     CHAMBRES_VOIR,
     CHAMBRES_GERER,
 

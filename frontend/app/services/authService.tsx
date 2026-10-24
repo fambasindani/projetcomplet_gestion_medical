@@ -45,6 +45,7 @@ export const authService = {
       role: data.role,
       medecinId: data.medecinId ?? null,
       patientId: data.patientId ?? null,
+      personnelId: data.personnelId ?? null,
       permissions: data.permissions ?? [],
     }));
     document.cookie = 'auth_ok=1; path=/';

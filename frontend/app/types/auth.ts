@@ -15,6 +15,7 @@ export interface AuthResponseDto {
   role: UserRole;
   medecinId?: number | null;
   patientId?: number | null;
+  personnelId?: number | null;
   token: string;
   refreshToken: string;
   expiresIn: number;
@@ -29,5 +30,6 @@ export interface User {
   role: UserRole;
   medecinId?: number | null;
   patientId?: number | null;
+  personnelId?: number | null;
   permissions?: string[];
 }
