@@ -230,7 +230,7 @@ const ConsultationForm: React.FC<Props> = ({ initialData, isEdit, id }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
       {/* Derniers signes vitaux relevés par l'infirmier (lecture seule, en haut) */}
       {dernierSigneVital && (
-        <FormSection title="Derniers signes vitaux relevés" icon={<FaHeartbeat />}>
+        <FormSection title="Derniers signes vitaux prélevés" icon={<FaHeartbeat />}>
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-700">
               <span><strong>Poids :</strong> {dernierSigneVital.poids != null ? `${dernierSigneVital.poids} kg` : '—'}</span>
