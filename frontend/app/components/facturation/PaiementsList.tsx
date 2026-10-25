@@ -18,6 +18,8 @@ import type { Paiement } from '@/app/types/facture';
 import { ModePaiementLabels, StatutPaiementLabels, ModePaiementValues, type ModePaiement } from '@/app/types/facture';
 import type { PagedResult } from '@/app/types/pagination';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
+import RequirePermission from '@/app/components/common/RequirePermission';
+import { usePermission } from '@/app/hooks/usePermission';
 
 const statutPaiementOptions = [
   { value: '', label: 'Tous les statuts' },
@@ -28,6 +30,7 @@ const statutPaiementOptions = [
 ];
 
 export default function PaiementsList() {
+  const { allowed: peutVoir } = usePermission('FACTURATION_VOIR');
   const [pagedData, setPagedData] = useState<PagedResult<Paiement> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -38,6 +41,7 @@ export default function PaiementsList() {
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
 
   const loadData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
       const data = await factureService.getPaiements({
@@ -53,7 +57,7 @@ export default function PaiementsList() {
     } finally {
       setLoading(false);
     }
-  }, [paginationParams.pageIndex, paginationParams.pageSize, filterMode, filterStatut, searchTerm]);
+  }, [paginationParams.pageIndex, paginationParams.pageSize, filterMode, filterStatut, searchTerm, peutVoir]);
 
   useEffect(() => {
     void (async () => { await loadData(); })();
@@ -70,6 +74,7 @@ export default function PaiementsList() {
   if (loading && !pagedData) return <SkeletonTable columns={8} rows={8} />;
 
   return (
+    <RequirePermission permission="FACTURATION_VOIR">
     <div className="space-y-6">
       <PageHeader
         title="Paiements"
@@ -184,5 +189,6 @@ export default function PaiementsList() {
         </TableContainer>
       )}
     </div>
+    </RequirePermission>
   );
 }

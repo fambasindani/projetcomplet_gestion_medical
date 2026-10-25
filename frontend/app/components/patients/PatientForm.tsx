@@ -218,7 +218,7 @@ const PatientFormPage: React.FC = () => {
             <FormInput
               label="N° Sécurité Sociale"
               name="numeroSecuriteSociale"
-              value={formData.numeroSecuriteSociale}
+              value={formData.numeroSecuriteSociale ?? ''}
               onChange={handleChange}
               error={errors.numeroSecuriteSociale}
               icon={<FaIdCard />}

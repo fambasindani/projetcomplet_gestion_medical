@@ -6,7 +6,7 @@ import { toast } from '@/app/utils/toast';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { format } from 'date-fns';
 import {
-  FaHospitalUser, FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaHeartbeat
+  FaHospitalUser, FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaHeartbeat, FaSearch
 } from 'react-icons/fa';
 
 import Pagination from '@/app/ui/Pagination';
@@ -40,6 +40,7 @@ export default function HospitalisationList() {
   const [pagedData, setPagedData] = useState<PagedResult<Hospitalisation> | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ statut: '', idPatient: '', dateStart: '', dateEnd: '' });
+  const [applied, setApplied] = useState({ statut: '', idPatient: '', dateStart: '', dateEnd: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
@@ -48,13 +49,13 @@ export default function HospitalisationList() {
     setLoading(true);
     try {
       let data;
-      const hasFilters = filters.statut || filters.idPatient || filters.dateStart || filters.dateEnd;
+      const hasFilters = applied.statut || applied.idPatient || applied.dateStart || applied.dateEnd;
       if (hasFilters) {
         data = await hospitalisationService.search({
-          statut: filters.statut as StatutHospitalisation || undefined,
-          idPatient: filters.idPatient ? parseInt(filters.idPatient) : undefined,
-          dateStart: filters.dateStart || undefined,
-          dateEnd: filters.dateEnd || undefined
+          statut: applied.statut as StatutHospitalisation || undefined,
+          idPatient: applied.idPatient ? parseInt(applied.idPatient) : undefined,
+          dateStart: applied.dateStart || undefined,
+          dateEnd: applied.dateEnd || undefined
         }, pagination.pageIndex, pagination.pageSize);
       } else {
         data = await hospitalisationService.getAll(pagination.pageIndex, pagination.pageSize);
@@ -72,7 +73,19 @@ export default function HospitalisationList() {
       await fetchData();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.pageIndex, pagination.pageSize, filters.statut, filters.idPatient, filters.dateStart, filters.dateEnd, peutVoir]);
+  }, [pagination.pageIndex, pagination.pageSize, applied.statut, applied.idPatient, applied.dateStart, applied.dateEnd, peutVoir]);
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+    setApplied(prev => ({ ...prev, idPatient: filters.idPatient, dateStart: filters.dateStart, dateEnd: filters.dateEnd }));
+  };
+
+  const handleReset = () => {
+    const empty = { statut: '', idPatient: '', dateStart: '', dateEnd: '' };
+    setFilters(empty);
+    setApplied(empty);
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
 
   const handleDelete = async (h: Hospitalisation) => {
     const ok = await confirm({
@@ -111,7 +124,7 @@ export default function HospitalisationList() {
       {showFilters && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
-            <FilterSelect value={filters.statut} onChange={e => setFilters({...filters, statut: e.target.value})}>
+            <FilterSelect value={filters.statut} onChange={e => { const statut = e.target.value; setFilters({...filters, statut}); setApplied(prev => ({ ...prev, statut })); }}>
               <option value="">Tous statuts</option>
               {Object.values(StatutHospitalisation).map(s => <option key={s} value={s}>{s}</option>)}
             </FilterSelect>
@@ -119,6 +132,10 @@ export default function HospitalisationList() {
             <FilterInput type="date" placeholder="Date début" value={filters.dateStart} onChange={e => setFilters({...filters, dateStart: e.target.value})} />
             <FilterInput type="date" placeholder="Date fin" value={filters.dateEnd} onChange={e => setFilters({...filters, dateEnd: e.target.value})} />
           </FilterPanel>
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={handleReset}>Réinitialiser</Button>
+          </div>
         </div>
       )}
 

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from '@/app/utils/toast';
-import { FaFilter, FaEye, FaEdit, FaTrash, FaBan, FaUserNurse, FaFlask, FaPlus, FaFilePrescription } from 'react-icons/fa';
+import { FaFilter, FaEye, FaEdit, FaTrash, FaBan, FaUserNurse, FaFlask, FaPlus, FaFilePrescription, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
@@ -35,6 +35,7 @@ export default function PrescriptionsList() {
   const [pagedData, setPagedData] = useState<PagedResult<Prescription> | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ type: '', statut: '', idPatient: '', dateStart: '', dateEnd: '' });
+  const [applied, setApplied] = useState({ type: '', statut: '', idPatient: '', dateStart: '', dateEnd: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
@@ -42,16 +43,28 @@ export default function PrescriptionsList() {
     if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
-      const hasFilters = Object.values(filters).some(v => v !== '');
+      const hasFilters = Object.values(applied).some(v => v !== '');
       const data = hasFilters 
-        ? await prescriptionService.search({ ...filters, idPatient: filters.idPatient ? parseInt(filters.idPatient) : undefined }, pagination.pageIndex, pagination.pageSize)
+        ? await prescriptionService.search({ ...applied, idPatient: applied.idPatient ? parseInt(applied.idPatient) : undefined }, pagination.pageIndex, pagination.pageSize)
         : await prescriptionService.getAll(pagination.pageIndex, pagination.pageSize);
       setPagedData(data);
     } catch (error) { console.error(error); }
     finally { setLoading(false); }
-  }, [pagination.pageIndex, pagination.pageSize, filters, peutVoir]);
+  }, [pagination.pageIndex, pagination.pageSize, applied, peutVoir]);
 
   useEffect(() => { void (async () => { await fetchData(); })(); }, [fetchData]);
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+    setApplied(prev => ({ ...prev, idPatient: filters.idPatient, dateStart: filters.dateStart, dateEnd: filters.dateEnd }));
+  };
+
+  const handleReset = () => {
+    const empty = { type: '', statut: '', idPatient: '', dateStart: '', dateEnd: '' };
+    setFilters(empty);
+    setApplied(empty);
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
 
   const handleDelete = async (p: Prescription) => {
     if (await confirm({ title: 'Supprimer', message: `Supprimer la prescription ${p.numeroPrescription} ?` })) {
@@ -87,18 +100,22 @@ export default function PrescriptionsList() {
       {showFilters && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
-            <FilterSelect onChange={e => setFilters({...filters, type: e.target.value})}>
+            <FilterSelect value={filters.type} onChange={e => { const type = e.target.value; setFilters({...filters, type}); setApplied(prev => ({ ...prev, type })); }}>
               <option value="">Tous les types</option>
               {Object.values(TypePrescription).map(t => <option key={t} value={t}>{t}</option>)}
             </FilterSelect>
-            <FilterSelect onChange={e => setFilters({...filters, statut: e.target.value})}>
+            <FilterSelect value={filters.statut} onChange={e => { const statut = e.target.value; setFilters({...filters, statut}); setApplied(prev => ({ ...prev, statut })); }}>
               <option value="">Tous les statuts</option>
               {Object.values(StatutPrescription).map(s => <option key={s} value={s}>{s}</option>)}
             </FilterSelect>
-            <FilterInput type="number" placeholder="ID Patient" onChange={e => setFilters({...filters, idPatient: e.target.value})} />
-            <FilterInput type="date" onChange={e => setFilters({...filters, dateStart: e.target.value})} />
-            <FilterInput type="date" onChange={e => setFilters({...filters, dateEnd: e.target.value})} />
+            <FilterInput type="number" placeholder="ID Patient" value={filters.idPatient} onChange={e => setFilters({...filters, idPatient: e.target.value})} />
+            <FilterInput type="date" value={filters.dateStart} onChange={e => setFilters({...filters, dateStart: e.target.value})} />
+            <FilterInput type="date" value={filters.dateEnd} onChange={e => setFilters({...filters, dateEnd: e.target.value})} />
           </FilterPanel>
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={handleReset}>Réinitialiser</Button>
+          </div>
         </div>
       )}
 

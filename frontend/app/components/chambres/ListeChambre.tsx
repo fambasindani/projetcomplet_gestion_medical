@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaBed, FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaDoorOpen, FaBuilding } from 'react-icons/fa';
+import { FaBed, FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaDoorOpen, FaBuilding, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
@@ -51,6 +51,7 @@ const ChambreList: React.FC = () => {
   const [pagedData, setPagedData] = useState<PagedResult<Chambre> | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ statut: '', type: '', etage: '' });
+  const [appliedEtage, setAppliedEtage] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
   const [reloadTrigger, setReloadTrigger] = useState(0);
@@ -60,13 +61,13 @@ const ChambreList: React.FC = () => {
       setLoading(true);
       try {
         let data;
-        const hasFilters = filters.statut || filters.type || filters.etage;
+        const hasFilters = filters.statut || filters.type || appliedEtage;
         if (hasFilters) {
           data = await chambreService.search(
             {
               statut: filters.statut as StatutChambre || undefined,
               type: filters.type as TypeChambre || undefined,
-              etage: filters.etage ? parseInt(filters.etage) : undefined,
+              etage: appliedEtage ? parseInt(appliedEtage) : undefined,
             },
             paginationParams.pageIndex,
             paginationParams.pageSize
@@ -83,7 +84,7 @@ const ChambreList: React.FC = () => {
       }
     };
     fetchChambres();
-  }, [paginationParams.pageIndex, paginationParams.pageSize, filters.statut, filters.type, filters.etage, reloadTrigger]);
+  }, [paginationParams.pageIndex, paginationParams.pageSize, filters.statut, filters.type, appliedEtage, reloadTrigger]);
 
   const handleDelete = async (id: number, numero: string) => {
     const ok = await confirm({
@@ -128,8 +129,14 @@ const ChambreList: React.FC = () => {
     setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
   };
 
+  const handleSearch = () => {
+    setAppliedEtage(filters.etage);
+    setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
   const clearFilters = () => {
     setFilters({ statut: '', type: '', etage: '' });
+    setAppliedEtage('');
     setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
   };
 
@@ -191,13 +198,10 @@ const ChambreList: React.FC = () => {
               onChange={handleFilterChange}
             />
           </FilterPanel>
-          {(filters.statut || filters.type || filters.etage) && (
-            <div className="mt-4 text-right">
-              <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-700">
-                Effacer les filtres
-              </button>
-            </div>
-          )}
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={clearFilters}>Réinitialiser</Button>
+          </div>
         </div>
       )}
 

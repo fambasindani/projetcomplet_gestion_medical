@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaClipboardList } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaClipboardList, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
@@ -60,6 +60,7 @@ export default function CommandesList() {
   const [filterFournisseur, setFilterFournisseur] = useState<number | undefined>();
   const [dateStart, setDateStart] = useState('');
   const [dateEnd, setDateEnd] = useState('');
+  const [applied, setApplied] = useState({ statut: '', idFournisseur: undefined as number | undefined, dateStart: '', dateEnd: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
   const [fournisseurs, setFournisseurs] = useState<{ id: number; nom: string }[]>([]);
@@ -76,10 +77,10 @@ export default function CommandesList() {
     setLoading(true);
     try {
       const data = await commandeService.search({
-        statut: filterStatut as StatutCommandeFournisseur || undefined,
-        idFournisseur: filterFournisseur,
-        dateStart: dateStart || undefined,
-        dateEnd: dateEnd || undefined,
+        statut: applied.statut as StatutCommandeFournisseur || undefined,
+        idFournisseur: applied.idFournisseur,
+        dateStart: applied.dateStart || undefined,
+        dateEnd: applied.dateEnd || undefined,
         pageIndex: pagination.pageIndex,
         pageSize: pagination.pageSize
       });
@@ -90,11 +91,25 @@ export default function CommandesList() {
     } finally {
       setLoading(false);
     }
-  }, [filterStatut, filterFournisseur, dateStart, dateEnd, pagination.pageIndex, pagination.pageSize, peutVoir]);
+  }, [applied, pagination.pageIndex, pagination.pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();
   }, [fetchData]);
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+    setApplied(prev => ({ ...prev, dateStart, dateEnd }));
+  };
+
+  const handleReset = () => {
+    setFilterStatut('');
+    setFilterFournisseur(undefined);
+    setDateStart('');
+    setDateEnd('');
+    setApplied({ statut: '', idFournisseur: undefined, dateStart: '', dateEnd: '' });
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
 
   const handleDelete = async (cmd: CommandeFournisseur) => {
     const ok = await confirm({ title: 'Supprimer', message: `Supprimer la commande ${cmd.numeroCommande} ?` });
@@ -147,17 +162,21 @@ export default function CommandesList() {
       {showFilters && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
-            <FilterSelect value={filterStatut} onChange={e => setFilterStatut(e.target.value)}>
+            <FilterSelect value={filterStatut} onChange={e => { const statut = e.target.value; setFilterStatut(statut); setApplied(prev => ({ ...prev, statut })); }}>
               <option value="">Tous statuts</option>
               {Object.values(StatutCommandeFournisseur).map(s => <option key={s} value={s}>{s}</option>)}
             </FilterSelect>
-            <FilterSelect value={filterFournisseur ?? ''} onChange={e => setFilterFournisseur(e.target.value ? Number(e.target.value) : undefined)}>
+            <FilterSelect value={filterFournisseur ?? ''} onChange={e => { const id = e.target.value ? Number(e.target.value) : undefined; setFilterFournisseur(id); setApplied(prev => ({ ...prev, idFournisseur: id })); }}>
               <option value="">Tous fournisseurs</option>
               {fournisseurs.map(f => <option key={f.id} value={f.id}>{f.nom}</option>)}
             </FilterSelect>
             <FilterInput type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} placeholder="Date début" />
             <FilterInput type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} placeholder="Date fin" />
           </FilterPanel>
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={handleReset}>Réinitialiser</Button>
+          </div>
         </div>
       )}
 

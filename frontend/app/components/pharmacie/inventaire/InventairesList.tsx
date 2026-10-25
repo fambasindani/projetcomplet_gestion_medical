@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from '@/app/utils/toast';
-import { FaPlus, FaTrash, FaEye, FaCheckCircle, FaFilter, FaBoxOpen, FaClipboardCheck, FaPrint } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEye, FaCheckCircle, FaFilter, FaBoxOpen, FaClipboardCheck, FaPrint, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import { inventaireService } from '@/app/services/inventaireService';
 import Pagination from '@/app/ui/Pagination';
@@ -37,6 +37,7 @@ export default function InventairesList() {
   });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ statut: '', type: '', start: '', end: '' });
+  const [applied, setApplied] = useState({ statut: '', type: '', start: '', end: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
 
@@ -44,18 +45,30 @@ export default function InventairesList() {
     if (!peutVoir) { setLoading(false); return; }
     setLoading(true);
     try {
-      const data = await inventaireService.search({ ...pagination, ...filters });
+      const data = await inventaireService.search({ ...pagination, ...applied });
       setPagedData(data);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [pagination, filters, peutVoir]);
+  }, [pagination, applied, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();
   }, [fetchData]);
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+    setApplied(prev => ({ ...prev, start: filters.start, end: filters.end }));
+  };
+
+  const handleReset = () => {
+    const empty = { statut: '', type: '', start: '', end: '' };
+    setFilters(empty);
+    setApplied(empty);
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
 
   const handleDelete = async (id: number) => {
     const ok = await confirm({ title: 'Supprimer', message: 'Supprimer cet inventaire définitivement ?' });
@@ -119,18 +132,19 @@ export default function InventairesList() {
       {showFilters && (
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <FilterPanel>
-            <FilterInput type="datetime-local" onChange={e => setFilters({ ...filters, start: e.target.value })} />
-            <FilterInput type="datetime-local" onChange={e => setFilters({ ...filters, end: e.target.value })} />
-            <FilterSelect onChange={e => setFilters({ ...filters, statut: e.target.value })}>
+            <FilterInput type="datetime-local" value={filters.start} onChange={e => setFilters({ ...filters, start: e.target.value })} />
+            <FilterInput type="datetime-local" value={filters.end} onChange={e => setFilters({ ...filters, end: e.target.value })} />
+            <FilterSelect value={filters.statut} onChange={e => { const statut = e.target.value; setFilters({ ...filters, statut }); setApplied(prev => ({ ...prev, statut })); }}>
               <option value="">Tous les statuts</option>
               <option value="En_cours">En cours</option>
               <option value="Validé">Validé</option>
               <option value="Clôturé">Clôturé</option>
             </FilterSelect>
-            <button type="button" onClick={() => setFilters({ statut: '', type: '', start: '', end: '' })} className="self-start text-sm text-gray-400 hover:text-red-500">
-              Réinitialiser
-            </button>
           </FilterPanel>
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={handleReset}>Réinitialiser</Button>
+          </div>
         </div>
       )}
 

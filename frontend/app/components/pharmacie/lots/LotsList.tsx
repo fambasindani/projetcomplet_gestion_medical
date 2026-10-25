@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/app/utils/toast';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaBoxes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaBoxes, FaSearch } from 'react-icons/fa';
 import { useConfirm } from 'react-use-confirming-dialog';
 import Pagination from '@/app/ui/Pagination';
 import SkeletonTable from '@/app/ui/SkeletonTable';
@@ -29,6 +29,7 @@ export default function LotsList() {
   const [loading, setLoading] = useState(true);
   const [filterMedicamentId, setFilterMedicamentId] = useState<number | undefined>(undefined);
   const [filterNumeroLot, setFilterNumeroLot] = useState('');
+  const [appliedNumeroLot, setAppliedNumeroLot] = useState('');
   const [filterStatut, setFilterStatut] = useState<StatutLot | undefined>(undefined);
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
@@ -47,7 +48,7 @@ export default function LotsList() {
     try {
       const data = await lotService.search({
         idMedicament: filterMedicamentId,
-        numeroLot: filterNumeroLot || undefined,
+        numeroLot: appliedNumeroLot || undefined,
         statut: filterStatut,
         pageIndex: pagination.pageIndex,
         pageSize: pagination.pageSize,
@@ -59,11 +60,24 @@ export default function LotsList() {
     } finally {
       setLoading(false);
     }
-  }, [filterMedicamentId, filterNumeroLot, filterStatut, pagination.pageIndex, pagination.pageSize, peutVoir]);
+  }, [filterMedicamentId, appliedNumeroLot, filterStatut, pagination.pageIndex, pagination.pageSize, peutVoir]);
 
   useEffect(() => {
     void (async () => { await fetchData(); })();
   }, [fetchData]);
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+    setAppliedNumeroLot(filterNumeroLot);
+  };
+
+  const handleReset = () => {
+    setFilterMedicamentId(undefined);
+    setFilterNumeroLot('');
+    setAppliedNumeroLot('');
+    setFilterStatut(undefined);
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
 
   const handleDelete = async (lot: LotMedicament) => {
     const ok = await confirm({ title: 'Supprimer', message: `Supprimer le lot ${lot.numeroLot} ?` });
@@ -137,6 +151,10 @@ export default function LotsList() {
               ))}
             </FilterSelect>
           </FilterPanel>
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={handleReset}>Réinitialiser</Button>
+          </div>
         </div>
       )}
 

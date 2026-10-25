@@ -9,6 +9,8 @@ import type { ServiceHospitalier, PersonnelAffecteService } from '@/app/services
 import { PersonnelSearchSelect } from '@/app/components/common/PersonnelSearchSelect';
 import { extractErrorMessage } from '@/app/utils/extractErrorMessage';
 import { FormInput } from '@/app/components/common/FormInput';
+import RequirePermission from '@/app/components/common/RequirePermission';
+import Can from '@/app/components/common/Can';
 import PageHeader from '@/app/ui/PageHeader';
 import Button, { IconButton } from '@/app/ui/Button';
 import Modal from '@/app/ui/Modal';
@@ -116,11 +118,12 @@ export default function ServicesList() {
   };
 
   return (
+    <RequirePermission permission="PERSONNEL_GERER">
     <div className="space-y-6">
       <PageHeader
         title="Services"
         subtitle="Unites fonctionnelles (pole, service) — affectez medecins et infirmiers a leur service."
-        actions={<Button icon={<FaPlus />} onClick={openCreate}>Nouveau service</Button>}
+        actions={<Can permission="PERSONNEL_GERER"><Button icon={<FaPlus />} onClick={openCreate}>Nouveau service</Button></Can>}
       />
 
       {loading ? (
@@ -211,5 +214,6 @@ export default function ServicesList() {
         </div>
       </Modal>
     </div>
+    </RequirePermission>
   );
 }
