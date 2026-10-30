@@ -32,7 +32,7 @@ const fr = {
   'login.forgot.hint': 'Contactez l\u2019administrateur pour réinitialiser votre mot de passe.',
   'login.toast.success': 'Connexion réussie',
   'login.error.default': 'Email ou mot de passe incorrect',
-  'login.placeholder.email': 'jean.dupont@hopital.fr',
+  'login.placeholder.email': 'famba@gmail.com',
   'login.placeholder.password': '••••••••',
 
   // ----- THEME / LANGUE -----
@@ -159,7 +159,7 @@ const en: Record<keyof typeof fr, string> = {
   'login.forgot.hint': 'Contact the administrator to reset your password.',
   'login.toast.success': 'Signed in successfully',
   'login.error.default': 'Incorrect email or password',
-  'login.placeholder.email': 'john.doe@hospital.com',
+  'login.placeholder.email': 'famba@gmail.com',
   'login.placeholder.password': '••••••••',
 
   'theme.dark': 'Dark',

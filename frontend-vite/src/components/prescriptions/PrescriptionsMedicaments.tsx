@@ -1,0 +1,169 @@
+﻿import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { toast } from '@/utils/toast';
+import { FaEye, FaEdit, FaTrash, FaBan, FaPrint, FaPrescriptionBottle } from 'react-icons/fa';
+import { useConfirm } from 'react-use-confirming-dialog';
+import Pagination from '@/ui/Pagination';
+import SkeletonTable from '@/ui/SkeletonTable';
+import PageHeader from '@/ui/PageHeader';
+import EmptyState from '@/ui/EmptyState';
+import Button, { IconButton } from '@/ui/Button';
+import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
+import { prescriptionService } from '@/services/prescriptionService';
+import { Prescription, StatutPrescription, TypePrescription } from '@/types/prescription';
+import { PagedResult } from '@/types/pagination';
+import Can from '@/components/common/Can';
+import RequirePermission from '@/components/common/RequirePermission';
+import { usePermission } from '@/hooks/usePermission';
+import OrdonnanceModal from './OrdonnanceModal';
+
+const statutColors: Record<StatutPrescription, string> = {
+  Active: 'bg-green-100 text-green-800',
+  Terminee: 'bg-gray-100 text-gray-800',
+  Annulee: 'bg-red-100 text-red-800',
+  EnAttente: 'bg-yellow-100 text-yellow-800'
+};
+
+export default function PrescriptionsMedicaments() {
+  const navigate = useNavigate();
+  const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PRESCRIPTIONS_VOIR');
+  const [pagedData, setPagedData] = useState<PagedResult<Prescription> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<number | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const data = await prescriptionService.getByType(TypePrescription.Medicament, pagination.pageIndex, pagination.pageSize);
+      setPagedData(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.pageIndex, pagination.pageSize, peutVoir]);
+
+  useEffect(() => {
+    void (async () => { await fetchData(); })();
+  }, [fetchData]);
+
+  const handleDelete = async (p: Prescription) => {
+    const ok = await confirm({ title: 'Supprimer', message: `Supprimer la prescription ${p.numeroPrescription} ?` });
+    if (!ok) return;
+    await prescriptionService.delete(p.idPrescription);
+    toast.success('Supprimée');
+    fetchData();
+  };
+
+  const handleAnnuler = async (p: Prescription) => {
+    const motif = window.prompt('Motif d\'annulation');
+    if (!motif) return;
+    await prescriptionService.annuler(p.idPrescription, motif);
+    toast.success('Annulée');
+    fetchData();
+  };
+
+  const handlePrintOrdonnance = (id: number) => {
+    setSelectedPrescriptionId(id);
+    setModalOpen(true);
+  };
+
+  if (loading) return <SkeletonTable columns={7} rows={8} />;
+
+  return (
+    <RequirePermission permission="PRESCRIPTIONS_VOIR">
+    <div className="space-y-6">
+      <PageHeader
+        title="Prescriptions médicaments"
+        subtitle={`${pagedData?.totalCount || 0} prescriptions`}
+        actions={
+          <Can permission="PRESCRIPTIONS_GERER">
+            <Button icon={<FaPrescriptionBottle />} onClick={() => navigate('/prescriptions/nouveau?type=Medicament')}>
+              Nouvelle prescription médicament
+            </Button>
+          </Can>
+        }
+      />
+
+      {!pagedData || pagedData.items.length === 0 ? (
+        <EmptyState
+          icon={<FaPrescriptionBottle />}
+          title="Aucune prescription médicament"
+          description="Créez une nouvelle prescription médicament pour démarrer"
+        />
+      ) : (
+        <TableContainer>
+          <Table>
+            <THead>
+              <tr>
+                <Th>N°</Th>
+                <Th>Date</Th>
+                <Th>Patient</Th>
+                <Th>Médecin</Th>
+                <Th>Description</Th>
+                <Th>Statut</Th>
+                <Th align="center">Actions</Th>
+              </tr>
+            </THead>
+            <TBody>
+              {pagedData.items.map((p: Prescription) => (
+                <Tr key={p.idPrescription}>
+                  <Td className="font-mono">{p.numeroPrescription}</Td>
+                  <Td>{format(new Date(p.datePrescription), 'dd/MM/yyyy HH:mm')}</Td>
+                  <Td>{p.patientNom} {p.patientPrenom}</Td>
+                  <Td>Dr. {p.medecinNom} {p.medecinPrenom}</Td>
+                  <Td className="max-w-xs truncate">{p.description}</Td>
+                  <Td>
+                    <span className={`px-2 py-1 rounded-full text-xs ${statutColors[p.statut]}`}>{p.statut}</span>
+                  </Td>
+                  <Td className="text-center">
+                    <div className="flex justify-center gap-2">
+                      <IconButton color="indigo" title="Détails" onClick={() => navigate(`/prescriptions/${p.idPrescription}`)}>
+                        <FaEye size={14} />
+                      </IconButton>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => navigate(`/prescriptions/${p.idPrescription}/modifier`)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <IconButton color="green" title="Imprimer l'ordonnance" onClick={() => handlePrintOrdonnance(p.idPrescription)}>
+                        <FaPrint size={14} />
+                      </IconButton>
+                      {p.statut !== 'Annulee' && (
+                        <Can permission="PRESCRIPTIONS_GERER">
+                          <IconButton color="gray" title="Annuler" onClick={() => handleAnnuler(p)}>
+                            <FaBan size={14} />
+                          </IconButton>
+                        </Can>
+                      )}
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(p)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+          {pagedData.totalPages > 1 && (
+            <Pagination pageIndex={pagedData.pageIndex} totalPages={pagedData.totalPages} onPageChange={p => setPagination(prev => ({...prev, pageIndex: p}))} />
+          )}
+        </TableContainer>
+      )}
+
+      <OrdonnanceModal
+        isOpen={modalOpen}
+        prescriptionId={selectedPrescriptionId}
+        onClose={() => setModalOpen(false)}
+      />
+    </div>
+    </RequirePermission>
+  );
+}

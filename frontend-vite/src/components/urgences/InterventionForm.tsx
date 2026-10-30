@@ -1,0 +1,190 @@
+﻿import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from '@/utils/toast';
+import { FaSave, FaArrowLeft } from 'react-icons/fa';
+import { FormInput } from '@/components/common/FormInput';
+import { FormSelect } from '@/components/common/FormSelect';
+import { FormTextarea } from '@/components/common/FormTextarea';
+import ActeAutocomplete from '@/components/facturation/ActeAutocomplete';
+import { PatientSearchSelect } from '@/components/common/PatientSearchSelect';
+import { MedecinSearchSelect } from '@/components/common/MedecinSearchSelect';
+import { urgenceService } from '@/services/urgenceService';
+import type { InterventionUrgence, InterventionUrgenceCreate } from '@/types/urgence';
+import { StatutInterventionUrgence, StatutInterventionUrgenceLabels, StatutInterventionUrgenceValues } from '@/types/urgence';
+import { extractErrorMessage } from '@/utils/extractErrorMessage';
+import PageHeader from '@/ui/PageHeader';
+import Button from '@/ui/Button';
+import SkeletonDetails from '@/ui/SkeletonDetails';
+
+const formatDateForBackend = (dateStr: string): string => {
+  if (!dateStr) return '';
+  const localDate = new Date(dateStr);
+  if (isNaN(localDate.getTime())) return '';
+  const year = localDate.getFullYear();
+  const month = String(localDate.getMonth() + 1).padStart(2, '0');
+  const day = String(localDate.getDate()).padStart(2, '0');
+  const hours = String(localDate.getHours()).padStart(2, '0');
+  const minutes = String(localDate.getMinutes()).padStart(2, '0');
+  const seconds = String(localDate.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+};
+
+interface InterventionFormProps {
+  initialData?: InterventionUrgence | null;
+  isEdit?: boolean;
+}
+
+export default function InterventionForm({ initialData, isEdit = false }: InterventionFormProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const admissionParam = searchParams.get('admission');
+  const [idPatient, setIdPatient] = useState<number | null>(initialData?.idPatient ?? null);
+  const [idMedecin, setIdMedecin] = useState<number | null>(initialData?.idMedecinPrincipal ?? null);
+  const [idAdmissionUrgence, setIdAdmissionUrgence] = useState<number | null>(
+    initialData?.idAdmissionUrgence ?? (admissionParam ? Number(admissionParam) : null),
+  );
+  const [typeIntervention, setTypeIntervention] = useState(initialData?.typeIntervention ?? '');
+  const [idActeCatalogue, setIdActeCatalogue] = useState<number | null>(initialData?.idActeCatalogue ?? null);
+  const [acteCatalogueLibelle, setActeCatalogueLibelle] = useState(initialData?.libelleActeCatalogue ?? '');
+  const [dateIntervention, setDateIntervention] = useState(
+    initialData?.dateIntervention ? initialData.dateIntervention.slice(0, 16) : new Date().toISOString().slice(0, 16),
+  );
+  const [lieu, setLieu] = useState(initialData?.lieu ?? '');
+  const [dureePrevue, setDureePrevue] = useState(initialData?.dureePrevue?.toString() ?? '');
+  const [actesRealises, setActesRealises] = useState(initialData?.actesRealises ?? '');
+  const [materielUtilise, setMaterielUtilise] = useState(initialData?.materielUtilise ?? '');
+  const [complications, setComplications] = useState(initialData?.complications ?? '');
+  const [resultat, setResultat] = useState(initialData?.resultat ?? '');
+  const [statut, setStatut] = useState<StatutInterventionUrgence>(initialData?.statut ?? StatutInterventionUrgence.Planifiee);
+  const [notes, setNotes] = useState(initialData?.notes ?? '');
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = (): boolean => {
+    const err: Record<string, string> = {};
+    if (!idPatient) err.idPatient = 'Le patient est requis';
+    if (!idMedecin) err.idMedecin = 'Le médecin est requis';
+    if (!typeIntervention.trim()) err.typeIntervention = 'Le type d\'intervention est requis';
+    if (!dateIntervention) err.dateIntervention = 'La date est requise';
+    setErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const payload: InterventionUrgenceCreate = {
+        idPatient,
+        idAdmissionUrgence,
+        idMedecinPrincipal: idMedecin,
+        typeIntervention: typeIntervention.trim(),
+        idActeCatalogue: idActeCatalogue ?? null,
+        dateIntervention: formatDateForBackend(dateIntervention),
+        lieu: lieu || null,
+        dureePrevue: dureePrevue ? Number(dureePrevue) : null,
+        actesRealises: actesRealises || null,
+        materielUtilise: materielUtilise || null,
+        complications: complications || null,
+        resultat: resultat || null,
+        statut,
+        notes: notes || null,
+      };
+      if (isEdit && initialData) {
+        await urgenceService.updateIntervention(initialData.idInterventionUrgence, payload);
+        toast.success('Intervention mise à jour');
+      } else {
+        await urgenceService.createIntervention(payload);
+        toast.success('Intervention créée');
+      }
+      navigate('/urgences/interventions');
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isEdit && !initialData) return <SkeletonDetails />;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={isEdit ? 'Modifier l\'intervention' : 'Nouvelle intervention d\'urgence'}
+        actions={
+          <Button variant="secondary" icon={<FaArrowLeft />} onClick={() => navigate('/urgences/interventions')}>
+            Retour
+          </Button>
+        }
+      />
+
+      <form onSubmit={handleSubmit} noValidate className="mx-auto w-full max-w-6xl">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <PatientSearchSelect value={idPatient} onChange={setIdPatient} error={errors.idPatient} required label="Patient" />
+            </div>
+            <MedecinSearchSelect value={idMedecin} onChange={setIdMedecin} error={errors.idMedecin} required label="Médecin principal" />
+            <FormInput label="Admission urgences (ID)" name="idAdmissionUrgence" type="number"
+              value={idAdmissionUrgence ?? ''} onChange={(e) => setIdAdmissionUrgence(e.target.value ? Number(e.target.value) : null)}
+              placeholder="Optionnel" />
+            <div className="md:col-span-2">
+              <label className="mb-1.5 block text-sm font-semibold text-gray-800">
+                 Type d&apos;intervention <span className="text-red-500">*</span>
+              </label>
+              <ActeAutocomplete
+                categorie="Intervention"
+                value={acteCatalogueLibelle}
+                onChange={(text) => {
+                  setActeCatalogueLibelle(text);
+                  setTypeIntervention(text);
+                  if (!text) setIdActeCatalogue(null);
+                }}
+                onSelect={(acte) => {
+                  setActeCatalogueLibelle(acte.libelle);
+                  setTypeIntervention(acte.libelle);
+                  setIdActeCatalogue(acte.idActeCatalogue);
+                }}
+                onClear={() => setIdActeCatalogue(null)}
+                placeholder="Tapez pour rechercher (ex. : appendicectomie, césarienne, suture...)"
+              />
+              {errors.typeIntervention && <p className="mt-1.5 text-xs font-medium text-red-600">{errors.typeIntervention}</p>}
+            </div>
+            <FormInput label="Date et heure" name="dateIntervention" type="datetime-local" value={dateIntervention}
+              onChange={(e) => setDateIntervention(e.target.value)} error={errors.dateIntervention} required />
+            <FormInput label="Lieu" name="lieu" value={lieu} onChange={(e) => setLieu(e.target.value)} placeholder="Ex : box de soins, bloc..." />
+            <FormInput label="Durée prévue (min)" name="dureePrevue" type="number" value={dureePrevue} onChange={(e) => setDureePrevue(e.target.value)} />
+            <FormSelect label="Statut" name="statut" value={statut}
+              onChange={(e) => setStatut(e.target.value as StatutInterventionUrgence)}
+              options={StatutInterventionUrgenceValues.map((s) => ({ value: s, label: StatutInterventionUrgenceLabels[s] }))} />
+            <div className="md:col-span-2">
+              <FormTextarea label="Actes réalisés" name="actesRealises" value={actesRealises} onChange={(e) => setActesRealises(e.target.value)} rows={2} />
+            </div>
+            <div className="md:col-span-2">
+              <FormTextarea label="Matériel utilisé" name="materielUtilise" value={materielUtilise} onChange={(e) => setMaterielUtilise(e.target.value)} rows={2} />
+            </div>
+            <div className="md:col-span-2">
+              <FormTextarea label="Complications" name="complications" value={complications} onChange={(e) => setComplications(e.target.value)} rows={2} />
+            </div>
+            <div className="md:col-span-2">
+              <FormTextarea label="Résultat" name="resultat" value={resultat} onChange={(e) => setResultat(e.target.value)} rows={2} />
+            </div>
+            <div className="md:col-span-2">
+              <FormTextarea label="Notes" name="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-6">
+          <Button type="button" variant="secondary" onClick={() => navigate('/urgences/interventions')}>
+            Annuler
+          </Button>
+          <Button type="submit" disabled={loading} icon={<FaSave />}>
+            {loading ? 'Enregistrement...' : isEdit ? 'Enregistrer' : 'Créer'}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}

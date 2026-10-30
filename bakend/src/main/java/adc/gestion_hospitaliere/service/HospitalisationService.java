@@ -65,6 +65,14 @@ public class HospitalisationService {
                 .map(this::toResponseDto);
     }
 
+    /** Recherche filtree sur le medecin responsable (scoping medecin). */
+    public Page<HospitalisationResponseDto> searchForMedecin(StatutHospitalisation statut, Integer idPatient,
+                                                             LocalDateTime dateStart, LocalDateTime dateEnd,
+                                                             Integer idMedecin, Pageable pageable) {
+        return hospitalisationRepository.searchIncluantMedecin(statut, idPatient, idMedecin, dateStart, dateEnd, pageable)
+                .map(this::toResponseDto);
+    }
+
     public HospitalisationResponseDto getById(Integer id) {
         Hospitalisation h = hospitalisationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hospitalisation non trouvée"));

@@ -1,0 +1,181 @@
+﻿// app/prescriptions/soins/[id]/page.tsx
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { format } from 'date-fns';
+import { toast } from '@/utils/toast';
+import { FaPlus, FaTrash, FaEdit, FaArrowLeft, FaBandAid } from 'react-icons/fa';
+import { useConfirm } from 'react-use-confirming-dialog';
+import { soinPrescritService } from '@/services/soinPrescritService';
+import { prescriptionService } from '@/services/prescriptionService';
+import SkeletonTable from '@/ui/SkeletonTable';
+import PageShell from '@/ui/PageShell';
+import EmptyState from '@/ui/EmptyState';
+import Button, { IconButton } from '@/ui/Button';
+import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
+import Can from '@/components/common/Can';
+import RequirePermission from '@/components/common/RequirePermission';
+import type { SoinPrescrit } from '@/types/soin';
+import type { Prescription } from '@/types/prescription';
+
+const statutColors: Record<string, string> = {
+  Prescrit: 'bg-yellow-100 text-yellow-800',
+  EnCours: 'bg-blue-100 text-blue-800',
+  Realise: 'bg-green-100 text-green-800',
+  Annule: 'bg-red-100 text-red-800',
+};
+
+export default function PrescriptionSoins() {
+  const navigate = useNavigate();
+  const params = useParams();
+  const id = params.id as string;
+  const prescriptionId = Number(id);
+
+  const confirm = useConfirm();
+  const [soins, setSoins] = useState<SoinPrescrit[]>([]);
+  const [prescription, setPrescription] = useState<Prescription | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    // Validation stricte
+    if (!id || isNaN(prescriptionId) || prescriptionId <= 0) {
+      toast.error('ID de prescription invalide');
+      navigate('/prescriptions');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const [soinsData, prescriptionData] = await Promise.all([
+        soinPrescritService.getByPrescription(prescriptionId),
+        prescriptionService.getById(prescriptionId),
+      ]);
+      setSoins(soinsData);
+      setPrescription(prescriptionData);
+    } catch {
+      console.error('Chargement échoué');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, prescriptionId, navigate]);
+
+  useEffect(() => {
+    void (async () => { await fetchData(); })();
+  }, [fetchData]);
+
+  const handleDelete = async (soin: SoinPrescrit) => {
+    const ok = await confirm({
+      title: 'Supprimer',
+      message: `Supprimer le soin "${soin.description}" ?`,
+    });
+    if (!ok) return;
+    try {
+      await soinPrescritService.delete(soin.idSoin);
+      toast.success('Soin supprimé');
+      fetchData();
+    } catch {
+      toast.error('Erreur');
+    }
+  };
+
+  const handleEdit = (soin: SoinPrescrit) => {
+    navigate(`/prescriptions/soins/${soin.idSoin}/modifier`);
+  };
+
+  const handleAdd = () => {
+    if (!prescription) return;
+    navigate(`/prescriptions/${prescriptionId}/soins/nouveau?patient=${prescription.idPatient}`);
+  };
+
+  if (loading) return <SkeletonTable columns={6} rows={8} />;
+  if (!prescription) return <div className="p-6 text-center">Prescription non trouvée</div>;
+
+  return (
+    <RequirePermission permission="PRESCRIPTIONS_VOIR">
+    <PageShell
+      title="Soins de la prescription"
+      subtitle={
+        <span>
+          Prescription n° {prescription.numeroPrescription} – {prescription.patientNom} {prescription.patientPrenom}
+        </span>
+      }
+      maxWidth="max-w-6xl"
+      onBack={() => navigate('/prescriptions')}
+      backLabel="Retour aux prescriptions"
+      actions={
+        <>
+          <Button variant="secondary" onClick={() => navigate(`/prescriptions/examens/${prescriptionId}`)}>
+            Voir les examens
+          </Button>
+          <Can permission="PRESCRIPTIONS_GERER">
+            <Button icon={<FaPlus />} onClick={handleAdd}>
+              Ajouter un soin
+            </Button>
+          </Can>
+        </>
+      }
+    >
+
+      {soins.length === 0 ? (
+        <EmptyState
+          icon={<FaBandAid />}
+          title="Aucun soin associé"
+          description="Aucun soin associé à cette prescription."
+          action={
+            <Can permission="PRESCRIPTIONS_GERER">
+              <Button icon={<FaPlus />} onClick={handleAdd}>
+                Ajouter un soin
+              </Button>
+            </Can>
+          }
+        />
+      ) : (
+        <TableContainer>
+          <Table>
+            <THead>
+              <tr>
+                <Th>Description</Th>
+                <Th>Fréquence</Th>
+                <Th>Durée</Th>
+                <Th>Statut</Th>
+                <Th>Date</Th>
+                <Th align="center">Actions</Th>
+              </tr>
+            </THead>
+            <TBody>
+              {soins.map((s) => (
+                <Tr key={s.idSoin}>
+                  <Td>{s.description}</Td>
+                  <Td>{s.frequence || '-'}</Td>
+                  <Td>{s.duree || '-'}</Td>
+                  <Td>
+                    <span className={`px-2 py-1 rounded-full text-xs ${statutColors[s.statut]}`}>{s.statut}</span>
+                  </Td>
+                  <Td>{format(new Date(s.datePrescription), 'dd/MM/yyyy HH:mm')}</Td>
+                  <Td className="text-center">
+                    <div className="flex justify-center gap-2">
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(s)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(s)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      <Button variant="ghost" icon={<FaArrowLeft />} onClick={() => navigate('/prescriptions')}>
+        Retour aux prescriptions
+      </Button>
+    </PageShell>
+    </RequirePermission>
+  );
+}

@@ -1,0 +1,269 @@
+﻿// app/pharmacie/commandes/page.tsx
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/utils/toast';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaClipboardList, FaSearch } from 'react-icons/fa';
+import { useConfirm } from 'react-use-confirming-dialog';
+import Pagination from '@/ui/Pagination';
+import SkeletonTable from '@/ui/SkeletonTable';
+import PageHeader from '@/ui/PageHeader';
+import EmptyState from '@/ui/EmptyState';
+import Button, { IconButton } from '@/ui/Button';
+import RefreshButton from '@/ui/RefreshButton';
+import { FilterPanel, FilterInput, FilterSelect } from '@/ui/FilterControls';
+import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
+import { commandeService } from '@/services/commandeService';
+import { CommandeFournisseur, StatutCommandeFournisseur } from '@/types/commande';
+import { fournisseurService } from '@/services/fournisseurService';
+import { extractErrorMessage } from '@/utils/extractErrorMessage';
+import Can from '@/components/common/Can';
+import RequirePermission from '@/components/common/RequirePermission';
+import { usePermission } from '@/hooks/usePermission';
+
+const statutColors: Record<StatutCommandeFournisseur, string> = {
+  En_attente: 'bg-yellow-100 text-yellow-800',
+  Confirmee: 'bg-blue-100 text-blue-800',
+  Expediee: 'bg-purple-100 text-purple-800',
+  Recue_partiellement: 'bg-orange-100 text-orange-800',
+  Recue_completement: 'bg-green-100 text-green-800',
+  Annulee: 'bg-red-100 text-red-800'
+};
+
+const statutLabels: Record<StatutCommandeFournisseur, string> = {
+  En_attente: 'En attente',
+  Confirmee: 'Confirmée',
+  Expediee: 'Expédiée',
+  Recue_partiellement: 'Reçue partiellement',
+  Recue_completement: 'Reçue complètement',
+  Annulee: 'Annulée',
+};
+
+export default function CommandesList() {
+  const navigate = useNavigate();
+  const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
+  const [pagedData, setPagedData] = useState<{
+    items: CommandeFournisseur[];
+    totalCount: number;
+    pageIndex: number;
+    totalPages: number;
+  }>({
+    items: [],
+    totalCount: 0,
+    pageIndex: 1,
+    totalPages: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [filterStatut, setFilterStatut] = useState('');
+  const [filterFournisseur, setFilterFournisseur] = useState<number | undefined>();
+  const [dateStart, setDateStart] = useState('');
+  const [dateEnd, setDateEnd] = useState('');
+  const [applied, setApplied] = useState({ statut: '', idFournisseur: undefined as number | undefined, dateStart: '', dateEnd: '' });
+  const [showFilters, setShowFilters] = useState(false);
+  const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
+  const [fournisseurs, setFournisseurs] = useState<{ id: number; nom: string }[]>([]);
+
+  useEffect(() => {
+    if (!peutVoir) return;
+    fournisseurService.getAll(1, 100).then(res => {
+      setFournisseurs(res.items.map(f => ({ id: f.idFournisseur, nom: f.nomFournisseur })));
+    }).catch(console.error);
+  }, [peutVoir]);
+
+  const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const data = await commandeService.search({
+        statut: applied.statut as StatutCommandeFournisseur || undefined,
+        idFournisseur: applied.idFournisseur,
+        dateStart: applied.dateStart || undefined,
+        dateEnd: applied.dateEnd || undefined,
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize
+      });
+      setPagedData(data);
+    } catch (error) {
+      console.error(error);
+      setPagedData(prev => ({ ...prev, items: [], totalCount: 0, totalPages: 0 }));
+    } finally {
+      setLoading(false);
+    }
+  }, [applied, pagination.pageIndex, pagination.pageSize, peutVoir]);
+
+  useEffect(() => {
+    void (async () => { await fetchData(); })();
+  }, [fetchData]);
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+    setApplied(prev => ({ ...prev, dateStart, dateEnd }));
+  };
+
+  const handleReset = () => {
+    setFilterStatut('');
+    setFilterFournisseur(undefined);
+    setDateStart('');
+    setDateEnd('');
+    setApplied({ statut: '', idFournisseur: undefined, dateStart: '', dateEnd: '' });
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  const handleDelete = async (cmd: CommandeFournisseur) => {
+    const ok = await confirm({ title: 'Supprimer', message: `Supprimer la commande ${cmd.numeroCommande} ?` });
+    if (!ok) return;
+    try {
+      await commandeService.delete(cmd.idCommande);
+      toast.success('Commande supprimée');
+      fetchData();
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    }
+  };
+
+  const handleStatutChange = async (cmd: CommandeFournisseur, statut: StatutCommandeFournisseur) => {
+    try {
+      const maj = await commandeService.changerStatut(cmd.idCommande, statut);
+      setPagedData((prev) => ({
+        ...prev,
+        items: prev.items.map((c) => (c.idCommande === cmd.idCommande ? maj : c)),
+      }));
+      toast.success('Statut mis à jour');
+    } catch (error) {
+      toast.error(extractErrorMessage(error));
+    }
+  };
+
+  if (loading) return <SkeletonTable columns={6} rows={8} />;
+
+  return (
+    <RequirePermission permission="PHARMACIE_VOIR">
+    <div className="space-y-6">
+      <PageHeader
+        title="Commandes fournisseurs"
+        subtitle={`${pagedData.totalCount} commandes`}
+        actions={
+          <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
+            <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
+              Filtres
+            </Button>
+            <Can permission="PHARMACIE_GERER">
+            <Button icon={<FaPlus />} onClick={() => navigate('/pharmacie/commandes/nouvelle')}>
+              Nouvelle commande
+            </Button>
+            </Can>
+          </>
+        }
+      />
+
+      {showFilters && (
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <FilterPanel>
+            <FilterSelect value={filterStatut} onChange={e => { const statut = e.target.value; setFilterStatut(statut); setApplied(prev => ({ ...prev, statut })); }}>
+              <option value="">Tous statuts</option>
+              {Object.values(StatutCommandeFournisseur).map(s => <option key={s} value={s}>{s}</option>)}
+            </FilterSelect>
+            <FilterSelect value={filterFournisseur ?? ''} onChange={e => { const id = e.target.value ? Number(e.target.value) : undefined; setFilterFournisseur(id); setApplied(prev => ({ ...prev, idFournisseur: id })); }}>
+              <option value="">Tous fournisseurs</option>
+              {fournisseurs.map(f => <option key={f.id} value={f.id}>{f.nom}</option>)}
+            </FilterSelect>
+            <FilterInput type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} placeholder="Date début" />
+            <FilterInput type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} placeholder="Date fin" />
+          </FilterPanel>
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={handleReset}>Réinitialiser</Button>
+          </div>
+        </div>
+      )}
+
+      {pagedData.items.length === 0 ? (
+        <EmptyState
+          icon={<FaClipboardList />}
+          title="Aucune commande"
+          description="Créez une nouvelle commande fournisseur pour démarrer."
+          action={
+            <Can permission="PHARMACIE_GERER">
+            <Button icon={<FaPlus />} onClick={() => navigate('/pharmacie/commandes/nouvelle')}>
+              Nouvelle commande
+            </Button>
+            </Can>
+          }
+        />
+      ) : (
+        <TableContainer>
+          <Table>
+            <THead>
+              <tr>
+                <Th>N° Commande</Th>
+                <Th>Fournisseur</Th>
+                <Th>Date</Th>
+                <Th>Statut</Th>
+                <Th>Montant ($)</Th>
+                <Th align="center">Actions</Th>
+              </tr>
+            </THead>
+            <TBody>
+              {pagedData.items.map((cmd) => (
+                <Tr key={cmd.idCommande}>
+                  <Td className="whitespace-nowrap font-mono text-gray-900">{cmd.numeroCommande}</Td>
+                  <Td className="whitespace-nowrap text-gray-900">{cmd.fournisseurNom}</Td>
+                  <Td className="whitespace-nowrap text-gray-900">
+                    {new Date(cmd.dateCommande).toLocaleDateString()}
+                  </Td>
+                  <Td className="whitespace-nowrap">
+                    <Can
+                      permission="PHARMACIE_GERER"
+                      fallback={
+                        <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${statutColors[cmd.statut]}`}>
+                          {statutLabels[cmd.statut]}
+                        </span>
+                      }
+                    >
+                    <select
+                      value={cmd.statut}
+                      onChange={(e) => handleStatutChange(cmd, e.target.value as StatutCommandeFournisseur)}
+                      className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-semibold ${statutColors[cmd.statut]}`}
+                    >
+                      {Object.values(StatutCommandeFournisseur).map((s) => (
+                        <option key={s} value={s}>{statutLabels[s]}</option>
+                      ))}
+                    </select>
+                    </Can>
+                  </Td>
+                  <Td className="whitespace-nowrap text-gray-900">
+                    {cmd.montantTotal ? `$${cmd.montantTotal.toFixed(2)}` : '-'}
+                  </Td>
+                  <Td className="whitespace-nowrap text-center">
+                    <div className="flex justify-center gap-2">
+                      <IconButton color="gray" title="Détails" onClick={() => navigate(`/pharmacie/commandes/${cmd.idCommande}`)}>
+                        <FaEye size={14} />
+                      </IconButton>
+                      <Can permission="PHARMACIE_GERER">
+                      <IconButton color="blue" title="Modifier" onClick={() => navigate(`/pharmacie/commandes/${cmd.idCommande}/modifier`)}>
+                        <FaEdit size={14} />
+                      </IconButton>
+                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(cmd)}>
+                        <FaTrash size={14} />
+                      </IconButton>
+                      </Can>
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+          {pagedData.totalPages > 1 && (
+            <Pagination
+              pageIndex={pagedData.pageIndex}
+              totalPages={pagedData.totalPages}
+              onPageChange={(page) => setPagination(prev => ({ ...prev, pageIndex: page }))}
+            />
+          )}
+        </TableContainer>
+      )}
+    </div>
+    </RequirePermission>
+  );
+}

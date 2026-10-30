@@ -1,0 +1,136 @@
+﻿import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import {
+  FaUserMd, FaUserInjured, FaStethoscope, FaFlask, FaEdit,
+  FaTrash, FaUserNurse
+} from 'react-icons/fa';
+
+import SkeletonDetails from '@/ui/SkeletonDetails';
+import PageShell from '@/ui/PageShell';
+import DetailBanner from '@/ui/DetailBanner';
+import { InfoGrid, InfoCard } from '@/ui/InfoCard';
+import Button from '@/ui/Button';
+import { Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
+import { prescriptionService } from '@/services/prescriptionService';
+import { Prescription, TypePrescription, StatutPrescription } from '@/types/prescription';
+import { useAuth } from '@/contexts/AuthContext';
+import { peutModifier } from '@/utils/permissions';
+
+const statutStyles: Record<StatutPrescription, string> = {
+  Active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Terminee: 'bg-blue-50 text-blue-700 border-blue-200',
+  Annulee: 'bg-red-50 text-red-700 border-red-200',
+  EnAttente: 'bg-amber-50 text-amber-700 border-amber-200'
+};
+
+export default function PrescriptionDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [prescription, setPrescription] = useState<Prescription | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      prescriptionService.getById(Number(id))
+        .then(setPrescription)
+        .catch(() => console.error('Chargement echoue'))
+        .finally(() => setLoading(false));
+    }
+  }, [id]);
+
+  if (loading) return <SkeletonDetails />;
+  if (!prescription) return <div className="p-10 text-center text-gray-500">Prescription introuvable.</div>;
+
+  const editable = peutModifier(user?.role, user?.medecinId, prescription.idMedecin);
+
+  return (
+    <PageShell
+      title={`Prescription #${prescription.numeroPrescription}`}
+      maxWidth="max-w-6xl"
+      onBack={() => navigate('/prescriptions')}
+      actions={
+        <>
+            <Button variant="secondary" icon={<FaFlask />} onClick={() => navigate(`/prescriptions/examens/${id}`)}>
+              Examens
+            </Button>
+            <Button variant="secondary" icon={<FaUserNurse />} onClick={() => navigate(`/prescriptions/${id}/soins`)}>
+              Soins
+            </Button>
+            {editable && (
+              <Button icon={<FaEdit />} onClick={() => navigate(`/prescriptions/${id}/modifier`)}>
+                Modifier
+              </Button>
+            )}
+            {editable && (
+              <Button variant="danger" icon={<FaTrash />} onClick={() => {/* Logique */}}>
+                Supprimer
+              </Button>
+            )}
+          </>
+        }
+      >
+
+      <DetailBanner
+        meta="Prescription"
+        title={`Prescription #${prescription.numeroPrescription}`}
+        subtitle={format(new Date(prescription.datePrescription), "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+        badges={
+          <span className={`px-4 py-1.5 rounded-full text-sm font-bold border ${statutStyles[prescription.statut]}`}>
+            {prescription.statut.replace('_', ' ')}
+          </span>
+        }
+      >
+        {/* Corps de page */}
+        <div className="p-8 space-y-8">
+          {/* Grille d'infos */}
+          <InfoGrid className="p-0">
+            <InfoCard icon={FaUserInjured} label="Patient" value={`${prescription.patientNom} ${prescription.patientPrenom}`} />
+            <InfoCard icon={FaUserMd} label="Médecin" value={`Dr. ${prescription.medecinNom}`} />
+            <InfoCard icon={FaStethoscope} label="Type" value={prescription.typePrescription} />
+          </InfoGrid>
+
+          {/* Description & Notes */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</h3>
+              <p className="text-gray-700">{prescription.description}</p>
+            </div>
+            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Instructions</h3>
+              <p className="text-gray-700">{prescription.instructions || 'Aucune instruction particulière.'}</p>
+            </div>
+          </div>
+
+          {/* Table Médicaments */}
+          {prescription.typePrescription === TypePrescription.Medicament && (
+            <div className="overflow-hidden rounded-xl border border-slate-100">
+              <Table>
+                <THead>
+                  <tr>
+                    <Th>Médicament</Th>
+                    <Th align="center">Posologie</Th>
+                    <Th align="center">Durée</Th>
+                    <Th align="center">Qté</Th>
+                  </tr>
+                </THead>
+                <TBody>
+                  {prescription.prescriptionsMedicaments?.map((med) => (
+                    <Tr key={med.idPrescriptionMed}>
+                      <Td className="font-medium text-gray-900">{med.medicamentNom}</Td>
+                      <Td className="text-center">{med.posologie}</Td>
+                      <Td className="text-center">{med.dureeTraitement}</Td>
+                      <Td className="text-center font-bold">{med.quantitePrescrite}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      </DetailBanner>
+    </PageShell>
+  );
+}

@@ -1,0 +1,252 @@
+﻿import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/utils/toast';
+import { FaUserInjured, FaPlus, FaEdit, FaTrash, FaIdCard, FaEnvelope, FaPhone, FaSearch, FaFilter, FaChartBar, FaEye, FaFileMedical } from 'react-icons/fa';
+import { useConfirm } from 'react-use-confirming-dialog';
+import Pagination from '@/ui/Pagination';
+import SkeletonTable from '@/ui/SkeletonTable';
+import PageHeader from '@/ui/PageHeader';
+import EmptyState from '@/ui/EmptyState';
+import Button, { IconButton } from '@/ui/Button';
+import RefreshButton from '@/ui/RefreshButton';
+import { FilterPanel, FilterInput, FilterSelect } from '@/ui/FilterControls';
+import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
+import type { PagedResult } from '@/types/pagination';
+//import type{ GenreLabels } from '@/types/medecin';
+import { GenreLabels } from '@/types/patient';
+
+import type { Genre, Patient } from '@/types/patient';
+import { patientService } from '@/services/patientService';
+import Can from '@/components/common/Can';
+import RequirePermission from '@/components/common/RequirePermission';
+
+const PatientList: React.FC = () => {
+  const navigate = useNavigate();
+  const confirm = useConfirm();
+
+  const [pagedData, setPagedData] = useState<PagedResult<Patient> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
+  const [reloadTrigger, setReloadTrigger] = useState(0);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      setLoading(true);
+      try {
+        let data;
+        if (selectedGenre !== null) {
+          data = await patientService.getByGenre(selectedGenre, paginationParams);
+        } else if (searchTerm) {
+          data = await patientService.search(searchTerm, paginationParams);
+        } else {
+          data = await patientService.getAll(paginationParams);
+        }
+        setPagedData(data);
+      } catch (error) {
+        console.error('Chargement echoue');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPatients();
+  }, [paginationParams, paginationParams.pageIndex, paginationParams.pageSize, selectedGenre, searchTerm, reloadTrigger]);
+
+  const handleDelete = async (id: number, nom: string, prenom: string) => {
+    const ok = await confirm({
+      title: 'Confirmation de suppression',
+      message: `Supprimer le patient ${nom} ${prenom} ?`,
+      confirmText: 'Oui, supprimer',
+      cancelText: 'Annuler',
+      confirmColor: '#d33',
+    });
+    if (!ok) return;
+    try {
+      await patientService.delete(id);
+      toast.success('Patient supprimé');
+      setReloadTrigger(prev => prev + 1);
+    } catch {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const handleEdit = (patient: Patient) => navigate(`/patients/${patient.idPatient}/modifier`);
+  const handleViewDetails = (patient: Patient) => navigate(`/patients/${patient.idPatient}/details`);
+  const handleDossierMedical = (patient: Patient) => navigate(`/patients/${patient.idPatient}/dossier-medical`);
+  const handleStats = () => navigate('/patients/statistiques');
+  const handleAdd = () => navigate('/patients/nouveau');
+  const handlePageChange = (page: number) => {
+    setPaginationParams(prev => ({ ...prev, pageIndex: page }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchTerm(searchInput);
+    setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
+  };
+  const clearFilters = () => {
+    setSelectedGenre(null);
+    setSearchTerm('');
+    setSearchInput('');
+    setPaginationParams(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  const getGenreLabel = (genre: Genre): string => GenreLabels[genre];
+
+  if (loading) return <SkeletonTable columns={6} rows={8} />;
+
+  return (
+    <RequirePermission permission="PATIENTS_VOIR">
+      <div className="space-y-6">
+      <PageHeader
+        title="Gestion des patients"
+        subtitle={
+          <>
+            <FaUserInjured className="inline mr-1" /> {pagedData?.totalCount || 0} patient(s) trouvé(s)
+          </>
+        }
+        actions={
+          <>
+            <RefreshButton onRefresh={() => setReloadTrigger(prev => prev + 1)} loading={loading} />
+            <Button variant="secondary" icon={<FaChartBar />} onClick={handleStats}>
+              Statistiques
+            </Button>
+            <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
+              Filtres
+            </Button>
+            <Can permission="PATIENTS_AJOUTER">
+              <Button icon={<FaPlus />} onClick={handleAdd}>
+                Nouveau patient
+              </Button>
+            </Can>
+          </>
+        }
+      />
+
+      {showFilters && (
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <FilterPanel>
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <FilterInput
+                type="text"
+                placeholder="Rechercher par nom, prénom, numéro sécurité sociale..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <Button type="submit" icon={<FaSearch />} />
+            </form>
+            <FilterSelect
+              value={selectedGenre ?? ''}
+              onChange={(e) => setSelectedGenre(e.target.value ? (e.target.value as Genre) : null)}
+            >
+              <option value="">Tous genres</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
+            </FilterSelect>
+          </FilterPanel>
+          {(selectedGenre !== null || searchTerm) && (
+            <div className="mt-4 text-right">
+              <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-700">
+                Effacer les filtres
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!pagedData || pagedData.items.length === 0 ? (
+        <EmptyState
+          icon={<FaUserInjured />}
+          title="Aucun patient trouvé"
+          description={
+            searchTerm || selectedGenre !== null
+              ? 'Aucun résultat pour vos critères'
+              : 'Commencez par ajouter un nouveau patient'
+          }
+          action={
+            (searchTerm || selectedGenre !== null) && (
+              <Button variant="secondary" onClick={clearFilters}>
+                Effacer les filtres
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <TableContainer>
+          <Table>
+            <THead>
+              <tr>
+                <Th>N° Sécurité Sociale</Th>
+                <Th>Nom & Prénom</Th>
+                <Th>Genre</Th>
+                <Th>Contact</Th>
+                <Th>Date naissance</Th>
+                <Th align="center">Actions</Th>
+              </tr>
+            </THead>
+            <TBody>
+              {pagedData.items.map((patient) => (
+                <Tr key={patient.idPatient} className="cursor-pointer">
+                  <Td className="whitespace-nowrap">
+                    <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                      <FaIdCard className="mr-1" /> {patient.numeroSecuriteSociale || '-'}
+                    </span>
+                  </Td>
+                  <Td className="whitespace-nowrap text-sm font-medium text-gray-900">
+                    {patient.nom} {patient.prenom}
+                  </Td>
+                  <Td className="whitespace-nowrap text-sm text-gray-600">
+                    {getGenreLabel(patient.genre)}
+                  </Td>
+                  <Td className="text-sm text-gray-500">
+                    {patient.email && <div className="flex items-center"><FaEnvelope className="mr-1 h-3 w-3" /> {patient.email}</div>}
+                    {patient.telephone && <div className="flex items-center"><FaPhone className="mr-1 h-3 w-3" /> {patient.telephone}</div>}
+                  </Td>
+                  <Td className="whitespace-nowrap text-sm text-gray-600">
+                    {new Date(patient.dateNaissance).toLocaleDateString('fr-FR')}
+                  </Td>
+                  <Td className="whitespace-nowrap text-center">
+                    <div className="flex justify-center gap-2">
+                      <IconButton color="gray" title="Voir détails" onClick={() => handleViewDetails(patient)}>
+                        <FaEye size={14} />
+                      </IconButton>
+                      <Can permission="PATIENTS_MODIFIER">
+                        <IconButton color="blue" title="Modifier" onClick={() => handleEdit(patient)}>
+                          <FaEdit size={14} />
+                        </IconButton>
+                      </Can>
+                      <IconButton color="green" title="Dossier médical" onClick={() => handleDossierMedical(patient)}>
+                        <FaFileMedical size={14} />
+                      </IconButton>
+                      <Can permission="PATIENTS_SUPPRIMER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(patient.idPatient, patient.nom, patient.prenom)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+          {pagedData.totalPages > 1 && (
+            <Pagination
+              pageIndex={pagedData.pageIndex}
+              totalPages={pagedData.totalPages}
+              totalCount={pagedData.totalCount}
+              pageSize={pagedData.pageSize}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </TableContainer>
+      )}
+      </div>
+    </RequirePermission>
+  );
+};
+
+export default PatientList;

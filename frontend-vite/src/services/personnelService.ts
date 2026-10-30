@@ -1,0 +1,54 @@
+import api from './api';
+import type { PersonnelResponse, PersonnelRequest, PersonnelUpdate } from '../types/personnel';
+import type { PagedResult }from '../types/pagination';
+
+
+export const personnelService = {
+  async getAll(pageIndex = 1, pageSize = 10, sort = 'nom,asc'): Promise<PagedResult<PersonnelResponse>> {
+    const [sortField, sortDirection] = sort.split(',');
+    const res = await api.get('/personnel', {
+      params: { pageIndex, pageSize, sort: `${sortField},${sortDirection}` },
+    });
+    return res.data;
+  },
+
+  async getSimpleList(fonction?: string): Promise<{ idPersonnel: number; nom: string; prenom: string; email: string; fonction: string }[]> {
+    const res = await api.get('/personnel/liste-simple', { params: { fonction: fonction || undefined } });
+    return res.data;
+  },
+
+  async search(keyword: string, pageIndex = 1, pageSize = 10, fonction?: string, genre?: string): Promise<PagedResult<PersonnelResponse>> {
+    const res = await api.get('/personnel/search', {
+      params: { keyword: keyword || undefined, pageIndex, pageSize, fonction: fonction || undefined, genre: genre || undefined },
+    });
+    return res.data;
+  },
+
+  async getById(id: number): Promise<PersonnelResponse> {
+    const res = await api.get(`/personnel/${id}`);
+    return res.data;
+  },
+
+  async create(data: PersonnelRequest): Promise<PersonnelResponse> {
+    const res = await api.post('/personnel', data);
+    return res.data;
+  },
+
+  async update(id: number, data: PersonnelUpdate): Promise<PersonnelResponse> {
+    const res = await api.put(`/personnel/${id}`, data);
+    return res.data;
+  },
+
+  async delete(id: number): Promise<void> {
+    await api.delete(`/personnel/${id}`);
+  },
+
+  async getStatistiques(): Promise<{
+    totalPersonnels: number;
+    topFonctions: { fonction: string; effectif: number }[];
+    repartitionParService: Record<string, number>;
+  }> {
+    const res = await api.get('/personnel/statistiques');
+    return res.data;
+  },
+};

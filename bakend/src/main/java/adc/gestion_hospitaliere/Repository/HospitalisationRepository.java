@@ -53,4 +53,17 @@ public interface HospitalisationRepository extends JpaRepository<Hospitalisation
                                                 @Param("dateEnd") LocalDateTime dateEnd,
                                                 Pageable pageable);
 
+    @Query("SELECT h FROM Hospitalisation h WHERE " +
+            "(:statut IS NULL OR h.statut = :statut) AND " +
+            "(:idPatient IS NULL OR h.idPatient = :idPatient) AND " +
+            "(:idMedecin IS NULL OR h.idMedecinResponsable = :idMedecin) AND " +
+            "(:dateStart IS NULL OR h.dateAdmission >= :dateStart) AND " +
+            "(:dateEnd IS NULL OR h.dateAdmission <= :dateEnd)")
+    Page<Hospitalisation> searchIncluantMedecin(@Param("statut") StatutHospitalisation statut,
+                                                @Param("idPatient") Integer idPatient,
+                                                @Param("idMedecin") Integer idMedecin,
+                                                @Param("dateStart") LocalDateTime dateStart,
+                                                @Param("dateEnd") LocalDateTime dateEnd,
+                                                Pageable pageable);
+
 }

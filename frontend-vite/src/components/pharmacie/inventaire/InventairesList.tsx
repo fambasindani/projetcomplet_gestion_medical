@@ -1,0 +1,228 @@
+﻿import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { toast } from '@/utils/toast';
+import { FaPlus, FaTrash, FaEye, FaCheckCircle, FaFilter, FaBoxOpen, FaClipboardCheck, FaPrint, FaSearch } from 'react-icons/fa';
+import { useConfirm } from 'react-use-confirming-dialog';
+import { inventaireService } from '@/services/inventaireService';
+import Pagination from '@/ui/Pagination';
+import SkeletonTable from '@/ui/SkeletonTable';
+import PageHeader from '@/ui/PageHeader';
+import EmptyState from '@/ui/EmptyState';
+import Button, { IconButton } from '@/ui/Button';
+import RefreshButton from '@/ui/RefreshButton';
+import { FilterPanel, FilterInput, FilterSelect } from '@/ui/FilterControls';
+import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
+import type { PagedResult } from '@/types/pagination';
+import type { Inventaire } from '@/types/inventaire';
+import Can from '@/components/common/Can';
+import RequirePermission from '@/components/common/RequirePermission';
+import { usePermission } from '@/hooks/usePermission';
+
+const statutStyles: Record<string, string> = {
+  En_cours: 'bg-amber-50 text-amber-700 border-amber-200',
+  Validé: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Clôturé: 'bg-blue-50 text-blue-700 border-blue-200',
+};
+
+export default function InventairesList() {
+  const navigate = useNavigate();
+  const confirm = useConfirm();
+  const { allowed: peutVoir } = usePermission('PHARMACIE_VOIR');
+  const [pagedData, setPagedData] = useState<PagedResult<Inventaire>>({
+    items: [], pageIndex: 1, pageSize: 10, totalCount: 0, totalPages: 0,
+    hasPreviousPage: false, hasNextPage: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({ statut: '', type: '', start: '', end: '' });
+  const [applied, setApplied] = useState({ statut: '', type: '', start: '', end: '' });
+  const [showFilters, setShowFilters] = useState(false);
+  const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 10 });
+
+  const fetchData = useCallback(async () => {
+    if (!peutVoir) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const data = await inventaireService.search({ ...pagination, ...applied });
+      setPagedData(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination, applied, peutVoir]);
+
+  useEffect(() => {
+    void (async () => { await fetchData(); })();
+  }, [fetchData]);
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+    setApplied(prev => ({ ...prev, start: filters.start, end: filters.end }));
+  };
+
+  const handleReset = () => {
+    const empty = { statut: '', type: '', start: '', end: '' };
+    setFilters(empty);
+    setApplied(empty);
+    setPagination(prev => ({ ...prev, pageIndex: 1 }));
+  };
+
+  const handleDelete = async (id: number) => {
+    const ok = await confirm({ title: 'Supprimer', message: 'Supprimer cet inventaire définitivement ?' });
+    if (!ok) return;
+    try {
+      await inventaireService.delete(id);
+      toast.success('Inventaire supprimé');
+      fetchData();
+    } catch {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const handleValider = async (id: number) => {
+    const ok = await confirm({ title: 'Valider', message: 'Confirmer la validation de l\'inventaire ?' });
+    if (!ok) return;
+    try {
+      await inventaireService.valider(id, 1);
+      toast.success('Inventaire validé');
+      fetchData();
+    } catch {
+      toast.error('Erreur lors de la validation');
+    }
+  };
+
+  const handleCloturer = async (id: number) => {
+    const ok = await confirm({ title: 'Clôturer', message: 'Clôturer définitivement cet inventaire ?' });
+    if (!ok) return;
+    try {
+      await inventaireService.cloturer(id);
+      toast.success('Inventaire clôturé');
+      fetchData();
+    } catch {
+      toast.error('Erreur lors de la clôture');
+    }
+  };
+
+  if (loading) return <SkeletonTable columns={6} rows={8} />;
+
+  return (
+    <RequirePermission permission="PHARMACIE_VOIR">
+    <div className="space-y-6">
+      <PageHeader
+        title="Gestion des Inventaires"
+        subtitle="Suivi et pilotage des stocks de la pharmacie"
+        actions={
+          <>
+            <RefreshButton onRefresh={fetchData} loading={loading} />
+            <Button variant="secondary" icon={<FaFilter />} onClick={() => setShowFilters(!showFilters)}>
+              Filtres
+            </Button>
+            <Can permission="PHARMACIE_GERER">
+            <Button icon={<FaPlus />} onClick={() => navigate('/pharmacie/inventaire/nouveau')}>
+              Nouvel Inventaire
+            </Button>
+            </Can>
+          </>
+        }
+      />
+
+      {showFilters && (
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <FilterPanel>
+            <FilterInput type="datetime-local" value={filters.start} onChange={e => setFilters({ ...filters, start: e.target.value })} />
+            <FilterInput type="datetime-local" value={filters.end} onChange={e => setFilters({ ...filters, end: e.target.value })} />
+            <FilterSelect value={filters.statut} onChange={e => { const statut = e.target.value; setFilters({ ...filters, statut }); setApplied(prev => ({ ...prev, statut })); }}>
+              <option value="">Tous les statuts</option>
+              <option value="En_cours">En cours</option>
+              <option value="Validé">Validé</option>
+              <option value="Clôturé">Clôturé</option>
+            </FilterSelect>
+          </FilterPanel>
+          <div className="mt-4 flex gap-2">
+            <Button icon={<FaSearch size={14} />} onClick={handleSearch}>Rechercher</Button>
+            <Button variant="secondary" onClick={handleReset}>Réinitialiser</Button>
+          </div>
+        </div>
+      )}
+
+      {pagedData.items.length === 0 ? (
+        <EmptyState
+          icon={<FaBoxOpen />}
+          title="Aucun inventaire trouvé"
+          description="Créez un nouvel inventaire pour commencer le suivi des stocks."
+          action={
+            <Can permission="PHARMACIE_GERER">
+            <Button icon={<FaPlus />} onClick={() => navigate('/pharmacie/inventaire/nouveau')}>
+              Nouvel Inventaire
+            </Button>
+            </Can>
+          }
+        />
+      ) : (
+        <TableContainer>
+          <Table>
+            <THead>
+              <tr>
+                <Th>ID</Th>
+                <Th>Date</Th>
+                <Th>Type</Th>
+                <Th>Réalisateur</Th>
+                <Th>Statut</Th>
+                <Th align="center">Actions</Th>
+              </tr>
+            </THead>
+            <TBody>
+              {pagedData.items.map((inv, i) => (
+                <Tr key={inv.idInventaire}>
+                  <Td className="font-semibold text-gray-900">{(pagedData.pageIndex - 1) * pagedData.pageSize + i + 1}</Td>
+                  <Td className="text-gray-600">{format(new Date(inv.dateInventaire), 'dd MMM yyyy, HH:mm')}</Td>
+                  <Td>{inv.typeInventaire}</Td>
+                  <Td>{inv.realisateurNom || '-'}</Td>
+                  <Td>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${statutStyles[inv.statut]}`}>
+                      {inv.statut.toUpperCase()}
+                    </span>
+                  </Td>
+                  <Td className="text-center">
+                    <div className="flex justify-center gap-2">
+                      <IconButton color="gray" title="Voir" onClick={() => navigate(`/pharmacie/inventaire/${inv.idInventaire}`)}>
+                        <FaEye size={14} />
+                      </IconButton>
+                      <IconButton color="indigo" title="Imprimer le PV" onClick={() => navigate(`/pharmacie/inventaire/${inv.idInventaire}/impression`)}>
+                        <FaPrint size={14} />
+                      </IconButton>
+                      <Can permission="PHARMACIE_GERER">
+                      {inv.statut === 'En_cours' && (
+                        <IconButton color="green" title="Valider" onClick={() => handleValider(inv.idInventaire)}>
+                          <FaCheckCircle size={14} />
+                        </IconButton>
+                      )}
+                      {inv.statut === 'Validé' && (
+                        <IconButton color="blue" title="Clôturer" onClick={() => handleCloturer(inv.idInventaire)}>
+                          <FaClipboardCheck size={14} />
+                        </IconButton>
+                      )}
+                      <IconButton color="red" title="Supprimer" onClick={() => handleDelete(inv.idInventaire)}>
+                        <FaTrash size={14} />
+                      </IconButton>
+                      </Can>
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+          {pagedData.totalPages > 1 && (
+            <Pagination
+              pageIndex={pagedData.pageIndex}
+              totalPages={pagedData.totalPages}
+              onPageChange={(p) => setPagination({ ...pagination, pageIndex: p })}
+            />
+          )}
+        </TableContainer>
+      )}
+    </div>
+    </RequirePermission>
+  );
+}

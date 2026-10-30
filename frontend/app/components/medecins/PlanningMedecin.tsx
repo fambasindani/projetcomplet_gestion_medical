@@ -208,7 +208,7 @@ const PlanningMedecin: React.FC = () => {
                         <IconButton
                           color="indigo"
                           title="Voir consultation"
-                          onClick={() => window.location.href = `/consultations/${rdv.idConsultation}`}
+                          onClick={() => window.location.href = `/medical/consultations/${rdv.idConsultation}`}
                         >
                           <FaStethoscope size={14} />
                         </IconButton>

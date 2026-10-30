@@ -53,6 +53,16 @@ public class HospitalisationController {
             @RequestParam(defaultValue = "1") int pageIndex,
             @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
+        // Un médecin ne voit que ses hospitalisations.
+        Integer filtreMedecin = currentUserService.filtreMedecinId();
+        if (filtreMedecin != null) {
+            if (filtreMedecin == -1) {
+                return ResponseEntity.ok(PagedResponse.of(Page.empty(pageable)));
+            }
+            return ResponseEntity.ok(PagedResponse.of(
+                    service.searchForMedecin(statut, idPatient, dateStart, dateEnd, filtreMedecin, pageable)));
+        }
+        // Un infirmier ne voit que les hospitalisations de son service.
         Integer filtreService = currentUserService.filtreServiceInfirmierId();
         if (filtreService != null) {
             if (filtreService == -1) {

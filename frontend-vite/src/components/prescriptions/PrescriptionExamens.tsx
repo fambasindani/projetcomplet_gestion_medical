@@ -1,0 +1,199 @@
+﻿// app/prescriptions/examens/[id]/page.tsx
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { format } from 'date-fns';
+import { toast } from '@/utils/toast';
+import { FaPlus, FaTrash, FaEye, FaPrint, FaArrowLeft, FaFlask, FaClipboardList, FaUserInjured, FaUserMd } from 'react-icons/fa';
+import { useConfirm } from 'react-use-confirming-dialog';
+import { examenService } from '@/services/examenService';
+import { prescriptionService } from '@/services/prescriptionService';
+import SkeletonTable from '@/ui/SkeletonTable';
+import PageShell from '@/ui/PageShell';
+import EmptyState from '@/ui/EmptyState';
+import { InfoGrid, InfoCard } from '@/ui/InfoCard';
+import Button, { IconButton } from '@/ui/Button';
+import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
+import Can from '@/components/common/Can';
+import RequirePermission from '@/components/common/RequirePermission';
+import { Link } from 'react-router-dom';
+import type { Examen } from '@/types/examen';
+import type { Prescription } from '@/types/prescription';
+
+const statutColors: Record<string, string> = {
+  Prescrit: 'bg-yellow-100 text-yellow-800',
+  Planifié: 'bg-blue-100 text-blue-800',
+  Réalisé: 'bg-green-100 text-green-800',
+  Validé: 'bg-indigo-100 text-indigo-800',
+  Annulé: 'bg-red-100 text-red-800',
+};
+
+export default function PrescriptionExamens() {
+  const navigate = useNavigate();
+  const params = useParams();
+  const id = params.id as string;
+  const prescriptionId = Number(id);
+
+  const confirm = useConfirm();
+  const [examens, setExamens] = useState<Examen[]>([]);
+  const [prescription, setPrescription] = useState<Prescription | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    if (!id || isNaN(prescriptionId) || prescriptionId <= 0) {
+      toast.error('ID de prescription invalide');
+      navigate('/prescriptions');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const [examensData, prescriptionData] = await Promise.all([
+        examenService.getByPrescription(prescriptionId),
+        prescriptionService.getById(prescriptionId),
+      ]);
+      setExamens(examensData);
+      setPrescription(prescriptionData);
+    } catch {
+      console.error('Chargement échoué');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, prescriptionId, navigate]);
+
+  useEffect(() => {
+    void (async () => { await fetchData(); })();
+  }, [fetchData]);
+
+  const handleDelete = async (examen: Examen) => {
+    const ok = await confirm({
+      title: 'Supprimer',
+      message: `Supprimer l'examen ${examen.numeroExamen} ?`,
+    });
+    if (!ok) return;
+    try {
+      await examenService.delete(examen.idExamen);
+      toast.success('Examen supprimé');
+      fetchData();
+    } catch {
+      toast.error('Erreur');
+    }
+  };
+
+  if (loading) return <SkeletonTable columns={6} rows={8} />;
+  if (!prescription) return <div className="p-6 text-center">Prescription non trouvée</div>;
+
+  return (
+    <RequirePermission permission="PRESCRIPTIONS_VOIR">
+    <PageShell
+      title="Examens de la prescription"
+      subtitle={
+        <span>
+          Prescription n° {prescription.numeroPrescription} – {prescription.patientNom} {prescription.patientPrenom}
+        </span>
+      }
+      maxWidth="max-w-6xl"
+      onBack={() => navigate('/prescriptions')}
+      backLabel="Retour aux prescriptions"
+      actions={
+        <>
+          <Link to={`/prescriptions/${prescriptionId}/soins`}>
+            <Button variant="secondary">Voir les soins</Button>
+          </Link>
+          <Can permission="PRESCRIPTIONS_GERER">
+            <Link to={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
+              <Button icon={<FaPlus />}>Ajouter un examen</Button>
+            </Link>
+          </Can>
+        </>
+      }
+    >
+
+      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+        <InfoGrid>
+          <InfoCard icon={FaClipboardList} label="N° prescription" value={prescription.numeroPrescription} />
+          <InfoCard icon={FaUserInjured} label="Patient" value={`${prescription.patientNom} ${prescription.patientPrenom}`} />
+          <InfoCard icon={FaUserMd} label="Médecin" value={`Dr. ${prescription.medecinNom} ${prescription.medecinPrenom}`} />
+        </InfoGrid>
+      </div>
+
+      {examens.length === 0 ? (
+        <EmptyState
+          icon={<FaFlask />}
+          title="Aucun examen associé"
+          description="Aucun examen associé à cette prescription."
+          action={
+            <Can permission="PRESCRIPTIONS_GERER">
+              <Link to={`/examens/nouveau?prescriptionId=${prescriptionId}`}>
+                <Button icon={<FaPlus />}>Ajouter un examen</Button>
+              </Link>
+            </Can>
+          }
+        />
+      ) : (
+        <TableContainer>
+          <Table>
+            <THead>
+              <tr>
+                <Th>N° Examen</Th>
+                <Th>Type</Th>
+                <Th>Catégorie</Th>
+                <Th>Statut</Th>
+                <Th>Date prescription</Th>
+                <Th align="center">Actions</Th>
+              </tr>
+            </THead>
+            <TBody>
+              {examens.map((ex) => (
+                <Tr key={ex.idExamen}>
+                  <Td className="whitespace-nowrap">
+                    <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                      {ex.numeroExamen}
+                    </span>
+                  </Td>
+                  <Td className="whitespace-nowrap">{ex.typeExamen}</Td>
+                  <Td className="whitespace-nowrap">{ex.libelleCategorie}</Td>
+                  <Td className="whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statutColors[ex.statut] || 'bg-gray-100 text-gray-800'}`}>
+                      {ex.statut}
+                    </span>
+                  </Td>
+                  <Td className="whitespace-nowrap">
+                    {format(new Date(ex.datePrescription), 'dd/MM/yyyy')}
+                  </Td>
+                  <Td className="whitespace-nowrap text-center">
+                    <div className="flex justify-center gap-2">
+                      <IconButton
+                        color="gray"
+                        title="Voir détails"
+                        onClick={() => navigate(`/examens/details/${ex.idExamen}`)}
+                      >
+                        <FaEye size={14} />
+                      </IconButton>
+                      <IconButton
+                        color="green"
+                        title="Imprimer"
+                        onClick={() => navigate(`/examens/${ex.idExamen}/impression`)}
+                      >
+                        <FaPrint size={14} />
+                      </IconButton>
+                      <Can permission="PRESCRIPTIONS_GERER">
+                        <IconButton color="red" title="Supprimer" onClick={() => handleDelete(ex)}>
+                          <FaTrash size={14} />
+                        </IconButton>
+                      </Can>
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      <Button variant="ghost" icon={<FaArrowLeft />} onClick={() => navigate('/prescriptions')}>
+        Retour aux prescriptions
+      </Button>
+    </PageShell>
+    </RequirePermission>
+  );
+}
