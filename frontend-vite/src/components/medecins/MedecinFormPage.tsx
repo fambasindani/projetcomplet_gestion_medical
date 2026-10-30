@@ -171,6 +171,8 @@ const MedecinFormPage: React.FC = () => {
       newErrors.salaire = 'Le salaire est requis';
     if (formData.disponibilite === undefined || formData.disponibilite === null)
       newErrors.disponibilite = 'La disponibilité est requise';
+    if (!formData.idSpecialite || formData.idSpecialite === 0)
+      newErrors.idSpecialite = 'La spécialité est requise';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -366,6 +368,7 @@ const MedecinFormPage: React.FC = () => {
                   name="idSpecialite"
                   value={formData.idSpecialite ?? ''}
                   onChange={handleChange}
+                  required
                   options={[
                     { value: '', label: 'Sélectionner' },
                     ...specialites.map((spec) => ({

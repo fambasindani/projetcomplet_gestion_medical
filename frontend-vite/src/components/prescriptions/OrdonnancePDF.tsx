@@ -1,4 +1,5 @@
 ﻿import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { PdfLogoDgrad } from '@/ui/PdfLogoDgrad';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Prescription } from '@/types/prescription';
@@ -68,6 +69,7 @@ export default function OrdonnancePDF({ prescription }: Props) {
       <Page size="A4" style={styles.page}>
         {/* En-tête */}
         <View style={styles.header}>
+          <PdfLogoDgrad width={60} height={60} />
           <Text style={styles.title}>ORDONNANCE MÉDICALE</Text>
           <Text style={styles.subtitle}>Dr. {prescription.medecinNom} {prescription.medecinPrenom}</Text>
           <Text style={styles.subtitle}>Prescription n° {prescription.numeroPrescription}</Text>

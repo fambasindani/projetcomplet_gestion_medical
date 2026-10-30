@@ -1,4 +1,5 @@
 ﻿import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { PdfLogoDgrad } from '@/ui/PdfLogoDgrad';
 import { Examen } from '@/types/examen';
 
 interface ExamensPDFProps {
@@ -99,6 +100,7 @@ export default function ExamensPDF({ examens, titre, patientNom, patientPrenom, 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <PdfLogoDgrad width={56} height={56} />
         <Text style={styles.title}>{finalTitre}</Text>
         <Text style={styles.header}>Patient : {patientNom || ''} {patientPrenom || ''}</Text>
         {medecinNom && <Text style={styles.header}>Médecin prescripteur : Dr. {medecinNom} {medecinPrenom || ''}</Text>}

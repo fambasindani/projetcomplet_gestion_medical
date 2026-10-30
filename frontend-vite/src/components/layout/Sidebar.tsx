@@ -345,13 +345,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
       <aside className={sidebarClasses}>
         <div className={`flex h-16 shrink-0 items-center border-b border-[#1e293b] px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
-              <FaHospital className="text-lg text-white" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white overflow-hidden">
+              <img src="/Logo.png" alt="DGRAD" className="h-7 w-7 object-contain" />
             </div>
             {!isCollapsed && (
               <div className="truncate">
-                <span className="block text-sm font-bold leading-tight">Hôpital</span>
-                <span className="block text-[11px] leading-tight text-[#94a3b8]">Saint-Luc</span>
+                <span className="block text-sm font-bold leading-tight">DGRAD</span>
+                <span className="block text-[11px] leading-tight text-[#94a3b8]">Direction Générale</span>
               </div>
             )}
           </div>

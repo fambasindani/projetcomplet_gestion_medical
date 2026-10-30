@@ -1,4 +1,5 @@
 ﻿import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { PdfLogoDgrad } from '@/ui/PdfLogoDgrad';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Facture, StatutFactureLabels } from '@/types/facture';
@@ -145,6 +146,7 @@ export default function FacturePDF({ facture, etablissement }: Props) {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
+            <PdfLogoDgrad width={60} height={60} />
             <Text style={styles.title}>{nomEtablissement}</Text>
             <Text style={styles.subtitle}>{adresseEtablissement}</Text>
             {telephoneEtablissement && (

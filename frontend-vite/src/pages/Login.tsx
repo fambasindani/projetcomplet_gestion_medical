@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  FaHospital, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaShieldAlt, FaExclamationCircle,
+  FaEnvelope, FaLock, FaEye, FaEyeSlash, FaShieldAlt, FaExclamationCircle,
   FaCheckCircle, FaUserShield, FaArrowRight, FaSun, FaMoon, FaGlobe, FaCheck,
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
@@ -143,8 +143,8 @@ export default function Login() {
           }}
         />
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="relative flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-lg shadow-indigo-900/40">
-            <FaHospital size={20} />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white overflow-hidden ring-1 ring-slate-200 shadow-sm">
+            <img src="/Logo.png" alt="DGRAD" className="h-9 w-9 object-contain" />
           </div>
           <div>
             <p className="text-base font-bold leading-tight">{t('login.brand.name')}</p>
@@ -190,8 +190,8 @@ export default function Login() {
           className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-slate-900/5 sm:p-10"
         >
           <div className="flex flex-col items-center">
-            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg shadow-indigo-500/30 lg:hidden">
-              <FaHospital size={22} />
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden lg:hidden">
+              <img src="/Logo.png" alt="DGRAD" className="h-11 w-11 object-contain" />
             </div>
             <p className="text-sm text-slate-500">{t('login.subtitle')}</p>
           </div>

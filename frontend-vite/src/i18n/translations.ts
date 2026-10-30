@@ -9,7 +9,7 @@ const fr = {
   'login.submit': 'Se connecter',
   'login.loading': 'Connexion...',
   'login.brand.subtitle': 'Gestion hospitalière',
-  'login.brand.name': 'Hôpital Saint-Luc',
+  'login.brand.name': 'Centre Hospitalier',
   'login.hero.title': 'La plateforme des équipes de santé',
   'login.hero.text':
     'Pilotez patients, consultations, pharmacie et facturation depuis un espace unique, sécurisé et pensé pour le terrain.',
@@ -131,7 +131,7 @@ const en: Record<keyof typeof fr, string> = {
   'login.submit': 'Sign in',
   'login.loading': 'Signing in...',
   'login.brand.subtitle': 'Hospital management',
-  'login.brand.name': 'Saint-Luc Hospital',
+  'login.brand.name': 'Centre Hospitalier',
   'login.hero.title': 'The platform for healthcare teams',
   'login.hero.text':
     'Manage patients, consultations, pharmacy and billing from a single, secure and field-ready workspace.',

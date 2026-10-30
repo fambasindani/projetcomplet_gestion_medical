@@ -33,8 +33,8 @@ api.interceptors.response.use(
         if (!redirectingToLogin) {
           redirectingToLogin = true;
           const current = window.location.pathname;
-          if (!current.startsWith('/medical/login')) {
-            window.location.href = '/medical/login?redirect=' + encodeURIComponent(current);
+          if (!current.startsWith('/login')) {
+            window.location.href = '/login?redirect=' + encodeURIComponent(current);
           }
           setTimeout(() => { redirectingToLogin = false; }, 1000);
         }

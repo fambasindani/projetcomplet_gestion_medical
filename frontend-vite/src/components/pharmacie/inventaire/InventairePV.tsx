@@ -1,4 +1,5 @@
 ﻿import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { PdfLogoDgrad } from '@/ui/PdfLogoDgrad';
 import type { Inventaire, LigneInventaire } from '@/types/inventaire';
 
 interface InventairePVProps {
@@ -50,7 +51,8 @@ export default function InventairePV({ inventaire }: InventairePVProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.etablissement}>Hôpital Saint-Luc</Text>
+          <PdfLogoDgrad width={56} height={56} />
+          <Text style={styles.etablissement}>Centre Hospitalier</Text>
           <Text style={styles.sousTitre}>Service Pharmacie</Text>
         </View>
 
