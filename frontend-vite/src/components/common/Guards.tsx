@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
+import { toast } from '../../utils/toast';
 
 // Route protégée : redirige vers /login si non authentifié.
 export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -20,8 +21,9 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
   return <>{children}</>;
 };
 
-// Garde de permission : affiche un état "accès refusé" si l'utilisateur
-// ne possède pas la permission demandée (ou une des anyPermission).
+// Garde de permission : si l'utilisateur ne possède pas la permission
+// demandée (ou aucune des anyPermission), on le renvoie vers le tableau
+// de bord avec une alerte (comme côté Next.js).
 export const RequirePermission: React.FC<{
   permission?: string;
   anyPermission?: string[];
@@ -41,12 +43,16 @@ export const RequirePermission: React.FC<{
     return true;
   };
 
-  if (!allowed()) {
-    return fallback ?? (
-      <div className="flex flex-col items-center justify-center gap-2 py-20 text-center">
-        <p className="text-sm text-slate-500">Accès refusé : permission insuffisante.</p>
-      </div>
-    );
+  const denied = !!user && !allowed();
+
+  useEffect(() => {
+    if (denied) toast.error("Vous n'avez pas les droits pour accéder à cette section");
+  }, [denied]);
+
+  if (!user) return null;
+  if (denied) {
+    if (fallback !== undefined) return <>{fallback}</>;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

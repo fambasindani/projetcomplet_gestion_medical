@@ -26,6 +26,7 @@ import { examenService } from '@/services/examenService';
 import type { Examen } from '@/types/examen';
 import { useAuth } from '@/contexts/AuthContext';
 import { peutModifier } from '@/utils/permissions';
+import { usePermission } from '@/hooks/usePermission';
 import SkeletonDetails from '@/ui/SkeletonDetails';
 import PageShell from '@/ui/PageShell';
 import DetailBanner from '@/ui/DetailBanner';
@@ -54,16 +55,27 @@ export default function ExamenDetails() {
   const navigate = useNavigate();
   const confirm = useConfirm();
   const { user, hasPermission } = useAuth();
+  const { allowed: peutVoir } = usePermission('EXAMENS_VOIR');
   const [examen, setExamen] = useState<Examen | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Sans la permission EXAMENS_VOIR : on renvoie vers le tableau de bord
+  // (l'API renverrait 403, la page afficherait « Examen non trouvé » sinon).
   useEffect(() => {
+    if (!peutVoir) {
+      toast.error("Vous n'avez pas les droits pour accéder à cette section");
+      navigate('/dashboard', { replace: true });
+    }
+  }, [peutVoir, navigate]);
+
+  useEffect(() => {
+    if (!peutVoir) return;
     examenService
       .getById(Number(id))
       .then(setExamen)
       .catch(() => console.error('Chargement echoue'))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, peutVoir]);
 
   const handleDelete = async () => {
     const ok = await confirm({
@@ -80,6 +92,7 @@ export default function ExamenDetails() {
     }
   };
 
+  if (!peutVoir) return null; // redirection en cours vers /dashboard
   if (loading) return <SkeletonDetails />;
   if (!examen) return <div className="p-6 text-center">Examen non trouvé</div>;
 
