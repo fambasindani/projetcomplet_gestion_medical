@@ -22,6 +22,19 @@ html.dark {
   --color-slate-700: #cbd5e1;
   --color-slate-800: #e2e8f0;
   --color-slate-900: #f1f5f9;
+
+  /* Même inversion pour la palette "gray", utilisée par certains composants
+     (ex. SelectionModal) : sans cela, text-gray-800 reste foncé sur fond sombre. */
+  --color-gray-50: #0f172a;
+  --color-gray-100: #1e293b;
+  --color-gray-200: #334155;
+  --color-gray-300: #475569;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #94a3b8;
+  --color-gray-600: #a5b4c9;
+  --color-gray-700: #cbd5e1;
+  --color-gray-800: #e2e8f0;
+  --color-gray-900: #f1f5f9;
 }
 
 html {
