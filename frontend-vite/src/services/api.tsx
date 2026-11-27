@@ -1,6 +1,7 @@
 // services/api.ts
 import axios from 'axios';
 import { toast } from '@/utils/toast';
+import { BASE_PATH } from '@/utils/basePath';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -33,8 +34,12 @@ api.interceptors.response.use(
         if (!redirectingToLogin) {
           redirectingToLogin = true;
           const current = window.location.pathname;
-          if (!current.startsWith('/login')) {
-            window.location.href = '/login?redirect=' + encodeURIComponent(current);
+          // Retirer le prefixe /med pour obtenir le chemin du routeur React
+          const relative = BASE_PATH && current.startsWith(BASE_PATH)
+            ? current.slice(BASE_PATH.length) || '/'
+            : current;
+          if (!relative.startsWith('/login')) {
+            window.location.href = `${import.meta.env.BASE_URL}login?redirect=` + encodeURIComponent(relative);
           }
           setTimeout(() => { redirectingToLogin = false; }, 1000);
         }

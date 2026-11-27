@@ -1,10 +1,10 @@
-﻿// app/hospitalisations/[id]/constantes/page.tsx
+// app/hospitalisations/[id]/constantes/page.tsx
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from '@/utils/toast';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import Pagination from '@/ui/Pagination';
 import SkeletonTable from '@/ui/SkeletonTable';
 import PageShell from '@/ui/PageShell';

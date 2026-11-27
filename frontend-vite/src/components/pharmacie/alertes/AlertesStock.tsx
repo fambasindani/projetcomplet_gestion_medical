@@ -1,8 +1,8 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { toast } from '@/utils/toast';
 import { FaFilter, FaCheckCircle, FaTrash, FaSync, FaExclamationTriangle } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { alerteStockService } from '@/services/alerteStockService';
 import Pagination from '@/ui/Pagination';
 import SkeletonTable from '@/ui/SkeletonTable';

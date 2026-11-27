@@ -1,10 +1,10 @@
-﻿// app/prescriptions/examens/[id]/page.tsx
+// app/prescriptions/examens/[id]/page.tsx
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from '@/utils/toast';
 import { FaPlus, FaTrash, FaEye, FaPrint, FaArrowLeft, FaFlask, FaClipboardList, FaUserInjured, FaUserMd } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { examenService } from '@/services/examenService';
 import { prescriptionService } from '@/services/prescriptionService';
 import SkeletonTable from '@/ui/SkeletonTable';

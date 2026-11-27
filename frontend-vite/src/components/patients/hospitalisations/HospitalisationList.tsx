@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { format } from 'date-fns';
 import {
   FaHospitalUser, FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaHeartbeat, FaSearch

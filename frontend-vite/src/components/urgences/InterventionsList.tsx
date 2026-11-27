@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import { FaFilter, FaPlus, FaSyringe, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
@@ -10,7 +10,7 @@ import PageHeader from '@/ui/PageHeader';
 import EmptyState from '@/ui/EmptyState';
 import Button, { IconButton } from '@/ui/Button';
 import RefreshButton from '@/ui/RefreshButton';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { FilterPanel, FilterSelect } from '@/ui/FilterControls';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
 import { urgenceService } from '@/services/urgenceService';

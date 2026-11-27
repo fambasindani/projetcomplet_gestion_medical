@@ -10,6 +10,7 @@ import SkeletonCards from '@/ui/SkeletonCards';
 import PageHeader from '@/ui/PageHeader';
 import Card from '@/components/common/Card';
 import { DonutChart } from '@/ui/Charts';
+import { uploadsUrl } from '@/utils/uploads';
 import { Table, THead, Th, TBody, Tr, Td } from '@/ui/Table';
 import type { MedecinStats } from '@/types/medecin';
 
@@ -41,14 +42,7 @@ const STAT_LABELS: Record<string, string> = {
   EnFormation: 'En formation',
 };
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-const BASE_URL = API_URL?.replace('/api', '') || 'http://localhost:7034';
-
-const getImageUrl = (photo: string | null | undefined): string | null => {
-  if (!photo) return null;
-  if (photo.startsWith('/uploads')) return `${BASE_URL}${photo}`;
-  return photo;
-};
+const getImageUrl = (photo: string | null | undefined): string | null => uploadsUrl(photo);
 
 const MedecinStats: React.FC = () => {
   const [loading, setLoading] = useState(true);

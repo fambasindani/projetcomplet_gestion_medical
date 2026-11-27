@@ -1,8 +1,8 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import { FaUserInjured, FaPlus, FaEdit, FaTrash, FaIdCard, FaEnvelope, FaPhone, FaSearch, FaFilter, FaChartBar, FaEye, FaFileMedical } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import Pagination from '@/ui/Pagination';
 import SkeletonTable from '@/ui/SkeletonTable';
 import PageHeader from '@/ui/PageHeader';

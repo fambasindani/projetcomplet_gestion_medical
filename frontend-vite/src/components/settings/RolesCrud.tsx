@@ -1,7 +1,7 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from '@/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaKey, FaShieldAlt } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { rbacService } from '@/services/rbacService';
 import type { PermissionDto, RoleDto } from '@/types/rbac';
 import type { PagedResult } from '@/types/pagination';

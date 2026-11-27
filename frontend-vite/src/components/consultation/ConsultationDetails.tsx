@@ -1,4 +1,4 @@
-﻿// app/consultations/[id]/details/page.tsx
+// app/consultations/[id]/details/page.tsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -11,7 +11,7 @@ import {
   FaEdit,
   FaTrash,
 } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 
 import SkeletonDetails from '@/ui/SkeletonDetails';
 import PageShell from '@/ui/PageShell';

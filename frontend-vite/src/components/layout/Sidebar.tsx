@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { assetUrl } from '@/utils/basePath';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaTachometerAlt, FaUserInjured, FaCalendarCheck, FaPills, FaClipboardList, FaCog,
@@ -346,7 +347,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar, isMobileO
         <div className={`flex h-16 shrink-0 items-center border-b border-[#1e293b] px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white overflow-hidden">
-              <img src="/Logo.png" alt="DGRAD" className="h-7 w-7 object-contain" />
+              <img src={assetUrl('Logo.png')} alt="DGRAD" className="h-7 w-7 object-contain" />
             </div>
             {!isCollapsed && (
               <div className="truncate">

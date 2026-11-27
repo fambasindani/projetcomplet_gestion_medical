@@ -1,10 +1,11 @@
 import { View, Image, StyleSheet } from '@react-pdf/renderer';
+import { assetUrl } from '@/utils/basePath';
 
-const LOGO_SRC = '/Logo.png';
+const LOGO_SRC = assetUrl('Logo.png');
 
 /**
- * En-tête logo DGRAD affiché dans tous les PDF (ordonnances, factures, examens, inventaires).
- * À placer dans la section header d'un Document @react-pdf/renderer.
+ * En-tete logo DGRAD affiche dans tous les PDF (ordonnances, factures, examens, inventaires).
+ * A placer dans la section header d'un Document @react-pdf/renderer.
  */
 export function PdfLogoDgrad({ width = 60, height = 60 }: { width?: number; height?: number }) {
   return (

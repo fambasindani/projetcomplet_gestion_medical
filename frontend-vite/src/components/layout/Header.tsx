@@ -5,6 +5,7 @@ import { FaBars, FaSignOutAlt, FaSun, FaMoon, FaGlobe, FaCheck, FaUserCircle, Fa
 import { useAuth } from '../../contexts/AuthContext';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { Flag } from '../common/Flag';
+import { assetUrl } from '@/utils/basePath';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -57,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           </button>
           <Link to="/dashboard" className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white overflow-hidden ring-1 ring-slate-200">
-              <img src="/Logo.png" alt="DGRAD" className="h-7 w-7 object-contain" />
+              <img src={assetUrl('Logo.png')} alt="DGRAD" className="h-7 w-7 object-contain" />
             </div>
             <div className="hidden sm:block">
               <span className="block text-sm font-bold leading-tight text-slate-900">Centre Hospitalier</span>

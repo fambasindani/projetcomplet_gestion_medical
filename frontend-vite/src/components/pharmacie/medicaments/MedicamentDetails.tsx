@@ -1,11 +1,11 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import {
   FaPills, FaFlask, FaClipboardList, FaDollarSign,
   FaBoxes, FaInfoCircle, FaThermometerHalf, FaEdit
 } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import SkeletonDetails from '@/ui/SkeletonDetails';
 import EmptyState from '@/ui/EmptyState';
 import Button from '@/ui/Button';

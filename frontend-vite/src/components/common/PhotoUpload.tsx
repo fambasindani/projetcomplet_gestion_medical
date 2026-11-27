@@ -9,6 +9,7 @@ import { FaCamera, FaTrash, FaUpload, FaUserMd } from 'react-icons/fa';
 import { toast } from '@/utils/toast';
 import axios from 'axios';
 import api from '@/services/api';
+import { uploadsUrl } from '@/utils/uploads';
 
 interface PhotoUploadProps {
   currentPhoto?: string;
@@ -22,9 +23,6 @@ interface UploadResponse {
   message?: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-const BASE_URL = API_URL.replace('/api', '');
-
 const PhotoUpload: React.FC<PhotoUploadProps> = ({
   currentPhoto,
   onPhotoChange,
@@ -35,13 +33,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const [uploading, setUploading] = useState(false);
   const [tempPreview, setTempPreview] = useState<string | null>(null);
 
-  const getFullImageUrl = (photo: string | null | undefined): string | null => {
-    if (!photo) return null;
-    if (photo.startsWith('blob:')) return photo;
-    if (photo.startsWith('/uploads')) return `${BASE_URL}${photo}`;
-    if (photo.startsWith('http')) return photo;
-    return photo;
-  };
+  const getFullImageUrl = (photo: string | null | undefined): string | null => uploadsUrl(photo);
 
   const previewUrl = useMemo(() => {
     if (tempPreview) return tempPreview;

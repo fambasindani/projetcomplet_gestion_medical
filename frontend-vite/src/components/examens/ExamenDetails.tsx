@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -21,7 +21,7 @@ import {
   FaPlusCircle,
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { examenService } from '@/services/examenService';
 import type { Examen } from '@/types/examen';
 import { useAuth } from '@/contexts/AuthContext';

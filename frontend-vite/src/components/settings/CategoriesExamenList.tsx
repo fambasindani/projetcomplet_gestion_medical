@@ -1,7 +1,7 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from '@/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaSave, FaLink, FaFlask } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { categorieExamenService } from '@/services/categorieExamenService';
 import type { CategorieExamen, Laboratoire } from '@/types/examen';
 import { laboratoireService } from '@/services/laboratoireService';

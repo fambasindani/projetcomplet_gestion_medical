@@ -1,7 +1,7 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from '@/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaFilter, FaSave, FaLayerGroup } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { acteCatalogueService } from '@/services/acteCatalogueService';
 import type { ActeCatalogue, GroupeActe, ActeCatalogueRequest, GroupeActeRequest } from '@/services/acteCatalogueService';
 import type { CategorieActeMedical } from '@/types/facture';

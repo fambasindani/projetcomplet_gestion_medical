@@ -1,10 +1,10 @@
-﻿// components/medecins/MedecinsList.tsx
+// components/medecins/MedecinsList.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import Image from '@/ui/Image';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import { FaUserMd, FaPlus, FaEdit, FaTrash, FaIdCard, FaEnvelope, FaPhone, FaBuilding, FaGraduationCap, FaCheckCircle, FaTimesCircle, FaClock, FaSearch, FaFilter, FaChartBar, FaEye } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import axios from 'axios';
 import { medecinService } from '@/services/medecinService';
 import { specialiteService } from '@/services/specialiteService';
@@ -21,9 +21,7 @@ import EmptyState from '@/ui/EmptyState';
 import { FilterPanel, FilterInput, FilterSelect } from '@/ui/FilterControls';
 import Can from '@/components/common/Can';
 import RequirePermission from '@/components/common/RequirePermission';
-
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-const BASE_URL = API_URL?.replace('/api', '') || 'http://localhost:7034';
+import { uploadsUrl } from '@/utils/uploads';
 
 const MedecinsList: React.FC = () => {
   const navigate = useNavigate();
@@ -41,13 +39,7 @@ const MedecinsList: React.FC = () => {
   const [paginationParams, setPaginationParams] = useState({ pageIndex: 1, pageSize: 10 });
 
   // ========== FONCTIONS DÉFINIES AVANT LE useEffect ==========
-  const getImageUrl = (medecin: Medecin) => {
-    if (!medecin.photo) return null;
-    if (medecin.photo.startsWith('blob:')) return medecin.photo;
-    if (medecin.photo.startsWith('/uploads')) return `${BASE_URL}${medecin.photo}`;
-    if (medecin.photo.startsWith('http')) return medecin.photo;
-    return medecin.photo;
-  };
+  const getImageUrl = (medecin: Medecin) => uploadsUrl(medecin.photo);
 
   const getSpecialiteName = (medecin: Medecin): string | null => {
     if (!medecin.idSpecialite) return null;

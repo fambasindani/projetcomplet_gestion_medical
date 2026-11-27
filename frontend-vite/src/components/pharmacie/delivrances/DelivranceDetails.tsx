@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from '@/utils/toast';
@@ -6,7 +6,7 @@ import {
   FaPills, FaUser, FaUserMd, FaCalendarAlt,
   FaFileAlt, FaTrash, FaPrint, FaEdit
 } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import SkeletonDetails from '@/ui/SkeletonDetails';
 import EmptyState from '@/ui/EmptyState';
 import PageShell from '@/ui/PageShell';

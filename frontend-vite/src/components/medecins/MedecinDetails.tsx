@@ -21,17 +21,10 @@ import SkeletonDetails from '@/ui/SkeletonDetails';
 import PageShell from '@/ui/PageShell';
 import Button from '@/ui/Button';
 import { TableContainer, Table, THead, Th, TBody, Tr, Td } from '@/ui/Table';
-
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-const BASE_URL = API_URL?.replace('/api', '') || 'http://localhost:7035';
+import { uploadsUrl } from '@/utils/uploads';
 
 // Helpers
-const getImageUrl = (photo?: string | null): string | null => {
-  if (!photo) return null;
-  if (photo.startsWith('http') || photo.startsWith('blob:')) return photo;
-  if (photo.startsWith('/uploads')) return `${BASE_URL}${photo}`;
-  return photo;
-};
+const getImageUrl = (photo?: string | null): string | null => uploadsUrl(photo);
 
 const DISPO_COLORS: Record<string, string> = {
   Disponible: '#10b981',

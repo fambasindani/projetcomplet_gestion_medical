@@ -1,9 +1,9 @@
-﻿// app/pharmacie/fournisseurs/page.tsx
+// app/pharmacie/fournisseurs/page.tsx
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaBuilding, FaSearch } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import Pagination from '@/ui/Pagination';
 import SkeletonTable from '@/ui/SkeletonTable';
 import PageHeader from '@/ui/PageHeader';

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { ConfirmProvider } from 'react-use-confirming-dialog';
+import { ConfirmProvider } from '@/components/common/ConfirmDialog';
+import { BASE_PATH } from './utils/basePath';
 import { AppSettingsProvider } from './contexts/AppSettingsContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/common/Guards';
@@ -176,7 +177,7 @@ export default function App() {
   return (
     <AppSettingsProvider>
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={BASE_PATH || '/'}>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route

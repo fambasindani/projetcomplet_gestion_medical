@@ -10,6 +10,7 @@ import PageHeader from '@/ui/PageHeader';
 import EmptyState from '@/ui/EmptyState';
 import { FilterPanel, FilterInput } from '@/ui/FilterControls';
 import { RendezVous } from '@/types/planningService';
+import { appUrl } from '@/utils/basePath';
 import { planningService } from '@/services/planningService';
 import { FormSelect } from '../common/FormSelect';
 import Can from '@/components/common/Can';
@@ -206,7 +207,7 @@ const PlanningMedecin: React.FC = () => {
                         <IconButton
                           color="indigo"
                           title="Voir consultation"
-                          onClick={() => window.location.href = `/consultations/${rdv.idConsultation}`}
+                          onClick={() => window.location.href = appUrl(`/consultations/${rdv.idConsultation}`)}
                         >
                           <FaStethoscope size={14} />
                         </IconButton>

@@ -1,4 +1,4 @@
-﻿import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import { format } from 'date-fns';
@@ -15,7 +15,7 @@ import {
   FaPrint,
   FaTimes,
 } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 
 import SkeletonDetails from '@/ui/SkeletonDetails';
 import PageShell from '@/ui/PageShell';

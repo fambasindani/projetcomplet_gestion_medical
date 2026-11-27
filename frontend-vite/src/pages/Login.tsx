@@ -10,6 +10,7 @@ import { useAppSettings } from '../contexts/AppSettingsContext';
 import { Flag } from '../components/common/Flag';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { assetUrl } from '@/utils/basePath';
 
 const REMEMBER_KEY = 'remember_email';
 
@@ -144,7 +145,7 @@ export default function Login() {
         />
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="relative flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white overflow-hidden ring-1 ring-slate-200 shadow-sm">
-            <img src="/Logo.png" alt="DGRAD" className="h-9 w-9 object-contain" />
+            <img src={assetUrl('Logo.png')} alt="DGRAD" className="h-9 w-9 object-contain" />
           </div>
           <div>
             <p className="text-base font-bold leading-tight">{t('login.brand.name')}</p>
@@ -191,7 +192,7 @@ export default function Login() {
         >
           <div className="flex flex-col items-center">
             <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm overflow-hidden lg:hidden">
-              <img src="/Logo.png" alt="DGRAD" className="h-11 w-11 object-contain" />
+              <img src={assetUrl('Logo.png')} alt="DGRAD" className="h-11 w-11 object-contain" />
             </div>
             <p className="text-sm text-slate-500">{t('login.subtitle')}</p>
           </div>

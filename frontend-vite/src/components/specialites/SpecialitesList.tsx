@@ -1,9 +1,9 @@
-﻿// app/specialites/page.tsx (ou components/specialites/SpecialitesList.tsx)
+// app/specialites/page.tsx (ou components/specialites/SpecialitesList.tsx)
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import { FaEdit, FaTrash, FaPlus, FaTag, FaUserTie, FaPhone, FaEnvelope, FaCheckCircle, FaTimesCircle, FaEye, FaChartBar, FaArrowLeft } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { specialiteService } from '@/services/specialiteService';
 import { extractErrorMessage } from '@/utils/extractErrorMessage';
 import { PagedResult } from '@/types/pagination';

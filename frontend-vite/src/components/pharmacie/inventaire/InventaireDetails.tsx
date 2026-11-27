@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from '@/utils/toast';
@@ -13,7 +13,7 @@ import Button from '@/ui/Button';
 import DetailBanner from '@/ui/DetailBanner';
 import { InfoCard, InfoGrid } from '@/ui/InfoCard';
 import { TableContainer, Table, THead, TBody, Tr, Th, Td } from '@/ui/Table';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 
 export default function InventaireDetails() {
   const { id } = useParams();

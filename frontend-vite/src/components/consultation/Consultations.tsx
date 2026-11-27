@@ -1,9 +1,9 @@
-﻿// app/components/consultation/ConsultationList.tsx
+// app/components/consultation/ConsultationList.tsx
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import { FaStethoscope, FaPlus, FaEdit, FaTrash, FaEye, FaSearch, FaUserMd, FaUser } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import Pagination from '@/ui/Pagination';
 import SkeletonTable from '@/ui/SkeletonTable';
 import PageHeader from '@/ui/PageHeader';

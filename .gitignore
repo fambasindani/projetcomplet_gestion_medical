@@ -6,3 +6,9 @@ actions-runner/
 
 .env
 !.env.example
+
+# Paquets de deploiement et interface compilee dans le jar
+/dist/
+/uploads/
+bakend/src/main/resources/static/*
+!bakend/src/main/resources/static/.gitkeep

@@ -1,9 +1,9 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from '@/utils/toast';
 import { FaFilter, FaEye, FaEdit, FaTrash, FaBan, FaUserNurse, FaFlask, FaPlus, FaFilePrescription, FaSearch } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import Pagination from '@/ui/Pagination';
 import SkeletonTable from '@/ui/SkeletonTable';
 import PageHeader from '@/ui/PageHeader';

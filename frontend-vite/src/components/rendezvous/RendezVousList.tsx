@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/utils/toast';
 import {
@@ -13,7 +13,7 @@ import {
   FaSearch,
 } from 'react-icons/fa';
 
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

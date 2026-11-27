@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from '@/utils/toast';
 import { FaCalendarCheck, FaPlus, FaTrash } from 'react-icons/fa';
-import { useConfirm } from 'react-use-confirming-dialog';
+import { useConfirm } from '@/components/common/ConfirmDialog';
 import { patientPortalService, type MonRdv } from '@/services/patientPortalService';
 import type { PagedResult } from '@/types/pagination';
 import Pagination from '@/ui/Pagination';

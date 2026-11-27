@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -216,6 +217,13 @@ public class SecurityConfig {
 
                         // ===== UPLOAD =====
                         .requestMatchers("/api/upload/**").authenticated()
+
+                        // ===== APPLICATION REACT (SPA servie par le meme port) =====
+                        // Tout ce qui n'est pas sous /api est public : index.html,
+                        // /assets/**, /Logo.png et les routes du routeur React.
+                        // Les regles /api/** ci-dessus restent prioritaires.
+                        .requestMatchers((RequestMatcher) request ->
+                                !request.getRequestURI().startsWith("/api/")).permitAll()
 
                         .anyRequest().authenticated()
                 )

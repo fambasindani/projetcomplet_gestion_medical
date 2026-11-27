@@ -1,0 +1,234 @@
+﻿==============================================================
+  GS-HOPITAL - APPLICATION DE GESTION HOSPITALIERE
+  Spring Boot + interface React / service Windows
+  Installateur autonome - version 1.0
+==============================================================
+
+Ce dossier permet d'installer l'application hospitaliere sur un
+serveur Windows, sans connexion Internet et sans installer d'autre
+logiciel que ceux listes ci-dessous. L'application est enregistree
+comme service Windows : elle demarre automatiquement au boot et
+redemarre seule apres un arret inattendu.
+
+L'application et l'API sont servies sur UNE SEULE adresse, par
+exemple :  http://192.168.88.115:7035/med
+
+--------------------------------------------------------------
+1. CONTENU DU DOSSIER
+--------------------------------------------------------------
+
+  Installer-GS-Hopital.cmd      Double-clic pour installer
+  Desinstaller-GS-Hopital.cmd   Double-clic pour desinstaller
+  installer.ps1                 Script d'installation (lisible, modifiable)
+  uninstall.ps1                 Script de desinstallation
+  app.jar                       L'application : API + interface web
+  config\application-prod.properties   Configuration a verifier
+  tools\nssm\nssm.exe           Outil qui transforme le jar en service
+  LISEZ-MOI.txt                 Ce fichier
+
+A l'installation, nssm.exe est recopie dans
+C:\apps\gs-hopital\tools\nssm\nssm.exe : c'est cette copie qui
+heberge le service. Le dossier livre ne sert plus apres
+l'installation et peut etre deplace ou supprime sans casser le
+service.
+
+--------------------------------------------------------------
+2. PREREQUIS (a verifier AVANT l'installation)
+--------------------------------------------------------------
+
+  [ ] Java 21 installe (JDK ou JRE, Eclipse Adoptium recommande).
+      Java 22, 23, 24 ou 25 convient aussi : le jar est compile
+      pour Java 21 et reste compatible avec les versions suivantes.
+      Verification : ouvrir une console et taper
+          java -version
+      La version majeure doit etre 21 ou superieure.
+
+  [ ] SQL Server installe et demarre, avec la base
+      "GestionHospitaliereDB" restauree depuis la sauvegarde
+      (.bak) de la machine source.
+      La base et le dossier uploads\ doivent provenir de la meme
+      sauvegarde, sinon des photos seront manquantes.
+
+  [ ] Un compte SQL avec les droits sur la base (lecture/ecriture).
+      Le fichier de configuration livre utilise :
+          utilisateur : hopital
+          mot de passe : hopital+1234
+      Modifiez ces valeurs dans config\application-prod.properties
+      si votre serveur utilise un autre compte.
+
+  [ ] Le mode d'authentification "SQL Server et Windows" active
+      dans SQL Server (proprietes du serveur > Securite).
+
+  [ ] Droits administrateur sur le serveur (l'installateur les
+      demande automatiquement via l'invite UAC).
+
+La connexion Internet n'est pas necessaire.
+
+--------------------------------------------------------------
+2 bis. RESTAURATION DE LA BASE (serveur neuf)
+--------------------------------------------------------------
+
+  Le paquet contient database\GestionHospitaliereDB.bak (si la
+  sauvegarde etait presente sur la machine de build).
+
+  Avec SQL Server Management Studio :
+    1. Clic droit sur "Bases de donnees" > Restaurer la base...
+    2. Source : Peripherique > ... > choisir le fichier .bak
+    3. Destination : base GestionHospitaliereDB
+    4. Options > "Remplacer la base existante" si elle existe
+    5. OK
+
+  En ligne de commande (adapter le chemin) :
+    sqlcmd -S localhost -U sa -P <mot_de_passe_sa> -Q "RESTORE DATABASE GestionHospitaliereDB FROM DISK='C:\Temp\GestionHospitaliereDB.bak' WITH REPLACE"
+
+  Verifier ensuite que le compte SQL "hopital" a les droits
+  db_datareader, db_datawriter et db_ddladmin sur la base
+  (db_ddladmin est necessaire pour les mises a jour de schema).
+
+--------------------------------------------------------------
+3. INSTALLATION
+--------------------------------------------------------------
+
+  1) Copier ce dossier sur le serveur, par exemple dans
+     C:\Temp\GS-Hopital
+     (ne pas l'executer depuis une cle USB ou un partage reseau).
+
+  2) Double-cliquer sur  Installer-GS-Hopital.cmd
+     Accepter l'invite UAC "Windows PowerShell".
+
+  3) Configurer la base - DEUX FACONS, au choix.
+
+     A) VOUS VERIFIEZ LE FICHIER (aucune question posee)
+
+        Fichier : config\application-prod.properties
+        Ouvrir avec le Bloc-notes, verifier la base, le compte et
+        le mot de passe SQL, enregistrer, puis double-cliquer sur
+        l'installateur.
+
+        Les valeurs par defaut conviennent a une installation
+        locale (SQL Server sur la meme machine, base
+        GestionHospitaliereDB, compte hopital, port 7035).
+
+     B) VOUS REPONDEZ AUX QUESTIONS
+
+        Effacer (ou renommer) config\application-prod.properties,
+        puis lancer l'installateur : il demande le serveur SQL, la
+        base, l'utilisateur et le mot de passe.
+
+  4) L'installateur :
+        - cree C:\apps\gs-hopital\backend
+        - installe le service "GS-Hopital-Backend"
+        - le demarre automatiquement
+        - ouvre le port 7035 au pare-feu (si vous acceptez)
+        - teste l'API et l'interface web
+
+--------------------------------------------------------------
+4. VERIFICATION
+--------------------------------------------------------------
+
+  Depuis le serveur :
+      http://127.0.0.1:7035/med
+
+  Depuis un autre poste du reseau :
+      http://<adresse-ip-du-serveur>:7035/med
+
+  Compte administrateur initial (si la base vient de la
+  sauvegarde fournie) :
+      famba@gmail.com / 12345678
+
+  En cas d'erreur 500 ou de page blanche, consulter :
+      C:\apps\gs-hopital\backend\logs\backend.log
+      C:\apps\gs-hopital\backend\logs\stderr.log
+
+--------------------------------------------------------------
+5. COMMANDES DU QUOTIDIEN
+--------------------------------------------------------------
+
+  Etat du service :
+      Get-Service GS-Hopital-Backend
+
+  Redemarrer :
+      Restart-Service GS-Hopital-Backend
+
+  Arreter :
+      Stop-Service GS-Hopital-Backend
+
+  Suivre les journaux en direct :
+      Get-Content "C:\apps\gs-hopital\backend\logs\backend.log" -Wait -Tail 50
+
+  Via NSSM (meme resultat) :
+      C:\apps\gs-hopital\tools\nssm\nssm.exe restart GS-Hopital-Backend
+
+--------------------------------------------------------------
+6. MISE A JOUR DE L'APPLICATION
+--------------------------------------------------------------
+
+  La mise a jour remplace uniquement app.jar : la configuration,
+  les journaux et les fichiers uploades sont conserves.
+
+  1) Copier le nouveau paquet sur le serveur
+  2) Double-cliquer sur Installer-GS-Hopital.cmd
+     (le service existant est arrete, recree et redemarre)
+
+  Alternative manuelle :
+      Stop-Service GS-Hopital-Backend
+      copy /Y nouveau-app.jar C:\apps\gs-hopital\backend\app.jar
+      Start-Service GS-Hopital-Backend
+
+--------------------------------------------------------------
+7. DESINSTALLATION
+--------------------------------------------------------------
+
+  Double-cliquer sur Desinstaller-GS-Hopital.cmd
+
+  Par defaut, les fichiers et les donnees (uploads\, config\)
+  sont CONSERVES. Le script propose de tout supprimer.
+
+  Pour tout supprimer sans question :
+      .\uninstall.ps1 -Silent -RemoveData
+
+--------------------------------------------------------------
+8. DEPANNAGE
+--------------------------------------------------------------
+
+  Le service ne demarre pas :
+    - verifier Java 21 : java -version
+    - verifier l'acces SQL Server :
+        Test-NetConnection localhost -Port 1433
+    - verifier le mot de passe dans
+        C:\apps\gs-hopital\backend\config\application-prod.properties
+    - lire logs\stderr.log et logs\backend.log
+
+  L'application s'ouvre mais l'API repond 401/403 :
+    - la base ne contient pas le compte attendu, ou le mot de passe
+      a ete modifie ; utiliser le compte administrateur de la base.
+
+  "Login failed for user 'hopital'" :
+    - le compte SQL n'existe pas, est desactive, ou le mot de passe
+      est different ; recreer le compte dans SQL Server Management
+      Studio avec les droits sur GestionHospitaliereDB.
+
+  "Cannot open database GestionHospitaliereDB" :
+    - la base n'a pas ete restauree sur ce serveur, ou le nom est
+      different.
+
+  Le port 7035 est deja utilise :
+    - arreter l'autre programme, ou relancer l'installateur avec
+      -Port 8080 (et ouvrir ce port au pare-feu).
+
+  Page blanche dans le navigateur :
+    - vider le cache (Ctrl+F5) ; verifier que app.jar est bien le
+      paquet complet fourni (l'interface est incluse dedans).
+
+--------------------------------------------------------------
+9. SECURITE ET SAUVEGARDE
+--------------------------------------------------------------
+
+  - Le fichier config\application-prod.properties contient le mot
+    de passe SQL : ses droits sont restreints aux administrateurs
+    et au compte SYSTEM par l'installateur.
+  - Sauvegarder regulierement :
+        la base GestionHospitaliereDB (SQL Server)
+        le dossier C:\apps\gs-hopital\backend\uploads
+  - Ne pas exposer directement le port 7035 sur Internet :
+    utiliser un VPN ou un reverse proxy (IIS/Apache) avec HTTPS.
